@@ -35,6 +35,7 @@ struct ExportService {
         try FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: recordingsDir, withIntermediateDirectories: true)
 
+        let oposiciones = try modelContext.fetch(FetchDescriptor<Oposicion>())
         let temarios = try modelContext.fetch(FetchDescriptor<Temario>())
         let temas = try modelContext.fetch(FetchDescriptor<Tema>())
         let sesiones = try modelContext.fetch(FetchDescriptor<Sesion>())
@@ -49,6 +50,7 @@ struct ExportService {
             try encoder.encode(valor).write(to: dataDir.appending(path: archivo))
         }
 
+        try escribir(oposiciones.map(OposicionExport.init), en: "oposiciones.json")
         try escribir(temarios.map(TemarioExport.init), en: "temarios.json")
         try escribir(temas.map(TemaExport.init), en: "temas.json")
         try escribir(sesiones.map(SesionExport.init), en: "sesiones.json")
@@ -80,6 +82,7 @@ struct ExportService {
             exportedAt: .now,
             appVersion: appVersion,
             counts: .init(
+                oposiciones: oposiciones.count,
                 temarios: temarios.count,
                 temas: temas.count,
                 sesiones: sesiones.count,
@@ -107,13 +110,15 @@ struct ExportService {
             let intento: IntentoExport
             let tema: TemaExport?
             let temario: TemarioExport?
+            let oposicion: OposicionExport?
         }
 
         let encoder = ExportSchema.encoder
         let contenido = IntentoUnicoExport(
             intento: IntentoExport(intento),
             tema: intento.tema.map(TemaExport.init),
-            temario: intento.tema?.temario.map(TemarioExport.init)
+            temario: intento.tema?.temario.map(TemarioExport.init),
+            oposicion: intento.tema?.temario?.oposicion.map(OposicionExport.init)
         )
         try encoder.encode(contenido).write(to: paquete.appending(path: "intento.json"))
 

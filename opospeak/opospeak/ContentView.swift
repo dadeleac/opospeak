@@ -50,13 +50,16 @@ struct ContentView: View {
     }
 
     private func evaluarOnboarding() {
-        var descriptor = FetchDescriptor<Temario>()
-        descriptor.fetchLimit = 1
-        let tieneTemarios = (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+        var oposiciones = FetchDescriptor<Oposicion>()
+        oposiciones.fetchLimit = 1
+        var temarios = FetchDescriptor<Temario>()
+        temarios.fetchLimit = 1
+        let tieneDatos = ((try? modelContext.fetchCount(oposiciones)) ?? 0) > 0
+            || ((try? modelContext.fetchCount(temarios)) ?? 0) > 0
 
         switch OnboardingDecision.debeMostrarse(
             completado: onboardingCompletado,
-            tieneTemarios: tieneTemarios
+            tieneDatos: tieneDatos
         ) {
         case .mostrar:
             mostrandoOnboarding = true
@@ -72,7 +75,7 @@ struct ContentView: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )

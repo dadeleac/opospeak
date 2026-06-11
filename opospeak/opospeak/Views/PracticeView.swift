@@ -196,11 +196,13 @@ struct PracticeView: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    let temario = Temario(nombre: "Judicatura")
+    let oposicion = Oposicion(nombre: "Judicatura")
+    container.mainContext.insert(oposicion)
+    let temario = Temario(nombre: "Civil", oposicion: oposicion)
     container.mainContext.insert(temario)
     let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
     container.mainContext.insert(tema)

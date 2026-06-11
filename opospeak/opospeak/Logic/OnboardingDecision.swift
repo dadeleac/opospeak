@@ -15,9 +15,10 @@ enum OnboardingDecision: Equatable {
     case omitir
     case omitirYMarcar
 
-    static func debeMostrarse(completado: Bool, tieneTemarios: Bool) -> OnboardingDecision {
+    /// `tieneDatos`: existe alguna oposición (o temarios pre-refactor).
+    static func debeMostrarse(completado: Bool, tieneDatos: Bool) -> OnboardingDecision {
         if completado { return .omitir }
-        if tieneTemarios { return .omitirYMarcar }
+        if tieneDatos { return .omitirYMarcar }
         return .mostrar
     }
 }

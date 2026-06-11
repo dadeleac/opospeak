@@ -259,7 +259,8 @@ Solo contiene lo que no pertenece al flujo de práctica.
 # **Dónde vive cada entidad**
 
 ```txt
-Temario      → Pestaña Temarios (lista)
+Oposición    → Título de la pestaña Temarios + Ajustes (renombrar)
+Temario      → Pestaña Temarios (lista, filtrada por la oposición activa)
 Tema         → Detalle de temario
 Sesión       → Invisible (gestión automática)
 Intento      → Detalle de tema (historial)
@@ -268,6 +269,16 @@ Métricas     → Detalle de intento + Progreso
 Notas        → Detalle de intento
 Historial    → Detalle de tema + Progreso
 ```
+
+---
+
+# **La oposición no es una pantalla**
+
+## **Decisión**
+
+La oposición activa da título a la pestaña Temarios (Judicatura arriba, sus temarios debajo) y se renombra desde Ajustes.
+
+No existe selector de oposición en el MVP: la aplicación opera sobre una única oposición activa, aunque el dominio soporta varias.
 
 ---
 

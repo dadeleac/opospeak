@@ -14,6 +14,7 @@ struct TemaDetailView: View {
     let tema: Tema
 
     @State private var practicando = false
+    @State private var editando = false
 
     private var intentosOrdenados: [Intento] {
         (tema.intentos ?? []).sorted { $0.fechaInicio > $1.fechaInicio }
@@ -49,6 +50,18 @@ struct TemaDetailView: View {
         .fondoEditorial()
         .navigationTitle(tema.nombreVisible)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    editando = true
+                } label: {
+                    Label("Editar tema", systemImage: "pencil")
+                }
+            }
+        }
+        .sheet(isPresented: $editando) {
+            EditarTemaSheet(tema: tema)
+        }
         .fullScreenCover(isPresented: $practicando) {
             PracticeView(tema: tema)
         }
@@ -62,6 +75,75 @@ struct TemaDetailView: View {
                 .allowsHitTesting(false)
             }
         }
+    }
+}
+
+/// Edición de número y título (tema-editing). El título puede quedar
+/// vacío — el tema vuelve a mostrarse como "Tema N". Los títulos nunca
+/// son obligatorios para practicar.
+struct EditarTemaSheet: View {
+    let tema: Tema
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var numero: Int = 1
+    @State private var titulo = ""
+
+    private var numeroDisponible: Bool {
+        guard numero != tema.numero else { return true }
+        return !(tema.temario?.numerosExistentes.contains(numero) ?? false)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Stepper(value: $numero, in: 1...9999) {
+                        HStack {
+                            Text("Número")
+                            Spacer()
+                            Text("\(numero)")
+                                .foregroundStyle(numeroDisponible ? .secondary : Color.rojoApagado)
+                        }
+                    }
+                    .accessibilityLabel("Número de tema")
+                    .accessibilityValue("\(numero)")
+                } footer: {
+                    if !numeroDisponible {
+                        Text("Ya existe un tema con el número \(numero) en este temario.")
+                    }
+                }
+                Section {
+                    TextField("Título", text: $titulo)
+                        .accessibilityLabel("Título del tema")
+                } footer: {
+                    Text("Puedes dejarlo vacío: el tema se mostrará como \"Tema \(numero)\".")
+                }
+            }
+            .navigationTitle("Editar tema")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Guardar") { guardar() }
+                        .disabled(!numeroDisponible)
+                }
+            }
+            .onAppear {
+                numero = tema.numero
+                titulo = tema.titulo ?? ""
+            }
+        }
+    }
+
+    private func guardar() {
+        let limpio = titulo.trimmingCharacters(in: .whitespacesAndNewlines)
+        tema.numero = numero
+        tema.titulo = limpio.isEmpty ? nil : limpio
+        tema.fechaActualizacion = .now
+        dismiss()
     }
 }
 
@@ -96,11 +178,13 @@ struct IntentoRow: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    let temario = Temario(nombre: "Judicatura")
+    let oposicion = Oposicion(nombre: "Judicatura")
+    container.mainContext.insert(oposicion)
+    let temario = Temario(nombre: "Civil", oposicion: oposicion)
     container.mainContext.insert(temario)
     let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
     container.mainContext.insert(tema)

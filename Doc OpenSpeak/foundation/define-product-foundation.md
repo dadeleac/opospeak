@@ -208,9 +208,13 @@ Herramientas para trabajo con preparador.
 
 El MVP debe centrarse únicamente en:
 
+### **Oposiciones**
+
+Raíz del dominio: la oposición que el opositor prepara (Judicatura, Notarías, Inspección de Hacienda). La aplicación opera inicialmente sobre una única oposición activa, pero el dominio soporta varias.
+
 ### **Temarios**
 
-Agrupación lógica de temas.
+Agrupación lógica de temas dentro de una oposición (Civil, Penal, Procesal, Bloque I).
 
 ### **Temas**
 

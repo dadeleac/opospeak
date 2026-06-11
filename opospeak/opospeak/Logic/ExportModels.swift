@@ -13,7 +13,8 @@ import Foundation
 enum ExportSchema {
 
     static let formato = "opospeak-export"
-    static let version = 1
+    /// v2: oposiciones.json + oposicionId en temarios + columna oposicion en CSV.
+    static let version = 2
 
     /// Encoder único del paquete: ISO 8601 y salida legible y determinista.
     static var encoder: JSONEncoder {
@@ -26,6 +27,7 @@ enum ExportSchema {
 
 struct ManifestExport: Codable {
     struct Counts: Codable {
+        let oposiciones: Int
         let temarios: Int
         let temas: Int
         let sesiones: Int
@@ -42,8 +44,27 @@ struct ManifestExport: Codable {
     let recordingFormat: String
 }
 
+struct OposicionExport: Codable {
+    let id: UUID
+    let nombre: String
+    let descripcion: String?
+    let activo: Bool
+    let fechaCreacion: Date
+    let fechaActualizacion: Date
+
+    init(_ oposicion: Oposicion) {
+        id = oposicion.id
+        nombre = oposicion.nombre
+        descripcion = oposicion.descripcion
+        activo = oposicion.activo
+        fechaCreacion = oposicion.fechaCreacion
+        fechaActualizacion = oposicion.fechaActualizacion
+    }
+}
+
 struct TemarioExport: Codable {
     let id: UUID
+    let oposicionId: UUID?
     let nombre: String
     let descripcion: String?
     let activo: Bool
@@ -52,6 +73,7 @@ struct TemarioExport: Codable {
 
     init(_ temario: Temario) {
         id = temario.id
+        oposicionId = temario.oposicion?.id
         nombre = temario.nombre
         descripcion = temario.descripcion
         activo = temario.activo
@@ -172,13 +194,14 @@ struct NotaExport: Codable {
 /// que no esté ya en los JSON.
 enum IntentosCSV {
 
-    static let cabecera = "intentoId,temario,tema,numero,fecha,duracionSegundos,completado,tieneGrabacion,tieneNotas"
+    static let cabecera = "intentoId,oposicion,temario,tema,numero,fecha,duracionSegundos,completado,tieneGrabacion,tieneNotas"
 
     static func build(intentos: [Intento]) -> String {
         var lineas = [cabecera]
         for intento in intentos {
             let campos = [
                 intento.id.uuidString,
+                escape(intento.tema?.temario?.oposicion?.nombre ?? ""),
                 escape(intento.tema?.temario?.nombre ?? ""),
                 escape(intento.tema?.nombreVisible ?? ""),
                 String(intento.tema?.numero ?? 0),

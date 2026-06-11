@@ -39,6 +39,7 @@ Un paquete exportado debe permitir:
 # **Qué incluye la exportación**
 
 ```txt
+Todas las oposiciones
 Todos los temarios
 Todos los temas
 Todas las sesiones
@@ -83,6 +84,7 @@ opospeak-export/
 │
 ├── manifest.json
 ├── data/
+│     ├── oposiciones.json
 │     ├── temarios.json
 │     ├── temas.json
 │     ├── sesiones.json
@@ -120,11 +122,12 @@ Describe el paquete y permite validarlo al reimportar.
 ```json
 {
   "format": "opospeak-export",
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-06-11T10:00:00Z",
   "appVersion": "1.0.0",
   "counts": {
-    "temarios": 1,
+    "oposiciones": 1,
+    "temarios": 3,
     "temas": 325,
     "sesiones": 84,
     "intentos": 612,
@@ -155,13 +158,30 @@ Todas las fechas se expresan en ISO 8601 con zona horaria.
 
 ---
 
+## **oposiciones.json**
+
+```json
+[
+  {
+    "id": "OPO-001",
+    "nombre": "Judicatura",
+    "descripcion": null,
+    "fechaCreacion": "2025-09-01T08:00:00Z",
+    "fechaActualizacion": "2026-05-20T19:30:00Z"
+  }
+]
+```
+
+---
+
 ## **temarios.json**
 
 ```json
 [
   {
     "id": "TEM-001",
-    "nombre": "Judicatura",
+    "oposicionId": "OPO-001",
+    "nombre": "Civil",
     "descripcion": null,
     "fechaCreacion": "2025-09-01T08:00:00Z",
     "fechaActualizacion": "2026-05-20T19:30:00Z"
@@ -290,8 +310,8 @@ El campo `tipo` es extensible para métricas futuras, como anota `define-core-do
 Vista plana y legible del historial para hojas de cálculo.
 
 ```txt
-intentoId,temario,tema,numero,fecha,duracionSegundos,completado,tieneGrabacion,tieneNotas
-I-0612,Judicatura,Responsabilidad patrimonial,42,2026-05-12,708,true,true,true
+intentoId,oposicion,temario,tema,numero,fecha,duracionSegundos,completado,tieneGrabacion,tieneNotas
+I-0612,Judicatura,Civil,Responsabilidad patrimonial,42,2026-05-12,708,true,true,true
 ```
 
 El CSV es una proyección.
@@ -329,7 +349,7 @@ Los identificadores son estables y únicos dentro del paquete.
 Permiten reconstruir todas las relaciones:
 
 ```txt
-temario → tema → intento → grabación / métricas / notas
+oposición → temario → tema → intento → grabación / métricas / notas
 ```
 
 Un paquete debe ser autosuficiente: ninguna relación depende de información externa.

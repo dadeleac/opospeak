@@ -54,7 +54,11 @@ No es una cuenta obligatoria.
 ```txt
 Abrir
    ↓
-Crear estructura mínima
+Oposición
+   ↓
+Temario
+   ↓
+Temas
    ↓
 Practicar
 ```
@@ -99,9 +103,37 @@ No bloquea, no obliga a leer, no encadena pantallas.
 
 ---
 
-# **Creación del primer temario**
+# **Creación de la oposición**
 
 Es el primer paso real.
+
+---
+
+## **Información solicitada**
+
+Solo:
+
+- nombre de la oposición
+
+---
+
+## **Ayuda contextual**
+
+Se ofrecen ejemplos como sugerencia, no como obligación:
+
+```txt
+Judicatura
+Notarías
+Inspección de Hacienda
+```
+
+El usuario puede escribir la suya libremente.
+
+---
+
+# **Creación del primer temario**
+
+Tras la oposición, su primer temario.
 
 ---
 
@@ -117,15 +149,15 @@ Todo lo demás es opcional y puede completarse después.
 
 ## **Ayuda contextual**
 
-Se ofrecen ejemplos como sugerencia, no como obligación:
+Ejemplos a nivel de temario, nunca nombres de oposición:
 
 ```txt
-Judicatura
-Notarías
-Inspección de Hacienda
+Civil
+Penal
+Procesal
 ```
 
-El usuario puede escribir el suyo libremente.
+El nombre de la oposición permanece visible como contexto.
 
 ---
 

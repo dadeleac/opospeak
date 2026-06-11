@@ -16,7 +16,7 @@ struct ExportTests {
     // Mismo patrón que el resto de suites: esquema compartido y
     // contenedores retenidos para evitar el crash de deinit de SwiftData.
     private static let sharedSchema = Schema([
-        Temario.self, Tema.self, Sesion.self, Intento.self,
+        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
@@ -58,9 +58,11 @@ struct ExportTests {
     private func poblar(_ entorno: Entorno) throws -> (conGrabacion: Intento, sinGrabacion: Intento) {
         let context = entorno.context
 
-        let temario = Temario(nombre: "Judicatura, turno libre")
+        let oposicion = Oposicion(nombre: "Judicatura, turno libre")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
-        let archivado = Temario(nombre: "Antiguo")
+        let archivado = Temario(nombre: "Antiguo", oposicion: oposicion)
         archivado.activo = false
         context.insert(archivado)
 
@@ -106,7 +108,7 @@ struct ExportTests {
         let fm = FileManager.default
 
         #expect(paquete.lastPathComponent == "opospeak-export")
-        for archivo in ["manifest.json", "data/temarios.json", "data/temas.json",
+        for archivo in ["manifest.json", "data/oposiciones.json", "data/temarios.json", "data/temas.json",
                         "data/sesiones.json", "data/intentos.json", "data/metricas.json",
                         "data/notas.json", "data/intentos.csv"] {
             #expect(
@@ -132,8 +134,9 @@ struct ExportTests {
         let manifest = try decoder.decode(ManifestExport.self, from: leerJSON(paquete, "manifest.json"))
 
         #expect(manifest.format == "opospeak-export")
-        #expect(manifest.version == 1)
+        #expect(manifest.version == 2)
         #expect(manifest.appVersion == "1.0-test")
+        #expect(manifest.counts.oposiciones == 1)
         #expect(manifest.counts.temarios == 2)
         #expect(manifest.counts.temas == 2)
         #expect(manifest.counts.sesiones == 1)
@@ -169,13 +172,18 @@ struct ExportTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
+        let oposiciones = try decoder.decode([OposicionExport].self, from: leerJSON(paquete, "data/oposiciones.json"))
         let temarios = try decoder.decode([TemarioExport].self, from: leerJSON(paquete, "data/temarios.json"))
         let temas = try decoder.decode([TemaExport].self, from: leerJSON(paquete, "data/temas.json"))
         let intentos = try decoder.decode([IntentoExport].self, from: leerJSON(paquete, "data/intentos.json"))
 
+        let idsOposicion = Set(oposiciones.map(\.id))
         let idsTemario = Set(temarios.map(\.id))
         let idsTema = Set(temas.map(\.id))
 
+        for temario in temarios {
+            #expect(temario.oposicionId.map(idsOposicion.contains) == true)
+        }
         for tema in temas where tema.activo {
             #expect(tema.temarioId.map(idsTemario.contains) == true)
         }

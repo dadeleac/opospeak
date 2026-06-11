@@ -1,5 +1,5 @@
 //
-//  Temario.swift
+//  Oposicion.swift
 //  opospeak
 //
 //  Created by David de León Acosta on 11/06/2026.
@@ -8,11 +8,11 @@
 import Foundation
 import SwiftData
 
-/// Conjunto organizado de temas dentro de una oposición.
-/// Civil, Penal o "Bloque I" son temarios; Judicatura es la oposición
-/// que los contiene. No almacena grabaciones, métricas ni resultados.
+/// Raíz del dominio: la oposición que el opositor prepara.
+/// Judicatura, Notarías o Inspección de Hacienda son oposiciones;
+/// Civil, Penal o Procesal son temarios dentro de una.
 @Model
-final class Temario {
+final class Oposicion {
     var id: UUID = UUID()
     var nombre: String = ""
     var descripcion: String?
@@ -20,17 +20,14 @@ final class Temario {
     var fechaCreacion: Date = Date.now
     var fechaActualizacion: Date = Date.now
 
-    var oposicion: Oposicion?
+    @Relationship(deleteRule: .cascade, inverse: \Temario.oposicion)
+    var temarios: [Temario]? = []
 
-    @Relationship(deleteRule: .cascade, inverse: \Tema.temario)
-    var temas: [Tema]? = []
-
-    init(nombre: String, descripcion: String? = nil, oposicion: Oposicion) {
+    init(nombre: String, descripcion: String? = nil) {
         self.id = UUID()
         self.nombre = nombre
         self.descripcion = descripcion
         self.fechaCreacion = .now
         self.fechaActualizacion = .now
-        self.oposicion = oposicion
     }
 }

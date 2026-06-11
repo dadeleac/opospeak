@@ -11,20 +11,42 @@ import SwiftData
 // Vista editorial, no panel de control: hechos, sin juicios ni rachas
 // (define-progress-and-history-model).
 struct ProgresoView: View {
+    @Query(sort: \Oposicion.fechaCreacion) private var oposiciones: [Oposicion]
     @Query private var intentos: [Intento]
     @Query(filter: #Predicate<Tema> { $0.activo }) private var temas: [Tema]
 
+    private var oposicionActiva: Oposicion? {
+        if let idString = UserDefaults.standard.string(forKey: OposicionActiva.storageKey),
+           let id = UUID(uuidString: idString),
+           let elegida = oposiciones.first(where: { $0.id == id }) {
+            return elegida
+        }
+        return oposiciones.first
+    }
+
+    // El progreso se calcula sobre la oposición activa: con una sola
+    // oposición es idéntico al global, pero la semántica queda correcta.
+    private var temasActivos: [Tema] {
+        guard let activa = oposicionActiva else { return [] }
+        return temas.filter { $0.temario?.oposicion?.id == activa.id }
+    }
+
+    private var intentosActivos: [Intento] {
+        guard let activa = oposicionActiva else { return [] }
+        return intentos.filter { $0.tema?.temario?.oposicion?.id == activa.id }
+    }
+
     private var resumen: ProgressSummary {
         ProgressSummary(
-            intentos: intentos.map {
+            intentos: intentosActivos.map {
                 .init(fecha: $0.fechaInicio, duracion: $0.duracionReal, temaId: $0.tema?.id ?? UUID())
             },
-            temaIds: temas.map(\.id)
+            temaIds: temasActivos.map(\.id)
         )
     }
 
     private func tema(con id: UUID) -> Tema? {
-        temas.first { $0.id == id }
+        temasActivos.first { $0.id == id }
     }
 
     var body: some View {
@@ -74,7 +96,7 @@ struct ProgresoView: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )

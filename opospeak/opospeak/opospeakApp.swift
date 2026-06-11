@@ -12,6 +12,7 @@ import SwiftData
 struct opospeakApp: App {
 
     private static let schema = Schema([
+        Oposicion.self,
         Temario.self,
         Tema.self,
         Sesion.self,
@@ -49,6 +50,9 @@ struct opospeakApp: App {
         let (container, modo) = Self.makeContainer()
         sharedModelContainer = container
         _entorno = State(initialValue: AppEnvironment(modo: modo))
+        // Antes de que ninguna vista consulte: los temarios pre-refactor
+        // sin oposición se adoptan bajo una (pase idempotente).
+        OposicionBackfill.run(context: container.mainContext)
     }
 
     var body: some Scene {

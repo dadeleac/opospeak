@@ -45,7 +45,7 @@ struct PracticeServiceTests {
     // Mismo patrón que DomainModelTests: esquema compartido y contenedores
     // retenidos — el deinit de un contenedor en uso crashea SwiftData.
     private static let sharedSchema = Schema([
-        Temario.self, Tema.self, Sesion.self, Intento.self,
+        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
@@ -73,7 +73,9 @@ struct PracticeServiceTests {
         )
         try store.ensureDirectoryExists()
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 42, temario: temario)
         context.insert(tema)

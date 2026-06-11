@@ -8,16 +8,35 @@
 import SwiftUI
 import SwiftData
 
+// Temarios de la oposición activa. El título de navegación es el nombre
+// de la oposición (Judicatura arriba, sus temarios debajo): la jerarquía
+// Oposición → Temarios → Temas se lee tal cual.
 struct TemariosListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Oposicion.fechaCreacion)
+    private var oposiciones: [Oposicion]
     @Query(filter: #Predicate<Temario> { $0.activo }, sort: \Temario.fechaCreacion)
     private var temarios: [Temario]
 
     @State private var mostrandoCreacion = false
 
+    private var oposicionActiva: Oposicion? {
+        if let idString = UserDefaults.standard.string(forKey: OposicionActiva.storageKey),
+           let id = UUID(uuidString: idString),
+           let elegida = oposiciones.first(where: { $0.id == id }) {
+            return elegida
+        }
+        return oposiciones.first
+    }
+
+    private var temariosVisibles: [Temario] {
+        guard let activa = oposicionActiva else { return [] }
+        return temarios.filter { $0.oposicion?.id == activa.id }
+    }
+
     var body: some View {
         List {
-            ForEach(temarios) { temario in
+            ForEach(temariosVisibles) { temario in
                 NavigationLink(value: temario) {
                     TemarioRow(temario: temario)
                 }
@@ -32,7 +51,7 @@ struct TemariosListView: View {
             }
         }
         .fondoEditorial()
-        .navigationTitle("Temarios")
+        .navigationTitle(oposicionActiva?.nombre ?? "Temarios")
         .navigationDestination(for: Temario.self) { temario in
             TemarioDetailView(temario: temario)
         }
@@ -52,14 +71,14 @@ struct TemariosListView: View {
             }
         }
         .sheet(isPresented: $mostrandoCreacion) {
-            NuevoTemarioSheet()
+            NuevoTemarioSheet(oposicion: oposicionActiva)
         }
         .overlay {
-            if temarios.isEmpty {
+            if temariosVisibles.isEmpty {
                 ContentUnavailableView {
                     Label("Sin temarios", systemImage: "books.vertical")
                 } description: {
-                    Text("Crea tu primer temario para empezar a organizar tu práctica oral.")
+                    Text("Crea tu primer temario — por ejemplo Civil, Penal o Bloque I — para organizar tus temas.")
                 } actions: {
                     Button("Crear temario") {
                         mostrandoCreacion = true
@@ -97,6 +116,10 @@ private struct TemarioRow: View {
 }
 
 struct NuevoTemarioSheet: View {
+    /// Oposición destino; si aún no existe ninguna (caso límite: onboarding
+    /// descartado), se crea una por defecto al guardar.
+    let oposicion: Oposicion?
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
@@ -113,8 +136,12 @@ struct NuevoTemarioSheet: View {
                 Section {
                     TextField("Nombre", text: $nombre)
                         .accessibilityLabel("Nombre del temario")
+                } header: {
+                    if let oposicion {
+                        Text("Nuevo temario de \(oposicion.nombre)")
+                    }
                 } footer: {
-                    Text("Por ejemplo: Judicatura, Notarías, Inspección de Hacienda.")
+                    Text("Por ejemplo: Civil, Penal, Procesal, Bloque I.")
                 }
                 Section("Opcional") {
                     TextField("Descripción", text: $descripcion, axis: .vertical)
@@ -136,9 +163,20 @@ struct NuevoTemarioSheet: View {
     }
 
     private func crear() {
+        let destino: Oposicion
+        if let oposicion {
+            destino = oposicion
+        } else {
+            destino = Oposicion(nombre: OposicionBackfill.nombrePorDefecto)
+            modelContext.insert(destino)
+        }
         let limpio = nombre.trimmingCharacters(in: .whitespacesAndNewlines)
         let desc = descripcion.trimmingCharacters(in: .whitespacesAndNewlines)
-        let temario = Temario(nombre: limpio, descripcion: desc.isEmpty ? nil : desc)
+        let temario = Temario(
+            nombre: limpio,
+            descripcion: desc.isEmpty ? nil : desc,
+            oposicion: destino
+        )
         modelContext.insert(temario)
         dismiss()
     }
@@ -146,11 +184,13 @@ struct NuevoTemarioSheet: View {
 
 #Preview("Con temarios") {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    let temario = Temario(nombre: "Judicatura")
+    let oposicion = Oposicion(nombre: "Judicatura")
+    container.mainContext.insert(oposicion)
+    let temario = Temario(nombre: "Civil", oposicion: oposicion)
     container.mainContext.insert(temario)
     container.mainContext.insert(Tema(numero: 1, temario: temario))
 
@@ -163,7 +203,7 @@ struct NuevoTemarioSheet: View {
 
 #Preview("Vacío") {
     let container = try! ModelContainer(
-        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )

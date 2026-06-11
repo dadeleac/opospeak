@@ -206,6 +206,20 @@ The visual identity is implemented (OpenSpec change `add-visual-identity`, compl
 
 **The MVP feature set is complete**: domain model, three-tab IA, practice recording, export, iCloud sync, onboarding, and visual identity — all spec'd through OpenSpec and tested.
 
+---
+
+## Domain Refactor: Oposición → Temarios → Temas
+
+MVP validation caught Temario acting as the system root ("Judicatura" created as a temario). Implemented in OpenSpec change `refactor-opposition-domain` (completed):
+
+- New root entity `Oposicion` (Spanish ubiquitous language confirmed): Judicatura/Notarías/Inspección de Hacienda are oposiciones; Civil/Penal/Procesal are temarios. The rest of the chain is unchanged.
+- Domain, storage and relationships fully support multiple oposiciones; the UI operates on one **active** oposición (device-local pointer, deliberately unsynced). No oposición picker yet — and no oposición deletion in UI (root cascade erases everything; rename only, from Ajustes).
+- Idempotent startup backfill adopts pre-refactor orphan temarios under "Mi oposición" (or the first existing oposición).
+- Onboarding gained the oposición phase (bienvenida → oposición → temario → temas) with level-correct examples; the Temarios tab is titled with the active oposición's name; creation sheet shows oposición context.
+- Tema editing UX added (number + title from the tema detail) — titles never required to practice; closes the gap with `define-topic-management-flow`.
+- Export format **v2**: `oposiciones.json`, `oposicionId` in temarios, `oposicion` CSV column, manifest counts. Safe bump (no importers exist).
+- Six foundation documents corrected; all suites updated; full suite green (74 tests).
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

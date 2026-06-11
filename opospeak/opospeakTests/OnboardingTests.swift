@@ -12,23 +12,24 @@ struct OnboardingDecisionTests {
 
     @Test func usuarioNuevoSinDatosVeOnboarding() {
         #expect(
-            OnboardingDecision.debeMostrarse(completado: false, tieneTemarios: false) == .mostrar
+            OnboardingDecision.debeMostrarse(completado: false, tieneDatos: false) == .mostrar
         )
     }
 
     @Test func datosRestauradosOmitenYMarcan() {
-        // Dispositivo nuevo con datos de iCloud: usuario que vuelve.
+        // Dispositivo nuevo con datos de iCloud (oposiciones o temarios
+        // pre-refactor): usuario que vuelve.
         #expect(
-            OnboardingDecision.debeMostrarse(completado: false, tieneTemarios: true) == .omitirYMarcar
+            OnboardingDecision.debeMostrarse(completado: false, tieneDatos: true) == .omitirYMarcar
         )
     }
 
     @Test func yaCompletadoNuncaReaparece() {
         #expect(
-            OnboardingDecision.debeMostrarse(completado: true, tieneTemarios: false) == .omitir
+            OnboardingDecision.debeMostrarse(completado: true, tieneDatos: false) == .omitir
         )
         #expect(
-            OnboardingDecision.debeMostrarse(completado: true, tieneTemarios: true) == .omitir
+            OnboardingDecision.debeMostrarse(completado: true, tieneDatos: true) == .omitir
         )
     }
 }

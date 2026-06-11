@@ -13,10 +13,22 @@ import SwiftData
 struct AjustesView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppEnvironment.self) private var entorno
+    @Query(sort: \Oposicion.fechaCreacion) private var oposiciones: [Oposicion]
 
     @State private var exportando = false
     @State private var exportURL: URL?
     @State private var exportError = false
+    @State private var editandoOposicion = false
+    @State private var nombreOposicion = ""
+
+    private var oposicionActiva: Oposicion? {
+        if let idString = UserDefaults.standard.string(forKey: OposicionActiva.storageKey),
+           let id = UUID(uuidString: idString),
+           let elegida = oposiciones.first(where: { $0.id == id }) {
+            return elegida
+        }
+        return oposiciones.first
+    }
 
     private var version: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -41,6 +53,27 @@ struct AjustesView: View {
                 .accessibilityElement(children: .combine)
             } header: {
                 Text("Privacidad")
+            }
+
+            if let oposicion = oposicionActiva {
+                Section {
+                    Button {
+                        nombreOposicion = oposicion.nombre
+                        editandoOposicion = true
+                    } label: {
+                        LabeledContent {
+                            Text(oposicion.nombre)
+                                .foregroundStyle(.secondary)
+                        } label: {
+                            Label("Nombre", systemImage: "graduationcap")
+                        }
+                    }
+                    .accessibilityHint("Cambia el nombre de tu oposición")
+                } header: {
+                    Text("Oposición")
+                } footer: {
+                    Text("La oposición agrupa tus temarios. Por ejemplo: Judicatura, con los temarios Civil, Penal y Procesal.")
+                }
             }
 
             Section {
@@ -83,6 +116,11 @@ struct AjustesView: View {
                 exportURL = nil
             }
         }
+        .alert("Nombre de la oposición", isPresented: $editandoOposicion) {
+            TextField("Nombre", text: $nombreOposicion)
+            Button("Guardar") { renombrarOposicion() }
+            Button("Cancelar", role: .cancel) {}
+        }
         .alert("No se pudo exportar", isPresented: $exportError) {
             Button("Aceptar", role: .cancel) {}
         } message: {
@@ -103,6 +141,13 @@ struct AjustesView: View {
                 exportError = true
             }
         }
+    }
+
+    private func renombrarOposicion() {
+        let limpio = nombreOposicion.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !limpio.isEmpty, let oposicion = oposicionActiva else { return }
+        oposicion.nombre = limpio
+        oposicion.fechaActualizacion = .now
     }
 
     private func limpiarTemporal(_ url: URL) {

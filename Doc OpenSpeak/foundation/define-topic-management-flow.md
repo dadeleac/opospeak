@@ -35,16 +35,29 @@ El usuario debe poder crear una estructura básica de estudio y empezar a practi
 
 # **Conceptos principales**
 
-## **Temario**
+## **Oposición**
 
-Agrupación lógica de temas pertenecientes a una oposición, bloque o programa.
+Raíz del dominio: el proceso selectivo que el opositor prepara.
 
 Ejemplos:
 
 - Judicatura
+- Notarías
+- Inspección de Hacienda
+
+Judicatura NO es un temario. Es una oposición.
+
+---
+
+## **Temario**
+
+Agrupación lógica de temas dentro de una oposición.
+
+Ejemplos:
+
 - Civil
 - Penal
-- Hacienda
+- Procesal
 - Bloque 1
 - Segundo ejercicio
 
@@ -67,6 +80,8 @@ Ejemplos:
 # **Flujo inicial recomendado**
 
 ```txt
+Crear oposición
+      ↓
 Crear temario
       ↓
 Añadir temas
@@ -75,6 +90,8 @@ Seleccionar tema
       ↓
 Practicar
 ```
+
+La oposición se crea una vez (normalmente en el primer arranque) y la aplicación trabaja sobre ella.
 
 ---
 

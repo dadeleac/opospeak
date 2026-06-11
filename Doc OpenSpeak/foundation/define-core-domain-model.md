@@ -27,14 +27,30 @@ Las grabaciones son únicamente evidencia de ese entrenamiento.
 # **Visión conceptual**
 
 ```txt
-Temario
- └── Tema
-      └── Sesión
-            └── Intento
-                   ├── Grabación
-                   ├── Métricas
-                   └── Notas
+Oposición
+ └── Temario
+      └── Tema
+           └── Sesión
+                 └── Intento
+                        ├── Grabación
+                        ├── Métricas
+                        └── Notas
 ```
+
+Ejemplo real:
+
+```txt
+Judicatura
+ ├── Civil
+ ├── Penal
+ └── Procesal
+
+Inspección de Hacienda
+ ├── Bloque I Derecho
+ └── Bloque II Técnico
+```
+
+Judicatura NO es un temario: es una oposición. Civil es un temario. Tema 15 es un tema.
 
 ---
 
@@ -44,11 +60,11 @@ Todos los documentos, código y especificaciones futuras deben utilizar la termi
 
 ---
 
-# **Temario**
+# **Oposición**
 
 ## **Definición**
 
-Conjunto organizado de temas pertenecientes a una oposición.
+Raíz del dominio: el proceso selectivo que el opositor prepara.
 
 ---
 
@@ -58,6 +74,51 @@ Conjunto organizado de temas pertenecientes a una oposición.
 - Fiscalía
 - Notarías
 - Inspección de Hacienda
+
+---
+
+## **Responsabilidades**
+
+- Agrupar temarios
+- Servir como contexto global de trabajo
+
+---
+
+## **Restricción de alcance**
+
+La aplicación opera inicialmente sobre una única oposición activa.
+
+El dominio, el almacenamiento y las relaciones soportan múltiples oposiciones; la multioposición no se expone todavía en la interfaz.
+
+---
+
+## **Atributos mínimos**
+
+```txt
+Id
+Nombre
+Descripción opcional
+FechaCreación
+FechaActualización
+```
+
+---
+
+# **Temario**
+
+## **Definición**
+
+Conjunto organizado de temas dentro de una oposición.
+
+---
+
+## **Ejemplos**
+
+- Civil
+- Penal
+- Procesal
+- Bloque I Derecho
+- Bloque II Técnico
 
 ---
 
@@ -363,6 +424,16 @@ FechaCreación
 ---
 
 # **Relaciones**
+
+## **Oposición → Temario**
+
+```txt
+1:N
+```
+
+Una oposición contiene varios temarios.
+
+---
 
 ## **Temario → Tema**
 

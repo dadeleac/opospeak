@@ -17,7 +17,7 @@ struct DomainModelTests {
     // el deinit de un ModelContainer mientras otro está en uso crashea
     // SwiftData (EXC_BREAKPOINT en estado global compartido).
     private static let sharedSchema = Schema([
-        Temario.self, Tema.self, Sesion.self, Intento.self,
+        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
         Grabacion.self, Metrica.self, Nota.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
@@ -36,21 +36,27 @@ struct DomainModelTests {
     @Test func crearTemarioConInformacionMinima() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         try context.save()
 
         let temarios = try context.fetch(FetchDescriptor<Temario>())
         #expect(temarios.count == 1)
-        #expect(temarios[0].nombre == "Judicatura")
+        #expect(temarios[0].nombre == "Civil")
         #expect(temarios[0].descripcion == nil)
         #expect(temarios[0].temas?.isEmpty == true)
+        #expect(temarios[0].oposicion?.nombre == "Judicatura")
+        #expect(oposicion.temarios?.count == 1)
     }
 
     @Test func temaSinTituloPerteneceASuTemario() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 42, temario: temario)
         context.insert(tema)
@@ -64,7 +70,9 @@ struct DomainModelTests {
     @Test func intentoCompletoVinculaTemaYSesion() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
         context.insert(tema)
@@ -89,7 +97,9 @@ struct DomainModelTests {
     @Test func intentoSinGrabacionEsValido() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 1, temario: temario)
         context.insert(tema)
@@ -112,7 +122,9 @@ struct DomainModelTests {
         )
         try store.ensureDirectoryExists()
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 7, temario: temario)
         context.insert(tema)
@@ -146,7 +158,9 @@ struct DomainModelTests {
     @Test func borrarSesionConservaIntentos() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 3, temario: temario)
         context.insert(tema)
@@ -168,7 +182,9 @@ struct DomainModelTests {
     @Test func archivarTemaConservaHistorial() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 5, temario: temario)
         context.insert(tema)
@@ -190,7 +206,9 @@ struct DomainModelTests {
     @Test func borrarTemarioCascadaCompleta() throws {
         let context = try makeContainer().mainContext
 
-        let temario = Temario(nombre: "Judicatura")
+        let oposicion = Oposicion(nombre: "Judicatura")
+        context.insert(oposicion)
+        let temario = Temario(nombre: "Civil", oposicion: oposicion)
         context.insert(temario)
         let tema = Tema(numero: 1, temario: temario)
         context.insert(tema)
