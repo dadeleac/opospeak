@@ -138,6 +138,39 @@ Olvidado   → "Llevas más del doble de tu ritmo sin cantarlo."
 
 ---
 
+## **Estados visibles**
+
+Los cuatro estados internos se presentan al usuario como tres:
+
+```txt
+Interno              Visible
+──────────────────────────────────
+Pendiente            Sin practicar
+Reciente             Al día (con matiz visual)
+Al día               Al día
+Olvidado             Necesita repaso
+```
+
+"Al día" y "Reciente" se pisaban para el usuario; reciente sobrevive como matiz (icono relleno, tinte más intenso) y sigue alimentando la ordenación interna.
+
+Sobre "Necesita repaso": *necesita* habla de tiempo transcurrido relativo al ritmo propio — necesidad temporal, jamás mérito. Es más amable que "Olvidado", que roza la acusación. Todo consumidor debe mantener ese matiz.
+
+---
+
+## **Salud del temario**
+
+La métrica de cobertura principal: cuántos temas hay en cada grupo visible.
+
+```txt
+X al día · Y necesitan repaso · Z sin practicar
+```
+
+Se calcula sobre estados, así que **decae sola con el tiempo**: no se puede "completar" cantando cada tema una vez y parando cuatro meses. Es la respuesta honesta a "¿cómo llevo realmente el temario?".
+
+La cobertura por vuelta es otra cosa: posición de rotación, secundaria.
+
+---
+
 # **La vuelta**
 
 ## **Definición**
@@ -171,6 +204,14 @@ Es deliberado y honesto: la vuelta no está completa hasta que ese tema se cante
 
 ---
 
+## **Visibilidad**
+
+La vuelta es un concepto interno.
+
+Aparece únicamente dentro del detalle del estado del temario — para las oposiciones cuya cultura piensa en vueltas (Judicatura) — y nunca como titular de la tarjeta de entrada. Quien prepara Hacienda no tropieza con el término.
+
+---
+
 ## **Sin gestión**
 
 La vuelta se deriva; nunca se gestiona.
@@ -196,9 +237,11 @@ El orden canónico de "qué practicar ahora":
 
 ## **Qué es y qué no es**
 
-Es una ordenación sobre hechos, consumida igual por la Ficha ("qué hacer ahora"), la Vuelta y la extracción ponderada.
+Es una ordenación sobre hechos, consumida igual por la Ficha ("qué hacer ahora"), el estado del temario y la extracción ponderada.
 
-No es un planificador: el modelo no produce horarios, fechas límite ni planes. OpoSpeak no es una herramienta de productividad.
+Su cabeza puede mostrarse como **"Siguiente"**: un tema, su razón factual ("Hace 42 días sin práctica" / "Todavía no lo has cantado"), un toque a su Ficha. Sin puntuaciones ni teatro de urgencia.
+
+No es un planificador: el modelo no produce horarios, fechas límite, planes ni listas clasificadas más allá de esa única cabeza. OpoSpeak no es una herramienta de productividad.
 
 ---
 

@@ -20,12 +20,15 @@
     "%lld" : {
 
     },
-    "%lld de %lld temas practicados" : {
+    "%lld al día" : {
+
+    },
+    "%lld al día · %lld necesitan repaso · %lld sin practicar" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld de %2$lld temas practicados"
+            "value" : "%1$lld al día · %2$lld necesitan repaso · %3$lld sin practicar"
           }
         }
       }
@@ -39,19 +42,25 @@
     "%lld minutos" : {
 
     },
-    "%lld temas" : {
+    "%lld necesitan repaso" : {
 
     },
-    "%lld temas olvidados" : {
+    "%lld sin practicar" : {
+
+    },
+    "%lld temas" : {
 
     },
     "%lld′" : {
 
     },
-    "Abre el detalle de la vuelta al temario" : {
+    "Abre el detalle del estado del temario" : {
 
     },
     "Abre la configuración del cronómetro" : {
+
+    },
+    "Abre la ficha del tema" : {
 
     },
     "Abrir Ajustes" : {
@@ -248,6 +257,9 @@
     "Estado" : {
 
     },
+    "Estado del temario" : {
+
+    },
     "Evolución" : {
 
     },
@@ -288,6 +300,9 @@
 
     },
     "Hace %lld días" : {
+
+    },
+    "Hace %lld días sin práctica" : {
 
     },
     "Hasta" : {
@@ -353,6 +368,12 @@
     "Modo" : {
 
     },
+    "Necesita repaso" : {
+
+    },
+    "Necesitan repaso" : {
+
+    },
     "No disponible" : {
 
     },
@@ -410,9 +431,6 @@
     "Objetivo" : {
 
     },
-    "Olvidado" : {
-
-    },
     "Opcional" : {
 
     },
@@ -435,9 +453,6 @@
 
     },
     "Pausar" : {
-
-    },
-    "Pendiente" : {
 
     },
     "Pendientes de práctica" : {
@@ -476,13 +491,13 @@
     "Reanudar" : {
 
     },
-    "Reciente" : {
-
-    },
     "Rellena el nombre con %@" : {
 
     },
     "Reproducir" : {
+
+    },
+    "Salud del temario" : {
 
     },
     "Se crearán %lld temas sin título: Tema %lld … Tema %lld." : {
@@ -506,6 +521,9 @@
       }
     },
     "Se crearán como Tema 1, Tema 2… Podrás añadir títulos cuando quieras." : {
+
+    },
+    "Siguiente" : {
 
     },
     "Sin completar" : {
@@ -557,16 +575,7 @@
     "Temas" : {
 
     },
-    "Temas olvidados" : {
-
-    },
-    "Temas pendientes" : {
-
-    },
     "Temas practicados" : {
-
-    },
-    "Temas recientes" : {
 
     },
     "Temas trabajados" : {
@@ -597,6 +606,9 @@
 
     },
     "Título del tema" : {
+
+    },
+    "Todavía no lo has cantado" : {
 
     },
     "Todavía no lo has cantado." : {
@@ -647,6 +659,9 @@
     "Últimos practicados" : {
 
     },
+    "Ver todos (%lld)" : {
+
+    },
     "Versión" : {
 
     },
@@ -656,24 +671,15 @@
     "Volumen" : {
 
     },
-    "Vuelta %lld" : {
-
-    },
-    "Vuelta %lld · %lld de %lld temas practicados" : {
+    "Vuelta %lld · %lld de %lld practicados en esta vuelta" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Vuelta %1$lld · %2$lld de %3$lld temas practicados"
+            "value" : "Vuelta %1$lld · %2$lld de %3$lld practicados en esta vuelta"
           }
         }
       }
-    },
-    "Vuelta actual" : {
-
-    },
-    "Vuelta al temario" : {
-
     },
     "Ya existe un tema con el número %lld en este temario." : {
 

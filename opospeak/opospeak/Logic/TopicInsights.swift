@@ -34,7 +34,7 @@ extension TopicFacts {
 }
 
 /// Estado temporal de un tema. Exactamente uno por tema activo.
-enum TopicState: Equatable {
+enum TopicState: Equatable, Hashable {
     /// Nunca practicado.
     case pending
     /// Practicado esta semana.
@@ -54,7 +54,23 @@ struct TopicInsight: Equatable {
     let daysSinceLastPractice: Int?
 }
 
-/// Posición en el ciclo de estudio (la vuelta).
+/// Salud del temario: la métrica de cobertura principal. Se calcula
+/// sobre estados — decae sola con el tiempo, no se puede "completar"
+/// tocando cada tema una vez. La cobertura por vuelta es otra cosa:
+/// posición de rotación, secundaria.
+struct SyllabusHealth: Equatable {
+    /// recent + current.
+    let upToDate: Int
+    /// forgotten.
+    let needsReview: Int
+    /// pending.
+    let unpracticed: Int
+
+    var total: Int { upToDate + needsReview + unpracticed }
+}
+
+/// Posición en el ciclo de estudio (la vuelta). Concepto interno:
+/// visible solo dentro del detalle, nunca como titular de la tarjeta.
 struct StudyCycle: Equatable {
     /// Vuelta actual = mínimo de intentos entre temas activos + 1.
     let currentRound: Int
@@ -157,6 +173,25 @@ enum TopicInsightsModel {
                 totalTopics: topics.count,
                 cadenceDays: cadenceDays
             )
+        )
+    }
+
+    /// Salud del temario a partir de los insights evaluados.
+    static func health(_ insights: [TopicInsight]) -> SyllabusHealth {
+        var upToDate = 0
+        var needsReview = 0
+        var unpracticed = 0
+        for insight in insights {
+            switch insight.state {
+            case .recent, .current: upToDate += 1
+            case .forgotten: needsReview += 1
+            case .pending: unpracticed += 1
+            }
+        }
+        return SyllabusHealth(
+            upToDate: upToDate,
+            needsReview: needsReview,
+            unpracticed: unpracticed
         )
     }
 

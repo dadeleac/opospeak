@@ -13,59 +13,62 @@ struct StudyCycleDestination: Hashable {
     init() {}
 }
 
-/// La tarjeta de la Vuelta: cuatro hechos y un toque. Se oculta sin temas.
-/// Sin sugerencias ni prioridades — posición, nunca prescripción (Fase 3
-/// llegará cuando los datos la justifiquen).
+/// La tarjeta del estado del temario: salud, no rotación. Se calcula
+/// sobre estados, así que decae sola con el tiempo — no se puede
+/// "completar" tocando cada tema una vez. Sin vuelta (concepto interno),
+/// sin sugerencias: posición, nunca prescripción.
 struct StudyCycleCard: View {
     let topics: [Topic]
 
-    private var summary: (cycle: StudyCycle, forgottenCount: Int) {
+    private var health: SyllabusHealth {
         let facts = topics.map(TopicFacts.init(topic:))
-        let (insights, cycle) = TopicInsightsModel.evaluate(topics: facts, reference: .now)
-        return (cycle, insights.filter { $0.state == .forgotten }.count)
+        let (insights, _) = TopicInsightsModel.evaluate(topics: facts, reference: .now)
+        return TopicInsightsModel.health(insights)
+    }
+
+    private func breakdown(_ health: SyllabusHealth) -> String {
+        var parts: [String] = []
+        if health.upToDate > 0 {
+            parts.append(String(localized: "\(health.upToDate) al día"))
+        }
+        if health.needsReview > 0 {
+            parts.append(String(localized: "\(health.needsReview) necesitan repaso"))
+        }
+        if health.unpracticed > 0 {
+            parts.append(String(localized: "\(health.unpracticed) sin practicar"))
+        }
+        return parts.joined(separator: " · ")
     }
 
     var body: some View {
-        let (cycle, forgotten) = summary
+        let health = health
 
         Section {
             NavigationLink(value: StudyCycleDestination()) {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Vuelta actual")
-                            .font(.headline)
-                        Spacer()
-                        Text("Vuelta \(cycle.currentRound)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("Estado del temario")
+                        .font(.headline)
 
                     ProgressView(
-                        value: Double(cycle.coveredInRound),
-                        total: Double(max(cycle.totalTopics, 1))
+                        value: Double(health.upToDate),
+                        total: Double(max(health.total, 1))
                     )
                     .tint(.ink)
 
-                    Text("\(cycle.coveredInRound) de \(cycle.totalTopics) temas practicados")
+                    Text(breakdown(health))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-
-                    if forgotten > 0 {
-                        Label {
-                            Text("\(forgotten) temas olvidados")
-                        } icon: {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .foregroundStyle(Color.amber)
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    }
                 }
                 .padding(.vertical, 4)
             }
-            .accessibilityHint("Abre el detalle de la vuelta al temario")
+            .accessibilityHint("Abre el detalle del estado del temario")
         }
     }
+}
+
+/// Destino de las listas completas por estado ("Ver todos").
+struct StateGroupDestination: Hashable {
+    let state: TopicState
 }
 
 // El detalle de la Vuelta: cobertura, mapa y grupos factuales.
@@ -109,53 +112,97 @@ struct StudyCycleView: View {
     var body: some View {
         let (insights, cycle) = evaluation
         let byID = Dictionary(uniqueKeysWithValues: insights.map { ($0.topicID, $0) })
-        let forgotten = insights.filter { $0.state == .forgotten }
+        let health = TopicInsightsModel.health(insights)
+        let next = TopicInsightsModel.suggestionOrder(insights).first
+        let needsReview = insights.filter { $0.state == .forgotten }
             .sorted { ($0.lastPracticedAt ?? .distantPast) < ($1.lastPracticedAt ?? .distantPast) }
-        let pending = activeTopics.filter { byID[$0.id]?.state == .pending }
-            .sorted { $0.number < $1.number }
-        let recent = insights.filter { $0.state == .recent }
-            .sorted { ($0.lastPracticedAt ?? .distantPast) > ($1.lastPracticedAt ?? .distantPast) }
+        let unpracticed = insights.filter { $0.state == .pending }
+            .sorted { (topic(for: $0)?.number ?? 0) < (topic(for: $1)?.number ?? 0) }
 
         List {
-            Section("Cobertura") {
+            Section("Salud del temario") {
                 VStack(alignment: .leading, spacing: 8) {
                     ProgressView(
-                        value: Double(cycle.coveredInRound),
-                        total: Double(max(cycle.totalTopics, 1))
+                        value: Double(health.upToDate),
+                        total: Double(max(health.total, 1))
                     )
                     .tint(.ink)
-                    Text("Vuelta \(cycle.currentRound) · \(cycle.coveredInRound) de \(cycle.totalTopics) temas practicados")
+                    Text("\(health.upToDate) al día · \(health.needsReview) necesitan repaso · \(health.unpracticed) sin practicar")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                    // La vuelta: posición de rotación, secundaria. Visible
+                    // aquí (cultura Judicatura), nunca en la tarjeta.
+                    Text("Vuelta \(cycle.currentRound) · \(cycle.coveredInRound) de \(cycle.totalTopics) practicados en esta vuelta")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
                 .padding(.vertical, 4)
                 .accessibilityElement(children: .combine)
             }
 
+            if let next, let nextTopic = topic(for: next) {
+                nextSection(insight: next, topic: nextTopic)
+            }
+
             mapSection(byID: byID)
 
-            if !forgotten.isEmpty {
-                topicGroupSection(title: "Temas olvidados", insights: forgotten)
+            if !needsReview.isEmpty {
+                topicGroupSection(
+                    title: String(localized: "Necesitan repaso"),
+                    insights: needsReview,
+                    state: .forgotten
+                )
             }
-            if !pending.isEmpty {
-                Section("Temas pendientes") {
-                    ForEach(pending) { topic in
-                        NavigationLink(value: topic) {
-                            Text(topic.displayName)
-                        }
-                    }
-                }
-            }
-            if !recent.isEmpty {
-                topicGroupSection(title: "Temas recientes", insights: recent)
+            if !unpracticed.isEmpty {
+                topicGroupSection(
+                    title: String(localized: "Sin practicar"),
+                    insights: unpracticed,
+                    state: .pending
+                )
             }
         }
         .editorialBackground()
-        .navigationTitle("Vuelta al temario")
+        .navigationTitle("Estado del temario")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedTopic) { topic in
             TopicDetailView(topic: topic)
         }
+        .navigationDestination(for: StateGroupDestination.self) { destination in
+            StateGroupListView(state: destination.state)
+        }
+    }
+
+    // MARK: - Siguiente
+
+    /// La cabeza de la ordenación canónica con su razón factual.
+    /// Un tema, un hecho, un toque — sin puntuaciones ni urgencia.
+    private func nextSection(insight: TopicInsight, topic: Topic) -> some View {
+        Section("Siguiente") {
+            Button {
+                selectedTopic = topic
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(topic.displayName)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(nextReason(insight))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityHint("Abre la ficha del tema")
+        }
+    }
+
+    private func nextReason(_ insight: TopicInsight) -> String {
+        if insight.state == .pending {
+            return String(localized: "Todavía no lo has cantado")
+        }
+        if let days = insight.daysSinceLastPractice {
+            return String(localized: "Hace \(days) días sin práctica")
+        }
+        return ""
     }
 
     // MARK: - Mapa
@@ -175,7 +222,10 @@ struct StudyCycleView: View {
                             .font(.caption)
                             .monospacedDigit()
                             .frame(minWidth: 40, minHeight: 36)
-                            .background(style.color.opacity(0.25), in: RoundedRectangle(cornerRadius: 6))
+                            .background(
+                                style.color.opacity(style.mapTintOpacity),
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Tema \(topic.number), \(style.label)")
@@ -183,9 +233,10 @@ struct StudyCycleView: View {
             }
             .padding(.vertical, 4)
 
-            // Leyenda: icono + texto + color — el color nunca es la única señal.
+            // Leyenda: tres estados visibles, icono + texto + color —
+            // el color nunca es la única señal.
             VStack(alignment: .leading, spacing: 6) {
-                ForEach([TopicState.pending, .forgotten, .current, .recent], id: \.self) { state in
+                ForEach([TopicState.pending, .forgotten, .current], id: \.self) { state in
                     let style = TopicStateStyle(state)
                     Label {
                         Text(style.label)
@@ -205,9 +256,11 @@ struct StudyCycleView: View {
 
     // MARK: - Grupos
 
-    private func topicGroupSection(title: LocalizedStringKey, insights groupInsights: [TopicInsight]) -> some View {
+    private static let groupCap = 5
+
+    private func topicGroupSection(title: String, insights groupInsights: [TopicInsight], state: TopicState) -> some View {
         Section(title) {
-            ForEach(groupInsights, id: \.topicID) { insight in
+            ForEach(groupInsights.prefix(Self.groupCap), id: \.topicID) { insight in
                 if let topic = topic(for: insight) {
                     NavigationLink(value: topic) {
                         HStack {
@@ -223,7 +276,75 @@ struct StudyCycleView: View {
                     }
                 }
             }
+            if groupInsights.count > Self.groupCap {
+                NavigationLink(value: StateGroupDestination(state: state)) {
+                    Text("Ver todos (\(groupInsights.count))")
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
+    }
+}
+
+/// Lista completa de un grupo de estado ("Ver todos"). Derivada como
+/// todo lo demás: recalcula los insights al entrar.
+struct StateGroupListView: View {
+    let state: TopicState
+
+    @Query(sort: \Opposition.createdAt) private var oppositions: [Opposition]
+
+    private var activeOpposition: Opposition? {
+        if let idString = UserDefaults.standard.string(forKey: ActiveOpposition.storageKey),
+           let id = UUID(uuidString: idString),
+           let chosen = oppositions.first(where: { $0.id == id }) {
+            return chosen
+        }
+        return oppositions.first
+    }
+
+    private var activeTopics: [Topic] {
+        (activeOpposition?.syllabi ?? [])
+            .flatMap { $0.topics ?? [] }
+            .filter(\.isActive)
+    }
+
+    private var rows: [(topic: Topic, insight: TopicInsight)] {
+        let (insights, _) = TopicInsightsModel.evaluate(
+            topics: activeTopics.map(TopicFacts.init(topic:)),
+            reference: .now
+        )
+        let byID = Dictionary(uniqueKeysWithValues: insights.map { ($0.topicID, $0) })
+        return activeTopics
+            .compactMap { topic in
+                guard let insight = byID[topic.id], insight.state == state else { return nil }
+                return (topic, insight)
+            }
+            .sorted { a, b in
+                if state == .pending { return a.topic.number < b.topic.number }
+                return (a.insight.lastPracticedAt ?? .distantPast) < (b.insight.lastPracticedAt ?? .distantPast)
+            }
+    }
+
+    var body: some View {
+        List {
+            ForEach(rows, id: \.topic.id) { row in
+                NavigationLink(value: row.topic) {
+                    HStack {
+                        Text(row.topic.displayName)
+                        Spacer()
+                        if let days = row.insight.daysSinceLastPractice {
+                            Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+        .editorialBackground()
+        .navigationTitle(TopicStateStyle(state).label)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

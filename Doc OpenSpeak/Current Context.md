@@ -288,6 +288,14 @@ La Vuelta al temario is implemented (OpenSpec change `add-study-cycle-view`, com
 - `TopicStateStyle` extracted as the single presentation home for state styling (Ficha, card, map, legend consume the same).
 - The home screen is now alive: after months of use it communicates the real state of the preparation — the answer to "why not Voice Memos" becomes *because it shows you the real state of your preparation*. Suite green (100 tests).
 
+Cycle semantics refined after device review (OpenSpec change `refine-study-cycle-semantics`, completed — three decisions confirmed by David):
+
+- **Salud del temario is the primary metric**: counts by visible state (al día / necesitan repaso / sin practicar), computed over states so it decays naturally — it cannot be gamed by touching each topic once. The vuelta-based coverage is reframed as rotation position, secondary.
+- **Three visible states over four internal**: Sin practicar / Al día (absorbs Reciente, which survives as a brighter visual nuance and keeps feeding the ordering) / Necesita repaso (gentler than "Olvidado"; the foundation documents that *necesita* means temporal need relative to one's own rhythm, never merit).
+- **"Vuelta" is internal vocabulary**: the card retitled to "Estado del temario"; the round number survives as one secondary line inside the detail (Judicatura culture finds it; Hacienda never trips over it).
+- **"Siguiente" surfaced** in the detail: the head of the canonical ordering with its factual reason ("Hace 42 días sin práctica" / "Todavía no lo has cantado"), one tap to the Ficha — zero new algorithm. Groups capped at 5 with "Ver todos (N)" full lists; the map keeps the at-a-glance whole with a three-entry legend.
+- David's verdict on the arc: *"La Vuelta empieza a parecer el eje diferenciador de OpoSpeak."* Suite green (103 tests).
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

@@ -19,29 +19,44 @@ struct TopicStateStyle {
     let color: Color
     /// La frase de una línea de la fundación.
     let explanation: String
+    /// Reciente destaca como matiz dentro de "Al día".
+    let emphasized: Bool
 
+    // Tres estados visibles sobre cuatro internos: "Al día" absorbe
+    // "Reciente" (que conserva un matiz visual: icono relleno y tinte
+    // más intenso). "Necesita repaso" habla de tiempo relativo al ritmo
+    // propio — necesidad temporal, jamás mérito.
     init(_ state: TopicState) {
         switch state {
         case .pending:
-            label = String(localized: "Pendiente")
+            label = String(localized: "Sin practicar")
             icon = "circle.dashed"
             color = .slate
             explanation = String(localized: "Todavía no lo has cantado.")
+            emphasized = false
         case .recent:
-            label = String(localized: "Reciente")
-            icon = "checkmark.circle"
+            label = String(localized: "Al día")
+            icon = "checkmark.circle.fill"
             color = .sage
             explanation = String(localized: "Lo cantaste esta semana.")
+            emphasized = true
         case .current:
             label = String(localized: "Al día")
-            icon = "clock"
-            color = .slate
+            icon = "checkmark.circle"
+            color = .sage
             explanation = String(localized: "Dentro de tu ritmo habitual.")
+            emphasized = false
         case .forgotten:
-            label = String(localized: "Olvidado")
+            label = String(localized: "Necesita repaso")
             icon = "clock.arrow.circlepath"
             color = .amber
             explanation = String(localized: "Llevas más del doble de tu ritmo sin cantarlo.")
+            emphasized = false
         }
+    }
+
+    /// Intensidad del tinte en el mapa: reciente destaca dentro de "Al día".
+    var mapTintOpacity: Double {
+        emphasized ? 0.45 : 0.25
     }
 }

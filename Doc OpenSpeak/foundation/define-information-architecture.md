@@ -272,13 +272,13 @@ Historial    → Detalle de tema + Progreso
 
 ---
 
-# **La Vuelta al temario**
+# **El estado del temario**
 
 ## **Decisión**
 
-La Vuelta vive en la pestaña Temarios, no en Progreso.
+El estado del temario vive en la pestaña Temarios, no en Progreso.
 
-El criterio: Temarios responde "¿qué voy a practicar?"; Progreso responde "¿cómo voy?". La Vuelta responde a la primera pregunta.
+El criterio: Temarios responde "¿qué voy a practicar?"; Progreso responde "¿cómo voy?". El estado del temario responde a la primera pregunta.
 
 ---
 
@@ -286,10 +286,11 @@ El criterio: Temarios responde "¿qué voy a practicar?"; Progreso responde "¿c
 
 ```txt
 Temarios (cabecera)
-   └── Tarjeta de Vuelta: vuelta actual, cobertura,
-       temas olvidados, Ver detalle
-            └── Detalle de la Vuelta: cobertura, mapa del
-                temario, olvidados, pendientes, recientes
+   └── Tarjeta "Estado del temario": salud
+       (al día · necesitan repaso · sin practicar)
+            └── Detalle: salud + posición de vuelta (secundaria),
+                Siguiente (factual), mapa del temario,
+                grupos capados con "Ver todos"
                      └── Cada tema → su Ficha
 ```
 
@@ -299,9 +300,10 @@ La pantalla de inicio deja de ser espacio vacío: comunica el estado real de la 
 
 ## **Reglas**
 
-- La tarjeta es factual: posición, nunca prescripción. Sin "tema sugerido" hasta que los datos acumulados justifiquen recomendaciones (decisión deliberada de fases).
+- La tarjeta muestra salud, nunca rotación ni prescripción. "Vuelta" es vocabulario interno, visible solo en el detalle.
+- "Siguiente" es la cabeza de la ordenación canónica con su razón factual — un tema, un hecho, un toque. Nada más se recomienda.
 - Progreso permanece reflexivo e intacto.
-- Toda la semántica (estados, vuelta, cobertura) proviene de `define-topic-insights-model`.
+- Toda la semántica (estados visibles, salud, vuelta, cobertura) proviene de `define-topic-insights-model`.
 
 ---
 

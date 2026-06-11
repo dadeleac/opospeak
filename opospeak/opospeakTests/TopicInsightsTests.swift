@@ -128,6 +128,46 @@ struct TopicInsightsTests {
         #expect(cycle.totalTopics == 0)
     }
 
+    // MARK: - Salud del temario
+
+    @Test func healthCountsByVisibleGroup() {
+        // Cadencia por defecto (umbral 42): 2 al día (3 y 20 días),
+        // 1 necesita repaso (50), 2 sin practicar.
+        let topics = [
+            topic(daysAgo: [3]),
+            topic(daysAgo: [20]),
+            topic(daysAgo: [50]),
+            topic(daysAgo: []),
+            topic(daysAgo: []),
+        ]
+        let (insights, _) = TopicInsightsModel.evaluate(topics: topics, reference: reference)
+        let health = TopicInsightsModel.health(insights)
+
+        #expect(health.upToDate == 2)
+        #expect(health.needsReview == 1)
+        #expect(health.unpracticed == 2)
+        #expect(health.total == 5)
+    }
+
+    @Test func healthDecaysWithTime() {
+        // El mismo tema, evaluado más tarde, cambia de grupo: la salud
+        // no se puede "completar" tocando cada tema una vez.
+        let topics = [topic(daysAgo: [30])]
+
+        let (now, _) = TopicInsightsModel.evaluate(topics: topics, reference: reference)
+        #expect(TopicInsightsModel.health(now).upToDate == 1)
+
+        let later = reference.addingTimeInterval(30 * day)
+        let (afterMonth, _) = TopicInsightsModel.evaluate(topics: topics, reference: later)
+        #expect(TopicInsightsModel.health(afterMonth).needsReview == 1)
+        #expect(TopicInsightsModel.health(afterMonth).upToDate == 0)
+    }
+
+    @Test func emptySyllabusHealthIsZero() {
+        let health = TopicInsightsModel.health([])
+        #expect(health.total == 0)
+    }
+
     // MARK: - Ordenación de sugerencia
 
     @Test func suggestionOrderGroupsAndAges() {
