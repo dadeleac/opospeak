@@ -21,7 +21,7 @@ struct PracticeView: View {
     @State private var recorder: PracticeRecorder?
     @State private var summary: PracticeSummary?
     @State private var config = PracticeTimerConfig.load()
-    @State private var editingConfig = false
+    @State private var showingConfigSheet = false
     @State private var lastSeenElapsed: TimeInterval = 0
     @State private var flashingMark: TimeInterval?
 
@@ -29,10 +29,6 @@ struct PracticeView: View {
         let duration: TimeInterval
         let date: Date
     }
-
-    /// Marcas de aviso ofrecidas, en segundos restantes.
-    private static let availableMarks: [TimeInterval] = [600, 300, 120, 60]
-    private static let durationQuickPicks = [10, 15, 20, 30]
 
     var body: some View {
         NavigationStack {
@@ -101,75 +97,23 @@ struct PracticeView: View {
     }
 
     /// Decisión habitual sin coste: chip de resumen + Continuar.
-    /// El formulario solo se despliega si el usuario quiere cambiar algo.
+    /// El editor de configuración sube desde abajo como hoja del sistema
+    /// (la modal nativa de las HIG) solo si el usuario quiere cambiar algo.
     private var preparationView: some View {
         List {
             Section {
                 Button {
-                    withAnimation { editingConfig.toggle() }
+                    showingConfigSheet = true
                 } label: {
                     HStack {
                         Label(configSummary, systemImage: "timer")
                         Spacer()
-                        Image(systemName: editingConfig ? "chevron.up" : "chevron.down")
+                        Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
-                .accessibilityHint("Despliega la configuración del cronómetro")
-            }
-
-            if editingConfig {
-                Section {
-                    Picker("Modo", selection: $config.mode) {
-                        Text("Cronómetro").tag(TimerMode.countUp)
-                        Text("Cuenta atrás").tag(TimerMode.countdown)
-                    }
-                    .pickerStyle(.segmented)
-                } footer: {
-                    if config.mode == .countdown {
-                        Text("Como en el examen: verás el tiempo restante.")
-                    }
-                }
-
-                if config.mode == .countdown {
-                    Section("Duración") {
-                        Stepper(value: targetMinutes, in: 1...120) {
-                            HStack {
-                                Text("Objetivo")
-                                Spacer()
-                                Text("\(Int(config.targetDuration / 60)) min")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .accessibilityLabel("Duración objetivo")
-                        .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
-
-                        HStack {
-                            ForEach(Self.durationQuickPicks, id: \.self) { minutes in
-                                Button("\(minutes)′") {
-                                    config.targetDuration = TimeInterval(minutes * 60)
-                                }
-                                .buttonStyle(.bordered)
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
-                    }
-
-                    Section {
-                        ForEach(visibleMarks, id: \.self) { mark in
-                            Toggle(isOn: bindingForMark(mark)) {
-                                Text("Cuando queden \(Int(mark / 60)) min")
-                            }
-                        }
-                    } header: {
-                        Text("Avisos")
-                    } footer: {
-                        Text("Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación.")
-                    }
-                }
+                .accessibilityHint("Abre la configuración del cronómetro")
             }
 
             Section {
@@ -186,6 +130,9 @@ struct PracticeView: View {
                 .listRowBackground(Color.clear)
                 .accessibilityHint("Pasa a la pantalla de grabación; todavía no se graba nada")
             }
+        }
+        .sheet(isPresented: $showingConfigSheet) {
+            TimerConfigSheet(config: $config)
         }
     }
 
@@ -227,30 +174,6 @@ struct PracticeView: View {
             .padding(.bottom)
             .accessibilityHint("Enciende el micrófono y empieza a grabar")
         }
-    }
-
-    private var targetMinutes: Binding<Int> {
-        Binding(
-            get: { Int(config.targetDuration / 60) },
-            set: { config.targetDuration = TimeInterval($0 * 60) }
-        )
-    }
-
-    private var visibleMarks: [TimeInterval] {
-        Self.availableMarks.filter { $0 < config.targetDuration }
-    }
-
-    private func bindingForMark(_ mark: TimeInterval) -> Binding<Bool> {
-        Binding(
-            get: { config.warningMarks.contains(mark) },
-            set: { enabled in
-                if enabled {
-                    config.warningMarks.append(mark)
-                } else {
-                    config.warningMarks.removeAll { $0 == mark }
-                }
-            }
-        )
     }
 
     /// Continuar: guarda la configuración, crea el recorder y pide el
@@ -511,6 +434,105 @@ struct PracticeView: View {
     private func discard() {
         recorder?.discard()
         dismiss()
+    }
+}
+
+/// Editor de la configuración del cronómetro. Sube desde abajo como hoja
+/// del sistema (detent medio) sobre la preparación: la modal nativa de
+/// las HIG para una decisión acotada.
+struct TimerConfigSheet: View {
+    @Binding var config: PracticeTimerConfig
+    @Environment(\.dismiss) private var dismiss
+
+    private static let availableMarks: [TimeInterval] = [600, 300, 120, 60]
+    private static let durationQuickPicks = [10, 15, 20, 30]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Modo", selection: $config.mode) {
+                        Text("Cronómetro").tag(TimerMode.countUp)
+                        Text("Cuenta atrás").tag(TimerMode.countdown)
+                    }
+                    .pickerStyle(.segmented)
+                } footer: {
+                    if config.mode == .countdown {
+                        Text("Como en el examen: verás el tiempo restante.")
+                    }
+                }
+
+                if config.mode == .countdown {
+                    Section("Duración") {
+                        Stepper(value: targetMinutes, in: 1...120) {
+                            HStack {
+                                Text("Objetivo")
+                                Spacer()
+                                Text("\(Int(config.targetDuration / 60)) min")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityLabel("Duración objetivo")
+                        .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
+
+                        HStack {
+                            ForEach(Self.durationQuickPicks, id: \.self) { minutes in
+                                Button("\(minutes)′") {
+                                    config.targetDuration = TimeInterval(minutes * 60)
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
+
+                    Section {
+                        ForEach(visibleMarks, id: \.self) { mark in
+                            Toggle(isOn: bindingForMark(mark)) {
+                                Text("Cuando queden \(Int(mark / 60)) min")
+                            }
+                        }
+                    } header: {
+                        Text("Avisos")
+                    } footer: {
+                        Text("Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación.")
+                    }
+                }
+            }
+            .navigationTitle("Cronómetro")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Hecho") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private var targetMinutes: Binding<Int> {
+        Binding(
+            get: { Int(config.targetDuration / 60) },
+            set: { config.targetDuration = TimeInterval($0 * 60) }
+        )
+    }
+
+    private var visibleMarks: [TimeInterval] {
+        Self.availableMarks.filter { $0 < config.targetDuration }
+    }
+
+    private func bindingForMark(_ mark: TimeInterval) -> Binding<Bool> {
+        Binding(
+            get: { config.warningMarks.contains(mark) },
+            set: { enabled in
+                if enabled {
+                    config.warningMarks.append(mark)
+                } else {
+                    config.warningMarks.removeAll { $0 == mark }
+                }
+            }
+        )
     }
 }
 

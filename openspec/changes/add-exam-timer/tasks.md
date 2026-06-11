@@ -30,3 +30,4 @@
 - [x] 5.3 Permiso de micrófono en Continuar (`PracticeRecorder.requestPermission()`), para que el diálogo no interrumpa tras colocar el móvil
 - [x] 5.4 Vocabulario auditado: Continuar / Grabar / Pausar / Reanudar / Finalizar / Hecho; "Empezar" queda solo en el onboarding
 - [x] 5.5 Cancelar libre también en "Listo"; spec y fundación enmendadas
+- [x] 5.6 Editor de configuración como hoja del sistema desde abajo (altura completa, HIG) al tocar el chip de resumen; la práctica permanece a pantalla completa (inmersiva)
