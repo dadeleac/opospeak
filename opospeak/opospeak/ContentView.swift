@@ -8,19 +8,36 @@
 import SwiftUI
 import SwiftData
 
-// Placeholder hasta que llegue la change de arquitectura de información
-// (tres pestañas: Temarios, Progreso, Ajustes).
+// Shell de navegación: tres pestañas estables (define-information-architecture).
+// La práctica no es pestaña: nace siempre desde el tema.
 struct ContentView: View {
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "mic.circle")
-                .font(.system(size: 56))
-            Text("OpoSpeak")
-                .font(.title)
+        TabView {
+            Tab("Temarios", systemImage: "books.vertical") {
+                NavigationStack {
+                    TemariosListView()
+                }
+            }
+            Tab("Progreso", systemImage: "chart.line.uptrend.xyaxis") {
+                NavigationStack {
+                    ProgresoView()
+                }
+            }
+            Tab("Ajustes", systemImage: "gearshape") {
+                NavigationStack {
+                    AjustesView()
+                }
+            }
         }
     }
 }
 
 #Preview {
-    ContentView()
+    let container = try! ModelContainer(
+        for: Temario.self, Tema.self, Sesion.self, Intento.self,
+        Grabacion.self, Metrica.self, Nota.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return ContentView()
+        .modelContainer(container)
 }

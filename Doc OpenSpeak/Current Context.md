@@ -148,7 +148,27 @@ The SwiftData domain model is implemented (OpenSpec change `add-swiftdata-domain
 - Recordings stored as files resolved by identity (`RecordingStore`); intento deletion goes through `PracticeRepository` so audio files are never orphaned.
 - Unit tests (Swift Testing, in-memory containers) cover creation, relationships, cascade/nullify, archiving, and file cleanup. Suite is green.
 
-The UI is still a placeholder; the next change should implement the information architecture (three tabs).
+The information architecture is implemented (OpenSpec change `add-information-architecture`, completed):
+
+- Three-tab shell (Temarios, Progreso, Ajustes), each with its own NavigationStack; sessions invisible; no Practicar tab.
+- Temario management: list with activity, create (name only), archive via swipe, empty state. `Temario.activo` added to the schema (additive).
+- Tema management: list (number/title/last attempt/count), single creation with suggested number, bulk creation 1..N (`TemaBulkCreator`), search, five sort orders (`TemaSortOrder`), archive, empty states.
+- Tema detail with prominent (disabled) Practicar button and intento history; intento detail with notes (add note works).
+- Progreso derives volumen/consistencia/cobertura/distribución at read time (`ProgressSummary`); Ajustes shows privacy statement and placeholders for export/iCloud.
+- Pure logic unit-tested (bulk creation, sorting, progress, duration formatting); full suite green.
+
+The practice flow is implemented (OpenSpec change `add-practice-flow`, completed):
+
+- Practicar launches a full-screen recording experience: timer + recording indicator + finish, no pause, screen stays awake, discard deletes the partial file.
+- `PracticeRecorder` (AVAudioRecorder, AAC/m4a mono 64 kbps) records straight to the RecordingStore location; microphone permission requested in context, denied state links to system settings.
+- `PracticeService` is the single write path on finish: Intento + Grabación + Métrica (duración total) + session `fechaFin` in one save; file exists on disk before models.
+- Sessions are invisible: `SesionPolicy` reuses a sesión within a 30-minute inactivity window, otherwise creates one.
+- Closing summary (tema, duración, fecha, grabación guardada); intento appears in the tema history immediately.
+- Playback in the intento detail (`PlaybackController` over AVAudioPlayer): play/pause + progress, stops on leaving, "grabación no disponible" for orphaned metadata.
+- Fixed a latent RecordingStore bug: `URL.path()` percent-encodes "Application Support", breaking FileManager checks.
+- Full suite green (35 tests).
+
+The app is now end-to-end usable: create temario → temas → practice → record → review → listen. Remaining MVP changes: export, iCloud sync activation, onboarding, visual identity.
 
 ---
 

@@ -32,10 +32,21 @@ struct RecordingStore {
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
     }
 
+    /// URL del archivo si existe en disco; nil en caso contrario.
+    /// Permite distinguir "grabación disponible" de metadatos huérfanos.
+    func existingURL(forGrabacionId id: UUID, formato: String = "m4a") -> URL? {
+        let fileURL = url(forGrabacionId: id, formato: formato)
+        // percentEncoded: false — "Application Support" contiene un espacio
+        // y la versión codificada haría fallar a FileManager.
+        guard FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) else {
+            return nil
+        }
+        return fileURL
+    }
+
     /// Elimina el archivo de audio de una grabación. No falla si ya no existe.
     func deleteRecording(id: UUID, formato: String = "m4a") throws {
-        let fileURL = url(forGrabacionId: id, formato: formato)
-        guard FileManager.default.fileExists(atPath: fileURL.path()) else { return }
+        guard let fileURL = existingURL(forGrabacionId: id, formato: formato) else { return }
         try FileManager.default.removeItem(at: fileURL)
     }
 }

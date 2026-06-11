@@ -15,6 +15,7 @@ final class Temario {
     var id: UUID = UUID()
     var nombre: String = ""
     var descripcion: String?
+    var activo: Bool = true
     var fechaCreacion: Date = Date.now
     var fechaActualizacion: Date = Date.now
 
