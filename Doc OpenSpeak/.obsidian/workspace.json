@@ -368,6 +368,7 @@
   },
   "active": "7caf8b022baa9610",
   "lastOpenFiles": [
+    "foundation/define-topic-insights-model.md",
     "research/post-mvp-opportunity-analysis.md",
     "research",
     "foundation/define-export-format.md",
@@ -402,7 +403,6 @@
     "foundation/define-mvp-scope.md",
     "foundation/define-privacy-and-export-strategy.md",
     "foundation/define-progress-and-history-model.md",
-    "foundation/define-topic-management-flow.md",
-    "foundation/define-practice-session-flow.md"
+    "foundation/define-topic-management-flow.md"
   ]
 }

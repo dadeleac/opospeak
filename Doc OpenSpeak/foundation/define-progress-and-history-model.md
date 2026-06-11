@@ -256,7 +256,9 @@ Permitir revisar el entrenamiento como una historia continua.
 
 ## **Definición**
 
-Temas que no se han practicado durante un periodo significativo.
+La definición exacta de "olvidado" — relativa al ritmo de revisita del propio usuario, con suelo absoluto — vive en `define-topic-insights-model`, junto al resto de estados temporales del tema (pendiente, reciente, al día).
+
+Este documento la consume; no la posee.
 
 ---
 
@@ -266,9 +268,11 @@ Ayudar al opositor a detectar lagunas.
 
 ---
 
-## **Cálculo inicial**
+## **Relación entre modelos**
 
-Basado únicamente en la fecha del último intento.
+`define-topic-insights-model` define la capa de tema (hechos, estados, cadencia, vuelta, cobertura).
+
+Las proyecciones globales de este documento (volumen, consistencia, cobertura, distribución) se derivan de esa capa.
 
 ---
 

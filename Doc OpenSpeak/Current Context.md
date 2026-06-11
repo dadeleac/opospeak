@@ -260,6 +260,19 @@ Implemented in OpenSpec change `add-exam-timer` (completed):
 - **Flow refined after review (decide → place → speak)**: preparation compresses the config into a one-line tappable summary (form expands on demand); **Continuar** requests the mic permission without recording; a **Listo** screen invites placing the phone on a stand and shows the idle clock; **Grabar** is the only control that turns the microphone on — recordings no longer start with handling noise. Vocabulary audited: Continuar / Grabar / Pausar / Reanudar / Finalizar / Hecho ("Empezar" remains only in onboarding). Cancel free in both pre-recording moments.
 - **Presentation (corrected after review)**: the practice itself stays full screen (immersive); the **timer configuration editor** is what rises from the bottom as a full-height system sheet (HIG-native modal for a scoped decision) when the user taps the one-line summary chip. The habitual practice never sees the form.
 
+---
+
+## Post-MVP Direction: el Ciclo de estudio (V1)
+
+Strategy approved in `research/post-mvp-opportunity-analysis.md` (living document, revised 2026-06-11): V1 is **el Ciclo de estudio** — Ficha de tema → Vuelta al temario → Extracción ponderada — built on a single semantic base.
+
+That base is implemented (OpenSpec change `add-topic-insights-model`, completed):
+
+- **New foundation `define-topic-insights-model`**: the topic is the unit of work (the attempt remains the unit of analysis). Defines topic facts, the four temporal states with exact formulas — pendiente / reciente (≤7 days) / al día / **olvidado** (> max(14, 2× the user's own revisit cadence); cadence = pooled median of same-topic intervals, default 21 days on cold start) — the derived vuelta (min attempt count + 1) and cobertura, the canonical suggestion ordering (pendientes → olvidados oldest-first → al día → recientes), and the golden rule: **states speak of time, never of quality**.
+- `define-progress-and-history-model` realigned: it consumes the olvidados definition, no longer owns it; global projections documented as derivations of the topic layer.
+- Reference implementation in `Logic/TopicInsights.swift` (pure: `TopicFacts` → insights + `StudyCycle`), named constants in one place, 12 table-driven tests (boundaries, cold start, outlier resistance, mid-round position, new-topic reopening, suggestion ordering). Suite green (98 tests).
+- No UI in this change — next changes consume the model: **Ficha de tema** first (construction order), then **Vuelta al temario** (the IA decision of where it lives is taken there), then weighted extraction.
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---
