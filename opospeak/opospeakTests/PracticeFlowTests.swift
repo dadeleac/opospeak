@@ -199,6 +199,42 @@ struct PracticeServiceTests {
         #expect(metrics[0].value == recordedDuration)
     }
 
+    @Test func countdownPracticePersistsTargetDelta() throws {
+        let env = try makeEnvironment()
+        let recordingID = UUID()
+        try createFakeAudio(in: env.store, id: recordingID)
+
+        let startedAt = Date(timeIntervalSince1970: 1_750_000_000)
+        // Objetivo 15 min, grabados 13:40 → delta −80 s.
+        try env.service.finish(
+            topic: env.topic, recordingID: recordingID,
+            startedAt: startedAt, endedAt: startedAt.addingTimeInterval(820),
+            duration: 820, targetDuration: 900
+        )
+
+        let metrics = try env.context.fetch(FetchDescriptor<Metric>())
+        #expect(metrics.count == 2)
+        let delta = metrics.first { $0.kind == .targetDelta }
+        #expect(delta?.value == -80)
+    }
+
+    @Test func countUpPracticeHasNoTargetDelta() throws {
+        let env = try makeEnvironment()
+        let recordingID = UUID()
+        try createFakeAudio(in: env.store, id: recordingID)
+
+        let startedAt = Date(timeIntervalSince1970: 1_750_000_000)
+        try env.service.finish(
+            topic: env.topic, recordingID: recordingID,
+            startedAt: startedAt, endedAt: startedAt.addingTimeInterval(600),
+            duration: 600
+        )
+
+        let metrics = try env.context.fetch(FetchDescriptor<Metric>())
+        #expect(metrics.count == 1)
+        #expect(metrics[0].kind == .totalDuration)
+    }
+
     @Test func discardDeletesFileAndPersistsNothing() throws {
         let env = try makeEnvironment()
         let recordingID = UUID()

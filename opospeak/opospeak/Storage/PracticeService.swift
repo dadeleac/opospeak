@@ -18,13 +18,16 @@ struct PracticeService {
     /// `duration` es el tiempo realmente grabado (medido por el recorder),
     /// nunca derivado de las fechas: una práctica con pausas dura lo que
     /// dura su audio, no el tiempo de pared transcurrido.
+    /// `targetDuration`: objetivo de la cuenta atrás si la hubo — produce
+    /// la métrica targetDelta (hecho longitudinal, nunca juicio).
     @discardableResult
     func finish(
         topic: Topic,
         recordingID: UUID,
         startedAt: Date,
         endedAt: Date,
-        duration: TimeInterval
+        duration: TimeInterval,
+        targetDuration: TimeInterval? = nil
     ) throws -> Attempt {
         let session = try activeSession(at: endedAt)
 
@@ -45,6 +48,15 @@ struct PracticeService {
         modelContext.insert(recording)
 
         modelContext.insert(Metric(attempt: attempt, kind: .totalDuration, value: duration, date: endedAt))
+
+        if let targetDuration {
+            modelContext.insert(Metric(
+                attempt: attempt,
+                kind: .targetDelta,
+                value: duration - targetDuration,
+                date: endedAt
+            ))
+        }
 
         session.endedAt = endedAt
         try modelContext.save()

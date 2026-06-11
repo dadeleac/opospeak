@@ -245,6 +245,19 @@ Implemented in OpenSpec change `add-practice-pause` (completed):
 - Paused UI: Amber icon + "En pausa" (never color alone), Reanudar prominent, Finalizar/discard available; screen may sleep while paused; swipe-dismiss blocked in both states. No metric judges pausing.
 - Key test: 22 wall-clock minutes with 10 paused → persisted duration is 12 (suite green, 76 tests). Manual device check pending: real pause/resume audio continuity and incoming-call auto-pause.
 
+---
+
+## Exam Timer
+
+Implemented in OpenSpec change `add-exam-timer` (completed):
+
+- **No auto-start**: a preparation phase (restoring the foundation's "Preparar práctica" step) shows the topic and timer configuration with a single Empezar action; the mic permission is requested at that tap. Cancel is free before starting.
+- **Two timer modes**: count-up and countdown with user-chosen target (stepper + quick picks), mirroring the oral exam clock. Configuration is remembered device-locally (`PracticeTimerConfig` in UserDefaults).
+- **Configurable warnings** at user-chosen remaining marks (10/5/2/1 min, filtered below target): haptic + visual (Amber bell + text, never color alone) + VoiceOver announcement. **Never sound** — the open microphone would capture it. Marks run on recorded time, so pause freezes them for free; each fires exactly once (`WarningSchedule`, pure and table-tested).
+- **Overtime continues**: at zero the display shows "+excess" in MutedRed with "Tiempo agotado"; no cut-off, no judgment.
+- **`targetDelta` metric activated** (unused since the domain change): countdown practices persist duración − objetivo, enabling the longitudinal question "¿me ajusto al tiempo de examen?". Count-up practices don't produce it.
+- Foundation amended (`define-practice-session-flow`: Preparación, Inicio de intento, Avisos). Suite green (87 tests). Manual device check pending: real haptics and warning timing.
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

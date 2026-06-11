@@ -9,7 +9,8 @@ import SwiftUI
 import SwiftData
 
 // La experiencia central del producto (define-practice-session-flow):
-// la interfaz desaparece — cronómetro, estado de grabación y finalizar.
+// preparación explícita (modo de cronómetro, avisos) → Empezar → la
+// interfaz desaparece. La grabación nunca arranca sin el toque del usuario.
 struct PracticeView: View {
     let topic: Topic
 
@@ -19,11 +20,18 @@ struct PracticeView: View {
 
     @State private var recorder: PracticeRecorder?
     @State private var summary: PracticeSummary?
+    @State private var config = PracticeTimerConfig.load()
+    @State private var lastSeenElapsed: TimeInterval = 0
+    @State private var flashingMark: TimeInterval?
 
     private struct PracticeSummary {
         let duration: TimeInterval
         let date: Date
     }
+
+    /// Marcas de aviso ofrecidas, en segundos restantes.
+    private static let availableMarks: [TimeInterval] = [600, 300, 120, 60]
+    private static let durationQuickPicks = [10, 15, 20, 30]
 
     var body: some View {
         NavigationStack {
@@ -44,17 +52,18 @@ struct PracticeView: View {
                         failureView(message)
                     }
                 } else {
-                    ProgressView()
+                    preparationView
                 }
             }
             .navigationTitle(topic.displayName)
             .navigationBarTitleDisplayMode(.inline)
-        }
-        .task {
-            guard recorder == nil else { return }
-            let newRecorder = PracticeRecorder(recordingStore: environment.recordingStore)
-            recorder = newRecorder
-            await newRecorder.start()
+            .toolbar {
+                if recorder == nil {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancelar") { dismiss() }
+                    }
+                }
+            }
         }
         .interactiveDismissDisabled(recorder?.state == .recording || recorder?.state == .paused)
         // La pantalla solo se mantiene despierta grabando; en pausa puede
@@ -62,12 +71,134 @@ struct PracticeView: View {
         .onChange(of: recorder?.state == .recording, initial: true) { _, isRecording in
             UIApplication.shared.isIdleTimerDisabled = isRecording
         }
+        .onChange(of: recorder?.elapsed ?? 0) { _, elapsed in
+            handleWarnings(elapsed: elapsed)
+        }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
         }
     }
 
+    // MARK: - Preparación
+
+    private var preparationView: some View {
+        List {
+            Section {
+                Picker("Modo", selection: $config.mode) {
+                    Text("Cronómetro").tag(TimerMode.countUp)
+                    Text("Cuenta atrás").tag(TimerMode.countdown)
+                }
+                .pickerStyle(.segmented)
+            } footer: {
+                if config.mode == .countdown {
+                    Text("Como en el examen: verás el tiempo restante.")
+                }
+            }
+
+            if config.mode == .countdown {
+                Section("Duración") {
+                    Stepper(value: targetMinutes, in: 1...120) {
+                        HStack {
+                            Text("Objetivo")
+                            Spacer()
+                            Text("\(Int(config.targetDuration / 60)) min")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityLabel("Duración objetivo")
+                    .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
+
+                    HStack {
+                        ForEach(Self.durationQuickPicks, id: \.self) { minutes in
+                            Button("\(minutes)′") {
+                                config.targetDuration = TimeInterval(minutes * 60)
+                            }
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                }
+
+                Section {
+                    ForEach(visibleMarks, id: \.self) { mark in
+                        Toggle(isOn: bindingForMark(mark)) {
+                            Text("Cuando queden \(Int(mark / 60)) min")
+                        }
+                    }
+                } header: {
+                    Text("Avisos")
+                } footer: {
+                    Text("Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación.")
+                }
+            }
+
+            Section {
+                Button {
+                    startPractice()
+                } label: {
+                    Label("Empezar", systemImage: "mic.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .accessibilityHint("Inicia la grabación de la práctica")
+            }
+        }
+    }
+
+    private var targetMinutes: Binding<Int> {
+        Binding(
+            get: { Int(config.targetDuration / 60) },
+            set: { config.targetDuration = TimeInterval($0 * 60) }
+        )
+    }
+
+    private var visibleMarks: [TimeInterval] {
+        Self.availableMarks.filter { $0 < config.targetDuration }
+    }
+
+    private func bindingForMark(_ mark: TimeInterval) -> Binding<Bool> {
+        Binding(
+            get: { config.warningMarks.contains(mark) },
+            set: { enabled in
+                if enabled {
+                    config.warningMarks.append(mark)
+                } else {
+                    config.warningMarks.removeAll { $0 == mark }
+                }
+            }
+        )
+    }
+
+    private func startPractice() {
+        config.save()
+        lastSeenElapsed = 0
+        let newRecorder = PracticeRecorder(recordingStore: environment.recordingStore)
+        recorder = newRecorder
+        Task {
+            await newRecorder.start()
+        }
+    }
+
     // MARK: - Grabando
+
+    private var isOvertime: Bool {
+        guard let recorder, config.mode == .countdown else { return false }
+        return recorder.elapsed > config.targetDuration
+    }
+
+    private func timerText(_ elapsed: TimeInterval) -> String {
+        guard config.mode == .countdown else { return formatDuration(elapsed) }
+        let remaining = config.targetDuration - elapsed
+        return remaining >= 0
+            ? formatDuration(remaining)
+            : "+" + formatDuration(-remaining)
+    }
 
     private func recordingView(_ recorder: PracticeRecorder) -> some View {
         let isPaused = recorder.state == .paused
@@ -75,14 +206,27 @@ struct PracticeView: View {
         return VStack(spacing: 32) {
             Spacer()
 
-            // Dos temperaturas inequívocas: color + icono + texto,
-            // nunca solo color.
+            // Estados inequívocos: color + icono + texto, nunca solo color.
             HStack(spacing: 8) {
                 if isPaused {
                     Image(systemName: "pause.fill")
                         .font(.caption)
                         .foregroundStyle(Color.amber)
                     Text("En pausa")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if isOvertime {
+                    Image(systemName: "clock.badge.exclamationmark")
+                        .font(.caption)
+                        .foregroundStyle(Color.mutedRed)
+                    Text("Tiempo agotado")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if let mark = flashingMark {
+                    Image(systemName: "bell.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.amber)
+                    Text("Quedan \(Int(mark / 60)) min")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
@@ -96,12 +240,20 @@ struct PracticeView: View {
             }
             .accessibilityElement(children: .combine)
 
-            Text(formatDuration(recorder.elapsed))
+            Text(timerText(recorder.elapsed))
                 .font(.system(.largeTitle, design: .rounded, weight: .light))
                 .monospacedDigit()
-                .foregroundStyle(isPaused ? .secondary : .primary)
-                .accessibilityLabel(isPaused ? "Tiempo grabado, en pausa" : "Tiempo transcurrido")
-                .accessibilityValue(formatDuration(recorder.elapsed))
+                .foregroundStyle(
+                    isPaused ? AnyShapeStyle(.secondary)
+                        : isOvertime ? AnyShapeStyle(Color.mutedRed)
+                        : AnyShapeStyle(.primary)
+                )
+                .accessibilityLabel(
+                    config.mode == .countdown
+                        ? (isOvertime ? "Tiempo excedido" : "Tiempo restante")
+                        : "Tiempo transcurrido"
+                )
+                .accessibilityValue(timerText(recorder.elapsed))
 
             Spacer()
 
@@ -139,6 +291,41 @@ struct PracticeView: View {
         }
     }
 
+    // MARK: - Avisos
+
+    /// Háptica + señal visual + anuncio de VoiceOver al cruzar cada marca.
+    /// Nunca sonido: el micrófono está abierto. Las marcas corren sobre
+    /// tiempo grabado, así que la pausa las congela sola.
+    private func handleWarnings(elapsed: TimeInterval) {
+        defer { lastSeenElapsed = elapsed }
+        guard config.mode == .countdown else { return }
+
+        let crossed = WarningSchedule.crossedMarks(
+            target: config.targetDuration,
+            marks: config.warningMarks,
+            previousElapsed: lastSeenElapsed,
+            elapsed: elapsed
+        )
+        guard let mark = crossed.last else { return }
+
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+
+        if mark == 0 {
+            AccessibilityNotification.Announcement(
+                String(localized: "Tiempo agotado")
+            ).post()
+        } else {
+            AccessibilityNotification.Announcement(
+                String(localized: "Quedan \(Int(mark / 60)) minutos")
+            ).post()
+            flashingMark = mark
+            Task {
+                try? await Task.sleep(for: .seconds(4))
+                if flashingMark == mark { flashingMark = nil }
+            }
+        }
+    }
+
     // MARK: - Resumen
 
     private func summaryView(_ summary: PracticeSummary) -> some View {
@@ -146,6 +333,11 @@ struct PracticeView: View {
             Section {
                 LabeledContent("Tema", value: topic.displayName)
                 LabeledContent("Duración", value: formatDuration(summary.duration))
+                if config.mode == .countdown {
+                    LabeledContent("Objetivo") {
+                        Text(formatDuration(config.targetDuration))
+                    }
+                }
                 LabeledContent("Fecha") {
                     Text(summary.date.formatted(date: .long, time: .shortened))
                 }
@@ -217,7 +409,8 @@ struct PracticeView: View {
                 recordingID: recorder.recordingID,
                 startedAt: startedAt,
                 endedAt: endedAt,
-                duration: recorder.elapsed
+                duration: recorder.elapsed,
+                targetDuration: config.mode == .countdown ? config.targetDuration : nil
             )
             summary = PracticeSummary(duration: recorder.elapsed, date: endedAt)
         } catch {

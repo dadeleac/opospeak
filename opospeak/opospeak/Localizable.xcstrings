@@ -23,7 +23,16 @@
     "%lld intentos" : {
 
     },
+    "%lld min" : {
+
+    },
+    "%lld minutos" : {
+
+    },
     "%lld temas" : {
+
+    },
+    "%lld′" : {
 
     },
     "Abrir Ajustes" : {
@@ -59,6 +68,9 @@
     "Archivar" : {
 
     },
+    "Avisos" : {
+
+    },
     "Buscar por número o título" : {
 
     },
@@ -72,6 +84,9 @@
 
     },
     "Cobertura" : {
+
+    },
+    "Como en el examen: verás el tiempo restante." : {
 
     },
     "Compartir intento" : {
@@ -116,7 +131,16 @@
     "Crear temas del 1 al N" : {
 
     },
+    "Cronómetro" : {
+
+    },
     "Cuando practiques este tema, tu historial aparecerá aquí." : {
+
+    },
+    "Cuando queden %lld min" : {
+
+    },
+    "Cuenta atrás" : {
 
     },
     "Datos" : {
@@ -147,6 +171,9 @@
 
     },
     "Duración" : {
+
+    },
+    "Duración objetivo" : {
 
     },
     "Editar tema" : {
@@ -209,6 +236,9 @@
     "Historial" : {
 
     },
+    "Inicia la grabación de la práctica" : {
+
+    },
     "Inicia la grabación de una práctica oral de este tema" : {
 
     },
@@ -240,6 +270,9 @@
 
     },
     "Micrófono no disponible" : {
+
+    },
+    "Modo" : {
 
     },
     "No disponible" : {
@@ -293,6 +326,9 @@
     "Número de temas" : {
 
     },
+    "Objetivo" : {
+
+    },
     "Opcional" : {
 
     },
@@ -339,6 +375,12 @@
 
     },
     "Puedes dejarlo vacío: el tema se mostrará como \"Tema %lld\"." : {
+
+    },
+    "Quedan %lld min" : {
+
+    },
+    "Quedan %lld minutos" : {
 
     },
     "Reanudar" : {
@@ -424,7 +466,13 @@
     "Tiempo acumulado" : {
 
     },
-    "Tiempo grabado, en pausa" : {
+    "Tiempo agotado" : {
+
+    },
+    "Tiempo excedido" : {
+
+    },
+    "Tiempo restante" : {
 
     },
     "Tiempo transcurrido" : {
@@ -479,6 +527,9 @@
 
     },
     "Versión" : {
+
+    },
+    "Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación." : {
 
     },
     "Volumen" : {

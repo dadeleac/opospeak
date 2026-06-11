@@ -79,7 +79,18 @@ Antes de comenzar la práctica el usuario puede:
 
 - revisar información del tema
 - prepararse mentalmente
-- iniciar cronómetro
+- configurar el cronómetro
+
+---
+
+## **Configuración del cronómetro**
+
+Dos modos:
+
+- Cronómetro ascendente.
+- Cuenta atrás con duración objetivo, como el reloj del examen oral.
+
+En cuenta atrás, el usuario elige en qué marcas restantes recibir aviso.
 
 ---
 
@@ -87,11 +98,15 @@ Antes de comenzar la práctica el usuario puede:
 
 La preparación debe ser rápida.
 
+La configuración se recuerda entre prácticas: el flujo habitual es un solo toque (Empezar).
+
 El objetivo es empezar a cantar cuanto antes.
 
 ---
 
 # **Inicio de intento**
+
+La grabación nunca arranca sola: comienza con la acción explícita del usuario (Empezar).
 
 Cuando el usuario inicia un intento:
 
@@ -139,8 +154,20 @@ La interfaz debe desaparecer.
 
 Versión inicial:
 
-- cronómetro
+- cronómetro (ascendente o restante, según el modo elegido)
 - estado de grabación
+
+---
+
+## **Avisos en cuenta atrás**
+
+Al cruzar cada marca elegida: vibración, señal visual y anuncio de VoiceOver.
+
+Nunca sonido: el micrófono está abierto y un pitido quedaría en la grabación.
+
+Al llegar a cero la grabación continúa, mostrando el exceso. Saber cuánto te pasas es dato; nada lo juzga.
+
+La métrica diferencia objetivo (duración real − objetivo) permite responder con los años: ¿me ajusto al tiempo de examen?
 
 ---
 
