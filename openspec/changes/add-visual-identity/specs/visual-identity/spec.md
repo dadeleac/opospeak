@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Semantic color system
-The application SHALL define its palette as semantic tokens in the asset catalog, each with light and dark variants: Tinta (Deep Ink, primary/interactive), Pizarra (Slate, secondary accents), Arena (Warm Sand, screen background) with a raised-surface variant, Salvia (Sage, positive/progress), Ámbar (attention/review actions), and Rojo Apagado (recording state, destructive). Views SHALL reference tokens, never hex values.
+The application SHALL define its palette as semantic tokens in the asset catalog, each with light and dark variants: Tinta (Deep Ink, primary/interactive), Pizarra (Slate, secondary accents), Papel (#F8F7F4, screen background), Arena (Warm Sand, warm highlighted surfaces) with a raised variant, Salvia (Sage, positive/progress), Ámbar (attention/review actions), and Rojo Apagado (recording state, destructive). Views SHALL reference tokens, never hex values.
 
 #### Scenario: One source of truth
 - **WHEN** a designer adjusts Deep Ink's dark variant
@@ -15,11 +15,11 @@ Interactive elements (buttons, links, tab selection, toggles) SHALL use Tinta as
 - **THEN** it renders in Deep Ink (its dark-mode variant at night), not system blue
 
 ### Requirement: Notebook background
-List screens SHALL use Arena as their background in light mode (clean notebook on paper) and an ink-tinted near-black in dark mode (nocturnal reading), with raised surfaces using the elevated Arena variant.
+List screens SHALL use Papel as their background in light mode (clean page) and an ink-tinted near-black in dark mode (nocturnal reading). Arena (Warm Sand) SHALL be reserved for warm highlighted surfaces over that background.
 
 #### Scenario: Light mode feels like paper
 - **WHEN** the user opens any main screen in light mode
-- **THEN** the background is Warm Sand, not system white/gray
+- **THEN** the background is Papel (#F8F7F4), not system white/gray
 
 ### Requirement: Color accompanies, never dominates
 Accent colors SHALL appear only with meaning: Ámbar for archive/review actions, Salvia for positive confirmation, Rojo Apagado for the recording indicator and destructive actions. Large color-saturated surfaces, decorative gradients, and color as the only signal SHALL NOT be used.

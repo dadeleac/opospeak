@@ -16,7 +16,10 @@ import SwiftUI
 //
 //   Tinta        Deep Ink — principal e interactivo (concentración)
 //   Pizarra      Slate — acentos secundarios
-//   Arena        Warm Sand — fondo: papel en claro, lectura nocturna en oscuro
+//   Papel        fondo de pantalla: página limpia en claro, lectura
+//                nocturna en oscuro
+//   Arena        Warm Sand — superficies cálidas destacadas sobre Papel
+//                (bloques, tarjetas); no es el fondo de pantalla
 //   ArenaElevada superficies elevadas sobre Arena
 //   Salvia       Sage — avance y confirmación positiva
 //   Ambar        atención y repaso (archivar)
@@ -28,7 +31,7 @@ struct FondoEditorial: ViewModifier {
     func body(content: Content) -> some View {
         content
             .scrollContentBackground(.hidden)
-            .background(Color.arena)
+            .background(Color.papel)
     }
 }
 

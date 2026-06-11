@@ -14,7 +14,7 @@ import Testing
 struct ThemeTests {
 
     private static let tokens = [
-        "Tinta", "Pizarra", "Arena", "ArenaElevada",
+        "Tinta", "Pizarra", "Papel", "Arena", "ArenaElevada",
         "Salvia", "Ambar", "RojoApagado", "AccentColor",
     ]
 

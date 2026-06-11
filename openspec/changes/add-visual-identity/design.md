@@ -26,7 +26,9 @@ Colorsets give free light/dark resolution, high-contrast variants later, and one
 
 ### 2. Dark variants are lightened, not inverted
 
-Deep Ink #1F3A5F is illegible as an accent on dark surfaces; its dark variant is a lightened ink (#9CB4D6 family). Same treatment for Salvia, Ámbar, Rojo Apagado, Pizarra. Arena inverts to an ink-tinted near-black (#171B22) with a raised variant (#222834) — "nocturnal reading", not pure black. Rationale: the foundation defines dark mode by feeling (concentration, professional tools), which means tinted darks, and WCAG requires the lightening.
+Deep Ink #1F3A5F is illegible as an accent on dark surfaces; its dark variant is a lightened ink (#9CB4D6 family). Same treatment for Salvia, Ámbar, Rojo Apagado, Pizarra. The background inverts to an ink-tinted near-black (#171B22) with a raised variant (#222834) — "nocturnal reading", not pure black. Rationale: the foundation defines dark mode by feeling (concentration, professional tools), which means tinted darks, and WCAG requires the lightening.
+
+**Amendment (validated visually):** the screen background in light mode is **Papel #F8F7F4**, not Arena. Warm Sand read too warm as a full-screen base; Papel keeps the clean-page feel and Arena returns to its foundation role — warm highlighted surfaces (blocks, cards) over the background. Both tokens ship; dark mode is identical for both.
 
 ### 3. Editorial background via a single modifier
 

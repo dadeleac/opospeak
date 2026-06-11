@@ -85,7 +85,7 @@ struct OnboardingView: View {
             .padding(.bottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.arena)
+        .background(Color.papel)
     }
 
     // MARK: - Fase 2: primer temario

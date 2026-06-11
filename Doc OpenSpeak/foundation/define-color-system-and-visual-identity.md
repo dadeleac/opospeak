@@ -152,6 +152,42 @@ Representa:
 
 ---
 
+# **Color de fondo**
+
+## **Papel**
+
+```txt
+Hex: #F8F7F4
+RGB: 248, 247, 244
+```
+
+---
+
+## **Significado**
+
+Representa:
+
+- página en blanco
+- limpieza
+- silencio visual
+
+---
+
+## **Uso**
+
+- fondo de las pantallas principales en modo claro
+- base sobre la que descansa todo lo demás
+
+---
+
+## **Relación con Warm Sand**
+
+Papel es el fondo neutro de la aplicación.
+
+Warm Sand se reserva para superficies cálidas destacadas sobre ese fondo.
+
+---
+
 # **Color de superficie cálida**
 
 ## **Warm Sand**

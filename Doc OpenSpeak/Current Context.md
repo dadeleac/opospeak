@@ -199,7 +199,7 @@ Onboarding is implemented (OpenSpec change `add-onboarding`, completed):
 
 The visual identity is implemented (OpenSpec change `add-visual-identity`, completed):
 
-- Semantic color system as asset-catalog colorsets with tuned dark variants: Tinta (Deep Ink, global tint via AccentColor), Pizarra, Arena (+ ArenaElevada) as the notebook background, Salvia, Ámbar, Rojo Apagado. Xcode-generated symbols; views never see hex.
+- Semantic color system as asset-catalog colorsets with tuned dark variants: Tinta (Deep Ink, global tint via AccentColor), Pizarra, Papel (#F8F7F4) as the screen background, Arena (+ ArenaElevada) reserved for warm highlighted surfaces, Salvia, Ámbar, Rojo Apagado. Xcode-generated symbols; views never see hex. (Background amended to Papel after visual validation; Arena keeps its foundation role.)
 - Dark variants lightened for contrast (ink-tinted near-black background — "nocturnal reading", not pure black); AA contrast verified for text-bearing pairs.
 - Restrained application: editorial sand background on persistent screens (creation sheets keep system backgrounds), Ámbar for archive swipes, Rojo Apagado for recording/destructive, Salvia for positive confirmation. No layout/behavior/typography changes.
 - Resolution test guards every colorset (existence + distinct dark variant). Full suite green (66 tests).
