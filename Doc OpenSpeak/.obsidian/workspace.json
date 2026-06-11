@@ -368,6 +368,8 @@
   },
   "active": "7caf8b022baa9610",
   "lastOpenFiles": [
+    "research/post-mvp-opportunity-analysis.md",
+    "research",
     "foundation/define-export-format.md",
     "foundation/define-onboarding-flow.md",
     "foundation/define-information-architecture.md",
@@ -391,7 +393,6 @@
     "skills/premium-experience-review/prompt.md",
     "skills/performance-review/skill.yaml",
     "skills/performance-review/prompt.md",
-    "skills/onboarding-retention-review/skill.yaml",
     "skills/onboarding-retention-review/prompt.md",
     "skills/monetization-review/prompt.md",
     "skills/ios-hig-review/prompt.md",
@@ -402,7 +403,6 @@
     "foundation/define-privacy-and-export-strategy.md",
     "foundation/define-progress-and-history-model.md",
     "foundation/define-topic-management-flow.md",
-    "foundation/define-practice-session-flow.md",
-    "foundation/define-local-first-data-strategy.md"
+    "foundation/define-practice-session-flow.md"
   ]
 }
