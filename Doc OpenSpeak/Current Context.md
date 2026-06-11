@@ -138,6 +138,20 @@ Architecture principles:
 
 ---
 
+## Implementation State
+
+The SwiftData domain model is implemented (OpenSpec change `add-swiftdata-domain-model`, completed):
+
+- Seven `@Model` classes: Temario, Tema, Sesion, Intento, Grabacion, Metrica, Nota.
+- Relationships and delete rules per `define-core-domain-model` (cascade protects nothing it shouldn't; deleting a Sesion never deletes Intentos).
+- CloudKit-compatible schema from day one (inverses everywhere, optionals/defaults, no unique constraints); sync itself is not enabled yet.
+- Recordings stored as files resolved by identity (`RecordingStore`); intento deletion goes through `PracticeRepository` so audio files are never orphaned.
+- Unit tests (Swift Testing, in-memory containers) cover creation, relationships, cascade/nullify, archiving, and file cleanup. Suite is green.
+
+The UI is still a placeholder; the next change should implement the information architecture (three tabs).
+
+---
+
 ## Recently Resolved
 
 - Information architecture defined in `define-information-architecture` (three tabs: Temarios, Progreso, Ajustes; Practicar always launches from a Tema; Sesión stays invisible; one Tema per Intento in the MVP).

@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		ED880CE62FDA95F900188036 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = ED880CE52FDA95F100188036 /* .gitignore */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		ED880CC82FDA94B800188036 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -31,7 +27,6 @@
 		ED880CB62FDA94B700188036 /* opospeak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = opospeak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED880CC72FDA94B800188036 /* opospeakTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = opospeakTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED880CD12FDA94B800188036 /* opospeakUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = opospeakUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED880CE52FDA95F100188036 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -97,7 +92,6 @@
 				ED880CCA2FDA94B800188036 /* opospeakTests */,
 				ED880CD42FDA94B800188036 /* opospeakUITests */,
 				ED880CB72FDA94B700188036 /* Products */,
-				ED880CE52FDA95F100188036 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -231,7 +225,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED880CE62FDA95F900188036 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

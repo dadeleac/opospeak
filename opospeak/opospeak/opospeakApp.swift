@@ -12,7 +12,13 @@ import SwiftData
 struct opospeakApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Temario.self,
+            Tema.self,
+            Sesion.self,
+            Intento.self,
+            Grabacion.self,
+            Metrica.self,
+            Nota.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
