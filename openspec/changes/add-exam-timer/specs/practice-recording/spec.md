@@ -1,15 +1,19 @@
 ## MODIFIED Requirements
 
 ### Requirement: Practice launches from the tema
-The practice experience SHALL launch only from a tema's Practicar action, presented full screen. The path SHALL be: tema → Practicar → **preparación** → Empezar → recording. The preparation phase SHALL show the topic, the timer configuration (mode, target duration, warning marks) pre-filled with the last used setup, and a single prominent Empezar action. Recording SHALL never start without the user's explicit tap; the microphone permission is requested at that tap.
+The practice experience SHALL launch only from a tema's Practicar action, presented full screen, in three moments — decide, place, speak: tema → Practicar → **preparación** (Continuar) → **listo** (Grabar) → recording. The preparation SHALL show the timer configuration as a one-line summary pre-filled with the last used setup, expandable only when the user wants to change it, and a Continuar action that requests the microphone permission without recording anything. The listo screen SHALL invite the user to place the phone wherever they want (stand, table) and SHALL show the idle clock; **Grabar** SHALL be the only control that turns the microphone on. Cancel SHALL be free in both pre-recording moments.
 
-#### Scenario: Habitual practice stays one tap
+#### Scenario: Habitual practice stays light
 - **WHEN** the user opens Practicar with a previously used configuration
-- **THEN** the preparation shows it pre-filled and a single tap on Empezar starts recording
+- **THEN** the preparation shows a one-line summary (no form) and two taps — Continuar, Grabar — reach recording
+
+#### Scenario: Phone on a stand
+- **WHEN** the user taps Continuar, places the phone on a stand, and settles
+- **THEN** nothing has been recorded yet, the permission dialog already happened, and tapping Grabar starts a clean recording without handling noise
 
 #### Scenario: No recording without consent
 - **WHEN** the practice screen opens
-- **THEN** nothing is recorded until the user taps Empezar
+- **THEN** nothing is recorded until the user taps Grabar
 
 ## ADDED Requirements
 

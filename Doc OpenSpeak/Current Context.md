@@ -257,6 +257,7 @@ Implemented in OpenSpec change `add-exam-timer` (completed):
 - **Overtime continues**: at zero the display shows "+excess" in MutedRed with "Tiempo agotado"; no cut-off, no judgment.
 - **`targetDelta` metric activated** (unused since the domain change): countdown practices persist duración − objetivo, enabling the longitudinal question "¿me ajusto al tiempo de examen?". Count-up practices don't produce it.
 - Foundation amended (`define-practice-session-flow`: Preparación, Inicio de intento, Avisos). Suite green (87 tests). Manual device check pending: real haptics and warning timing.
+- **Flow refined after review (decide → place → speak)**: preparation compresses the config into a one-line tappable summary (form expands on demand); **Continuar** requests the mic permission without recording; a **Listo** screen invites placing the phone on a stand and shows the idle clock; **Grabar** is the only control that turns the microphone on — recordings no longer start with handling noise. Vocabulary audited: Continuar / Grabar / Pausar / Reanudar / Finalizar / Hecho ("Empezar" remains only in onboarding). Cancel free in both pre-recording moments.
 
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 

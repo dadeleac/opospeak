@@ -98,15 +98,29 @@ En cuenta atrás, el usuario elige en qué marcas restantes recibir aviso.
 
 La preparación debe ser rápida.
 
-La configuración se recuerda entre prácticas: el flujo habitual es un solo toque (Empezar).
+La configuración se recuerda y se muestra como un resumen de una línea: la decisión habitual no paga el coste de la decisión excepcional.
 
 El objetivo es empezar a cantar cuanto antes.
 
 ---
 
+## **Tres momentos**
+
+```txt
+Decidir   → Preparación (resumen del cronómetro + Continuar)
+Colocar   → Listo (sitúa el móvil en su soporte; nada se graba aún)
+Cantar    → Grabar
+```
+
+El permiso de micrófono se pide en Continuar, para que el diálogo del sistema no interrumpa después de colocar el móvil.
+
+Grabar es el único control que enciende el micrófono. Así las grabaciones no empiezan con los roces del móvil contra el atril.
+
+---
+
 # **Inicio de intento**
 
-La grabación nunca arranca sola: comienza con la acción explícita del usuario (Empezar).
+La grabación nunca arranca sola: comienza con la acción explícita del usuario (Grabar).
 
 Cuando el usuario inicia un intento:
 

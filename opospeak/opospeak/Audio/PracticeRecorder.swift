@@ -55,9 +55,21 @@ final class PracticeRecorder {
         self.recordingStore = recordingStore
     }
 
+    /// Pide el permiso de micrófono sin grabar nada. Se invoca al entrar
+    /// en la práctica (Continuar) para que el diálogo del sistema no
+    /// interrumpa al usuario después de colocar el móvil en un soporte.
+    func requestPermission() async {
+        let granted = await AVAudioApplication.requestRecordPermission()
+        if !granted {
+            state = .permissionDenied
+        }
+    }
+
     func start() async {
         guard state == .idle else { return }
 
+        // Idempotente: si el permiso ya se concedió en requestPermission(),
+        // el sistema responde al instante sin diálogo.
         let granted = await AVAudioApplication.requestRecordPermission()
         guard granted else {
             state = .permissionDenied

@@ -22,3 +22,11 @@
 - [x] 4.1 Suite completa en verde
 - [x] 4.2 Enmendar `define-practice-session-flow`: Preparación (configuración del cronómetro, inicio explícito), Información visible (dos modos, avisos silenciosos, exceso)
 - [x] 4.3 Actualizar `Current Context.md`; nota de verificación manual: háptica real y avisos en dispositivo
+
+## 5. Refinamiento del flujo (decidir → colocar → cantar)
+
+- [x] 5.1 Preparación comprimida: chip de resumen de una línea pulsable que despliega el formulario solo a demanda; acción "Continuar" (no graba nada)
+- [x] 5.2 Pantalla "Listo": invitación a colocar el móvil, reloj en reposo (objetivo o 0:00) y "Grabar" como único botón que enciende el micrófono
+- [x] 5.3 Permiso de micrófono en Continuar (`PracticeRecorder.requestPermission()`), para que el diálogo no interrumpa tras colocar el móvil
+- [x] 5.4 Vocabulario auditado: Continuar / Grabar / Pausar / Reanudar / Finalizar / Hecho; "Empezar" queda solo en el onboarding
+- [x] 5.5 Cancelar libre también en "Listo"; spec y fundación enmendadas

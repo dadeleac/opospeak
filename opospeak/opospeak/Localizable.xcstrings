@@ -86,6 +86,9 @@
     "Cobertura" : {
 
     },
+    "Coloca el móvil donde quieras.\nPulsa cuando estés preparado." : {
+
+    },
     "Como en el examen: verás el tiempo restante." : {
 
     },
@@ -143,6 +146,19 @@
     "Cuenta atrás" : {
 
     },
+    "Cuenta atrás · %lld min" : {
+
+    },
+    "Cuenta atrás · %lld min · avisos %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cuenta atrás · %1$lld min · avisos %2$@"
+          }
+        }
+      }
+    },
     "Datos" : {
 
     },
@@ -162,6 +178,9 @@
 
     },
     "Desde" : {
+
+    },
+    "Despliega la configuración del cronómetro" : {
 
     },
     "Días con práctica" : {
@@ -194,6 +213,9 @@
     "En pausa" : {
 
     },
+    "Enciende el micrófono y empieza a grabar" : {
+
+    },
     "Estado" : {
 
     },
@@ -221,6 +243,9 @@
     "Grabando" : {
 
     },
+    "Grabar" : {
+
+    },
     "Guardar" : {
 
     },
@@ -234,9 +259,6 @@
 
     },
     "Historial" : {
-
-    },
-    "Inicia la grabación de la práctica" : {
 
     },
     "Inicia la grabación de una práctica oral de este tema" : {
@@ -345,6 +367,9 @@
 
     },
     "Ordenar" : {
+
+    },
+    "Pasa a la pantalla de grabación; todavía no se graba nada" : {
 
     },
     "Pausar" : {
@@ -470,6 +495,9 @@
 
     },
     "Tiempo excedido" : {
+
+    },
+    "Tiempo objetivo" : {
 
     },
     "Tiempo restante" : {

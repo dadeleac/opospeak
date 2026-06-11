@@ -21,6 +21,7 @@ struct PracticeView: View {
     @State private var recorder: PracticeRecorder?
     @State private var summary: PracticeSummary?
     @State private var config = PracticeTimerConfig.load()
+    @State private var editingConfig = false
     @State private var lastSeenElapsed: TimeInterval = 0
     @State private var flashingMark: TimeInterval?
 
@@ -39,7 +40,7 @@ struct PracticeView: View {
                 if let recorder {
                     switch recorder.state {
                     case .idle:
-                        ProgressView()
+                        readyView
                     case .recording, .paused:
                         recordingView(recorder)
                     case .finished:
@@ -58,7 +59,8 @@ struct PracticeView: View {
             .navigationTitle(topic.displayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if recorder == nil {
+                // Cancelar es libre mientras no se haya grabado nada.
+                if recorder == nil || recorder?.state == .idle {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancelar") { dismiss() }
                     }
@@ -79,66 +81,102 @@ struct PracticeView: View {
         }
     }
 
-    // MARK: - Preparación
+    // MARK: - Preparación (decidir)
 
+    /// El resumen de la configuración en una línea, p. ej.
+    /// "Cuenta atrás · 15 min · avisos 5′ y 1′".
+    private var configSummary: String {
+        guard config.mode == .countdown else {
+            return String(localized: "Cronómetro")
+        }
+        let minutes = Int(config.targetDuration / 60)
+        let marks = config.warningMarks
+            .filter { $0 < config.targetDuration }
+            .sorted(by: >)
+            .map { "\(Int($0 / 60))′" }
+        if marks.isEmpty {
+            return String(localized: "Cuenta atrás · \(minutes) min")
+        }
+        return String(localized: "Cuenta atrás · \(minutes) min · avisos \(marks.joined(separator: " y "))")
+    }
+
+    /// Decisión habitual sin coste: chip de resumen + Continuar.
+    /// El formulario solo se despliega si el usuario quiere cambiar algo.
     private var preparationView: some View {
         List {
             Section {
-                Picker("Modo", selection: $config.mode) {
-                    Text("Cronómetro").tag(TimerMode.countUp)
-                    Text("Cuenta atrás").tag(TimerMode.countdown)
+                Button {
+                    withAnimation { editingConfig.toggle() }
+                } label: {
+                    HStack {
+                        Label(configSummary, systemImage: "timer")
+                        Spacer()
+                        Image(systemName: editingConfig ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .pickerStyle(.segmented)
-            } footer: {
-                if config.mode == .countdown {
-                    Text("Como en el examen: verás el tiempo restante.")
-                }
+                .accessibilityHint("Despliega la configuración del cronómetro")
             }
 
-            if config.mode == .countdown {
-                Section("Duración") {
-                    Stepper(value: targetMinutes, in: 1...120) {
-                        HStack {
-                            Text("Objetivo")
-                            Spacer()
-                            Text("\(Int(config.targetDuration / 60)) min")
-                                .foregroundStyle(.secondary)
-                        }
+            if editingConfig {
+                Section {
+                    Picker("Modo", selection: $config.mode) {
+                        Text("Cronómetro").tag(TimerMode.countUp)
+                        Text("Cuenta atrás").tag(TimerMode.countdown)
                     }
-                    .accessibilityLabel("Duración objetivo")
-                    .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
-
-                    HStack {
-                        ForEach(Self.durationQuickPicks, id: \.self) { minutes in
-                            Button("\(minutes)′") {
-                                config.targetDuration = TimeInterval(minutes * 60)
-                            }
-                            .buttonStyle(.bordered)
-                            .frame(maxWidth: .infinity)
-                        }
+                    .pickerStyle(.segmented)
+                } footer: {
+                    if config.mode == .countdown {
+                        Text("Como en el examen: verás el tiempo restante.")
                     }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
                 }
 
-                Section {
-                    ForEach(visibleMarks, id: \.self) { mark in
-                        Toggle(isOn: bindingForMark(mark)) {
-                            Text("Cuando queden \(Int(mark / 60)) min")
+                if config.mode == .countdown {
+                    Section("Duración") {
+                        Stepper(value: targetMinutes, in: 1...120) {
+                            HStack {
+                                Text("Objetivo")
+                                Spacer()
+                                Text("\(Int(config.targetDuration / 60)) min")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .accessibilityLabel("Duración objetivo")
+                        .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
+
+                        HStack {
+                            ForEach(Self.durationQuickPicks, id: \.self) { minutes in
+                                Button("\(minutes)′") {
+                                    config.targetDuration = TimeInterval(minutes * 60)
+                                }
+                                .buttonStyle(.bordered)
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
                     }
-                } header: {
-                    Text("Avisos")
-                } footer: {
-                    Text("Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación.")
+
+                    Section {
+                        ForEach(visibleMarks, id: \.self) { mark in
+                            Toggle(isOn: bindingForMark(mark)) {
+                                Text("Cuando queden \(Int(mark / 60)) min")
+                            }
+                        }
+                    } header: {
+                        Text("Avisos")
+                    } footer: {
+                        Text("Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación.")
+                    }
                 }
             }
 
             Section {
                 Button {
-                    startPractice()
+                    continueToReady()
                 } label: {
-                    Label("Empezar", systemImage: "mic.fill")
+                    Text("Continuar")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
@@ -146,8 +184,48 @@ struct PracticeView: View {
                 .controlSize(.large)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
-                .accessibilityHint("Inicia la grabación de la práctica")
+                .accessibilityHint("Pasa a la pantalla de grabación; todavía no se graba nada")
             }
+        }
+    }
+
+    // MARK: - Listo (colocar)
+
+    /// El móvil puede colocarse en un soporte con calma: aquí no se graba
+    /// nada todavía. Grabar es el único botón que enciende el micrófono.
+    private var readyView: some View {
+        VStack(spacing: 32) {
+            Spacer()
+
+            Text("Coloca el móvil donde quieras.\nPulsa cuando estés preparado.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+
+            Text(config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0))
+                .font(.system(.largeTitle, design: .rounded, weight: .light))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .accessibilityLabel(config.mode == .countdown ? "Tiempo objetivo" : "Cronómetro")
+                .accessibilityValue(
+                    config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0)
+                )
+
+            Spacer()
+
+            Button {
+                beginRecording()
+            } label: {
+                Label("Grabar", systemImage: "record.circle")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
+            .padding(.bottom)
+            .accessibilityHint("Enciende el micrófono y empieza a grabar")
         }
     }
 
@@ -175,13 +253,24 @@ struct PracticeView: View {
         )
     }
 
-    private func startPractice() {
+    /// Continuar: guarda la configuración, crea el recorder y pide el
+    /// permiso de micrófono — para que el diálogo del sistema no
+    /// interrumpa después de colocar el móvil. Todavía no se graba nada.
+    private func continueToReady() {
         config.save()
         lastSeenElapsed = 0
         let newRecorder = PracticeRecorder(recordingStore: environment.recordingStore)
         recorder = newRecorder
         Task {
-            await newRecorder.start()
+            await newRecorder.requestPermission()
+        }
+    }
+
+    /// Grabar: el único botón que enciende el micrófono.
+    private func beginRecording() {
+        guard let recorder else { return }
+        Task {
+            await recorder.start()
         }
     }
 
