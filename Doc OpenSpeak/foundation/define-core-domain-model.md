@@ -56,7 +56,37 @@ Judicatura NO es un temario: es una oposición. Civil es un temario. Tema 15 es 
 
 # **Lenguaje ubicuo**
 
-Todos los documentos, código y especificaciones futuras deben utilizar la terminología definida aquí.
+El producto, la documentación y la interfaz de usuario utilizan la terminología española definida aquí.
+
+El código, a nivel de programación, utiliza identificadores en inglés.
+
+---
+
+## **Tabla de correspondencia oficial**
+
+```txt
+Dominio (ES)    Código (EN)
+─────────────────────────────────
+Oposición       Opposition
+Temario         Syllabus
+Tema            Topic
+Sesión          PracticeSession
+Intento         Attempt
+Grabación       Recording
+Métrica         Metric
+Nota            Note
+```
+
+Toda entidad futura debe añadir su correspondencia a esta tabla.
+
+---
+
+## **Reglas**
+
+- Documentos, specs y copys de UI: terminología española.
+- Tipos, propiedades, funciones, tests, claves y assets: inglés.
+- Las cadenas visibles para el usuario viven en el sistema de internacionalización de iOS (String Catalog), con el español como idioma fuente.
+- Los datos de contrato no se traducen: claves JSON del paquete de exportación, cabecera del CSV y raw values persistidos permanecen en español según `define-export-format`.
 
 ---
 

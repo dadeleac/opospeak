@@ -39,48 +39,48 @@ enum RecordingLocation {
 /// destructivo — ante cualquier fallo el archivo local queda intacto.
 enum RecordingMigrator {
 
-    struct Resultado: Equatable {
-        var migrados = 0
-        var omitidos = 0
-        var fallidos = 0
+    struct MigrationResult: Equatable {
+        var migrated = 0
+        var skipped = 0
+        var failed = 0
     }
 
     @discardableResult
-    static func migrate(from origen: URL, to destino: URL) -> Resultado {
+    static func migrate(from source: URL, to destination: URL) -> MigrationResult {
         let fm = FileManager.default
-        var resultado = Resultado()
+        var result = MigrationResult()
 
-        guard let archivos = try? fm.contentsOfDirectory(
-            at: origen, includingPropertiesForKeys: nil
+        guard let files = try? fm.contentsOfDirectory(
+            at: source, includingPropertiesForKeys: nil
         ) else {
-            return resultado
+            return result
         }
 
-        let audios = archivos.filter { $0.pathExtension == "m4a" }
-        guard !audios.isEmpty else { return resultado }
+        let audioFiles = files.filter { $0.pathExtension == "m4a" }
+        guard !audioFiles.isEmpty else { return result }
 
-        try? fm.createDirectory(at: destino, withIntermediateDirectories: true)
+        try? fm.createDirectory(at: destination, withIntermediateDirectories: true)
 
-        for archivo in audios {
-            let destinoArchivo = destino.appending(path: archivo.lastPathComponent)
-            if fm.fileExists(atPath: destinoArchivo.path(percentEncoded: false)) {
+        for file in audioFiles {
+            let target = destination.appending(path: file.lastPathComponent)
+            if fm.fileExists(atPath: target.path(percentEncoded: false)) {
                 // Ya migrado en un pase anterior: solo retirar el duplicado local.
-                try? fm.removeItem(at: archivo)
-                resultado.omitidos += 1
+                try? fm.removeItem(at: file)
+                result.skipped += 1
                 continue
             }
             do {
-                try fm.copyItem(at: archivo, to: destinoArchivo)
-                guard fm.fileExists(atPath: destinoArchivo.path(percentEncoded: false)) else {
-                    resultado.fallidos += 1
+                try fm.copyItem(at: file, to: target)
+                guard fm.fileExists(atPath: target.path(percentEncoded: false)) else {
+                    result.failed += 1
                     continue
                 }
-                try fm.removeItem(at: archivo)
-                resultado.migrados += 1
+                try fm.removeItem(at: file)
+                result.migrated += 1
             } catch {
-                resultado.fallidos += 1
+                result.failed += 1
             }
         }
-        return resultado
+        return result
     }
 }

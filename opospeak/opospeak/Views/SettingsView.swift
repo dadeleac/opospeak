@@ -1,5 +1,5 @@
 //
-//  AjustesView.swift
+//  SettingsView.swift
 //  opospeak
 //
 //  Created by David de León Acosta on 11/06/2026.
@@ -10,30 +10,30 @@ import SwiftData
 
 // Ajustes contiene solo lo que no pertenece al flujo de práctica
 // (define-information-architecture). No es un cajón de funcionalidades.
-struct AjustesView: View {
+struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(AppEnvironment.self) private var entorno
-    @Query(sort: \Oposicion.fechaCreacion) private var oposiciones: [Oposicion]
+    @Environment(AppEnvironment.self) private var environment
+    @Query(sort: \Opposition.createdAt) private var oppositions: [Opposition]
 
-    @State private var exportando = false
+    @State private var exporting = false
     @State private var exportURL: URL?
-    @State private var exportError = false
-    @State private var editandoOposicion = false
-    @State private var nombreOposicion = ""
+    @State private var exportFailed = false
+    @State private var editingOpposition = false
+    @State private var oppositionName = ""
 
-    private var oposicionActiva: Oposicion? {
-        if let idString = UserDefaults.standard.string(forKey: OposicionActiva.storageKey),
+    private var activeOpposition: Opposition? {
+        if let idString = UserDefaults.standard.string(forKey: ActiveOpposition.storageKey),
            let id = UUID(uuidString: idString),
-           let elegida = oposiciones.first(where: { $0.id == id }) {
-            return elegida
+           let chosen = oppositions.first(where: { $0.id == id }) {
+            return chosen
         }
-        return oposiciones.first
+        return oppositions.first
     }
 
-    private var version: String {
-        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "\(v) (\(build))"
+        return "\(version) (\(build))"
     }
 
     var body: some View {
@@ -55,14 +55,14 @@ struct AjustesView: View {
                 Text("Privacidad")
             }
 
-            if let oposicion = oposicionActiva {
+            if let opposition = activeOpposition {
                 Section {
                     Button {
-                        nombreOposicion = oposicion.nombre
-                        editandoOposicion = true
+                        oppositionName = opposition.name
+                        editingOpposition = true
                     } label: {
                         LabeledContent {
-                            Text(oposicion.nombre)
+                            Text(opposition.name)
                                 .foregroundStyle(.secondary)
                         } label: {
                             Label("Nombre", systemImage: "graduationcap")
@@ -78,21 +78,21 @@ struct AjustesView: View {
 
             Section {
                 Button {
-                    exportar()
+                    export()
                 } label: {
                     HStack {
                         Label("Exportar mis datos", systemImage: "square.and.arrow.up")
                         Spacer()
-                        if exportando {
+                        if exporting {
                             ProgressView()
                         }
                     }
                 }
-                .disabled(exportando)
+                .disabled(exporting)
                 .accessibilityHint("Genera un paquete con todos tus datos y grabaciones")
 
                 LabeledContent {
-                    Text(entorno.syncStatus.descripcion)
+                    Text(environment.syncStatus.statusDescription)
                         .foregroundStyle(.secondary)
                 } label: {
                     Label("Sincronización iCloud", systemImage: "icloud")
@@ -105,52 +105,55 @@ struct AjustesView: View {
             }
 
             Section("Aplicación") {
-                LabeledContent("Versión", value: version)
+                LabeledContent("Versión", value: appVersion)
             }
         }
-        .fondoEditorial()
+        .editorialBackground()
         .navigationTitle("Ajustes")
         .sheet(item: $exportURL) { url in
             ShareSheet(url: url) {
-                limpiarTemporal(url)
+                cleanUpTemporary(url)
                 exportURL = nil
             }
         }
-        .alert("Nombre de la oposición", isPresented: $editandoOposicion) {
-            TextField("Nombre", text: $nombreOposicion)
-            Button("Guardar") { renombrarOposicion() }
+        .alert("Nombre de la oposición", isPresented: $editingOpposition) {
+            TextField("Nombre", text: $oppositionName)
+            Button("Guardar") { renameOpposition() }
             Button("Cancelar", role: .cancel) {}
         }
-        .alert("No se pudo exportar", isPresented: $exportError) {
+        .alert("No se pudo exportar", isPresented: $exportFailed) {
             Button("Aceptar", role: .cancel) {}
         } message: {
             Text("Inténtalo de nuevo. Si el problema continúa, comprueba el espacio disponible.")
         }
     }
 
-    private func exportar() {
-        exportando = true
+    private func export() {
+        exporting = true
         Task {
-            defer { exportando = false }
+            defer { exporting = false }
             do {
-                let service = ExportService(modelContext: modelContext, recordingStore: entorno.recordingStore)
-                let paquete = try service.buildFullPackage()
-                exportURL = try ExportArchiver.zip(directory: paquete)
-                try? FileManager.default.removeItem(at: paquete.deletingLastPathComponent())
+                let service = ExportService(
+                    modelContext: modelContext,
+                    recordingStore: environment.recordingStore
+                )
+                let package = try service.buildFullPackage()
+                exportURL = try ExportArchiver.zip(directory: package)
+                try? FileManager.default.removeItem(at: package.deletingLastPathComponent())
             } catch {
-                exportError = true
+                exportFailed = true
             }
         }
     }
 
-    private func renombrarOposicion() {
-        let limpio = nombreOposicion.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !limpio.isEmpty, let oposicion = oposicionActiva else { return }
-        oposicion.nombre = limpio
-        oposicion.fechaActualizacion = .now
+    private func renameOpposition() {
+        let trimmed = oppositionName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let opposition = activeOpposition else { return }
+        opposition.name = trimmed
+        opposition.updatedAt = .now
     }
 
-    private func limpiarTemporal(_ url: URL) {
+    private func cleanUpTemporary(_ url: URL) {
         try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
     }
 }
@@ -161,7 +164,7 @@ extension URL: @retroactive Identifiable {
 
 #Preview {
     NavigationStack {
-        AjustesView()
+        SettingsView()
     }
-    .environment(AppEnvironment(modo: .local))
+    .environment(AppEnvironment(mode: .local))
 }

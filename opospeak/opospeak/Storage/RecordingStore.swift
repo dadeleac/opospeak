@@ -22,9 +22,9 @@ struct RecordingStore {
         }
     }
 
-    /// URL del archivo de audio de una grabación: `Recordings/<id>.<formato>`.
-    func url(forGrabacionId id: UUID, formato: String = "m4a") -> URL {
-        directoryURL.appending(path: "\(id.uuidString).\(formato)")
+    /// URL del archivo de audio de una grabación: `Recordings/<id>.<format>`.
+    func url(forRecordingID id: UUID, format: String = "m4a") -> URL {
+        directoryURL.appending(path: "\(id.uuidString).\(format)")
     }
 
     /// Crea el directorio de grabaciones si no existe.
@@ -34,8 +34,8 @@ struct RecordingStore {
 
     /// URL del archivo si existe en disco; nil en caso contrario.
     /// Permite distinguir "grabación disponible" de metadatos huérfanos.
-    func existingURL(forGrabacionId id: UUID, formato: String = "m4a") -> URL? {
-        let fileURL = url(forGrabacionId: id, formato: formato)
+    func existingURL(forRecordingID id: UUID, format: String = "m4a") -> URL? {
+        let fileURL = url(forRecordingID: id, format: format)
         // percentEncoded: false — "Application Support" contiene un espacio
         // y la versión codificada haría fallar a FileManager.
         guard FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) else {
@@ -45,32 +45,32 @@ struct RecordingStore {
     }
 
     /// Elimina el archivo de audio de una grabación. No falla si ya no existe.
-    func deleteRecording(id: UUID, formato: String = "m4a") throws {
-        guard let fileURL = existingURL(forGrabacionId: id, formato: formato) else { return }
+    func deleteRecording(id: UUID, format: String = "m4a") throws {
+        guard let fileURL = existingURL(forRecordingID: id, format: format) else { return }
         try FileManager.default.removeItem(at: fileURL)
     }
 
     // MARK: - iCloud
 
     enum Availability: Equatable {
-        case disponible(URL)
-        case descargando
-        case ausente
+        case available(URL)
+        case downloading
+        case missing
     }
 
     /// Estado de una grabación contemplando iCloud: si el archivo no está
     /// en disco pero existe su placeholder `.icloud` (archivo evictado del
-    /// contenedor ubicuo), lanza la descarga y reporta `.descargando`.
-    func availability(forGrabacionId id: UUID, formato: String = "m4a") -> Availability {
-        if let url = existingURL(forGrabacionId: id, formato: formato) {
-            return .disponible(url)
+    /// contenedor ubicuo), lanza la descarga y reporta `.downloading`.
+    func availability(forRecordingID id: UUID, format: String = "m4a") -> Availability {
+        if let url = existingURL(forRecordingID: id, format: format) {
+            return .available(url)
         }
-        let placeholder = directoryURL.appending(path: ".\(id.uuidString).\(formato).icloud")
+        let placeholder = directoryURL.appending(path: ".\(id.uuidString).\(format).icloud")
         if FileManager.default.fileExists(atPath: placeholder.path(percentEncoded: false)) {
-            let destino = url(forGrabacionId: id, formato: formato)
-            try? FileManager.default.startDownloadingUbiquitousItem(at: destino)
-            return .descargando
+            let target = url(forRecordingID: id, format: format)
+            try? FileManager.default.startDownloadingUbiquitousItem(at: target)
+            return .downloading
         }
-        return .ausente
+        return .missing
     }
 }

@@ -220,6 +220,19 @@ MVP validation caught Temario acting as the system root ("Judicatura" created as
 - Export format **v2**: `oposiciones.json`, `oposicionId` in temarios, `oposicion` CSV column, manifest counts. Safe bump (no importers exist).
 - Six foundation documents corrected; all suites updated; full suite green (74 tests).
 
+---
+
+## Code Language & Localization Refactor
+
+Implemented in OpenSpec change `refactor-english-codebase` (completed):
+
+- **Language policy** (annotated in `define-core-domain-model`): Spanish for product/docs/UI; English for all code identifiers, with the official mapping Oposición→`Opposition`, Temario→`Syllabus`, Tema→`Topic`, Sesión→`PracticeSession`, Intento→`Attempt`, Grabación→`Recording`, Métrica→`Metric`, Nota→`Note`.
+- Every Swift identifier renamed (models, logic, storage, audio, views, tests, UserDefaults keys); color tokens renamed to English (Ink, Slate, Paper, Sand, ElevatedSand, Sage, Amber, MutedRed).
+- **Localization**: development language is Spanish (`developmentRegion = es`); `Localizable.xcstrings` added; SwiftUI literals auto-extract; non-View user strings use `String(localized:)`. Future languages are catalog entries.
+- **Export contract preserved (Option A)**: Spanish JSON keys/file names/CSV header/raw values via explicit `CodingKeys`; a dedicated test asserts the Spanish contract keys survive.
+- Local stores reset (no users). **Release-checklist note: reset the dev CloudKit container schema in the Console before the next device build** (entity names changed).
+- Full suite green (75 tests).
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

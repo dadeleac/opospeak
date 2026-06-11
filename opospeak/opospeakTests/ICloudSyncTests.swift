@@ -13,13 +13,13 @@ import Testing
 
 struct RecordingLocationTests {
 
-    @Test func sinContenedorUbicuoResuelveLocal() {
+    @Test func withoutUbiquityResolvesLocal() {
         #expect(RecordingLocation.resolve(ubiquity: nil) == RecordingLocation.localURL)
     }
 
-    @Test func conContenedorUbicuoLoUsa() {
-        let ubicuo = URL(fileURLWithPath: "/ubiquity/Documents/Recordings")
-        #expect(RecordingLocation.resolve(ubiquity: ubicuo) == ubicuo)
+    @Test func withUbiquityUsesIt() {
+        let ubiquity = URL(fileURLWithPath: "/ubiquity/Documents/Recordings")
+        #expect(RecordingLocation.resolve(ubiquity: ubiquity) == ubiquity)
     }
 }
 
@@ -27,73 +27,73 @@ struct RecordingLocationTests {
 
 struct RecordingMigratorTests {
 
-    private func makeDirs() throws -> (origen: URL, destino: URL) {
+    private func makeDirs() throws -> (source: URL, destination: URL) {
         let base = FileManager.default.temporaryDirectory
             .appending(path: "MigratorTests-\(UUID().uuidString)")
-        let origen = base.appending(path: "local", directoryHint: .isDirectory)
-        let destino = base.appending(path: "ubiquity", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: origen, withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: destino, withIntermediateDirectories: true)
-        return (origen, destino)
+        let source = base.appending(path: "local", directoryHint: .isDirectory)
+        let destination = base.appending(path: "ubiquity", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: source, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        return (source, destination)
     }
 
-    private func crearAudio(_ nombre: String, en dir: URL, contenido: String = "audio") throws {
-        try Data(contenido.utf8).write(to: dir.appending(path: nombre))
+    private func createAudio(_ name: String, in dir: URL, content: String = "audio") throws {
+        try Data(content.utf8).write(to: dir.appending(path: name))
     }
 
-    @Test func migraArchivosM4a() throws {
-        let (origen, destino) = try makeDirs()
-        try crearAudio("a.m4a", en: origen)
-        try crearAudio("b.m4a", en: origen)
-        try crearAudio("otros.txt", en: origen)
+    @Test func migratesM4aFiles() throws {
+        let (source, destination) = try makeDirs()
+        try createAudio("a.m4a", in: source)
+        try createAudio("b.m4a", in: source)
+        try createAudio("other.txt", in: source)
 
-        let resultado = RecordingMigrator.migrate(from: origen, to: destino)
+        let result = RecordingMigrator.migrate(from: source, to: destination)
 
-        #expect(resultado.migrados == 2)
-        #expect(resultado.fallidos == 0)
+        #expect(result.migrated == 2)
+        #expect(result.failed == 0)
         let fm = FileManager.default
-        #expect(fm.fileExists(atPath: destino.appending(path: "a.m4a").path(percentEncoded: false)))
-        #expect(fm.fileExists(atPath: destino.appending(path: "b.m4a").path(percentEncoded: false)))
+        #expect(fm.fileExists(atPath: destination.appending(path: "a.m4a").path(percentEncoded: false)))
+        #expect(fm.fileExists(atPath: destination.appending(path: "b.m4a").path(percentEncoded: false)))
         // Los m4a desaparecen del origen; otros archivos no se tocan.
-        #expect(!fm.fileExists(atPath: origen.appending(path: "a.m4a").path(percentEncoded: false)))
-        #expect(fm.fileExists(atPath: origen.appending(path: "otros.txt").path(percentEncoded: false)))
+        #expect(!fm.fileExists(atPath: source.appending(path: "a.m4a").path(percentEncoded: false)))
+        #expect(fm.fileExists(atPath: source.appending(path: "other.txt").path(percentEncoded: false)))
     }
 
-    @Test func esIdempotente() throws {
-        let (origen, destino) = try makeDirs()
-        try crearAudio("a.m4a", en: origen)
+    @Test func isIdempotent() throws {
+        let (source, destination) = try makeDirs()
+        try createAudio("a.m4a", in: source)
 
-        let primera = RecordingMigrator.migrate(from: origen, to: destino)
-        #expect(primera.migrados == 1)
+        let firstPass = RecordingMigrator.migrate(from: source, to: destination)
+        #expect(firstPass.migrated == 1)
 
-        let segunda = RecordingMigrator.migrate(from: origen, to: destino)
-        #expect(segunda == RecordingMigrator.Resultado())
+        let secondPass = RecordingMigrator.migrate(from: source, to: destination)
+        #expect(secondPass == RecordingMigrator.MigrationResult())
     }
 
-    @Test func duplicadoYaMigradoSeRetiraSinPisarDestino() throws {
-        let (origen, destino) = try makeDirs()
-        try crearAudio("a.m4a", en: destino, contenido: "version-icloud")
-        try crearAudio("a.m4a", en: origen, contenido: "version-local")
+    @Test func alreadyMigratedDuplicateIsRemovedWithoutOverwriting() throws {
+        let (source, destination) = try makeDirs()
+        try createAudio("a.m4a", in: destination, content: "icloud-version")
+        try createAudio("a.m4a", in: source, content: "local-version")
 
-        let resultado = RecordingMigrator.migrate(from: origen, to: destino)
+        let result = RecordingMigrator.migrate(from: source, to: destination)
 
-        #expect(resultado.omitidos == 1)
-        #expect(resultado.migrados == 0)
+        #expect(result.skipped == 1)
+        #expect(result.migrated == 0)
         // El destino conserva su versión; el duplicado local se retira.
-        let contenido = try String(
-            contentsOf: destino.appending(path: "a.m4a"), encoding: .utf8
+        let content = try String(
+            contentsOf: destination.appending(path: "a.m4a"), encoding: .utf8
         )
-        #expect(contenido == "version-icloud")
+        #expect(content == "icloud-version")
         #expect(!FileManager.default.fileExists(
-            atPath: origen.appending(path: "a.m4a").path(percentEncoded: false)
+            atPath: source.appending(path: "a.m4a").path(percentEncoded: false)
         ))
     }
 
-    @Test func origenInexistenteNoFalla() {
-        let inexistente = FileManager.default.temporaryDirectory
-            .appending(path: "no-existe-\(UUID().uuidString)")
-        let resultado = RecordingMigrator.migrate(from: inexistente, to: inexistente)
-        #expect(resultado == RecordingMigrator.Resultado())
+    @Test func missingSourceDoesNotFail() {
+        let missing = FileManager.default.temporaryDirectory
+            .appending(path: "missing-\(UUID().uuidString)")
+        let result = RecordingMigrator.migrate(from: missing, to: missing)
+        #expect(result == RecordingMigrator.MigrationResult())
     }
 }
 
@@ -109,16 +109,16 @@ struct RecordingAvailabilityTests {
         return store
     }
 
-    @Test func archivoPresenteEsDisponible() throws {
+    @Test func presentFileIsAvailable() throws {
         let store = try makeStore()
         let id = UUID()
-        try Data("audio".utf8).write(to: store.url(forGrabacionId: id))
+        try Data("audio".utf8).write(to: store.url(forRecordingID: id))
 
-        let estado = store.availability(forGrabacionId: id)
-        #expect(estado == .disponible(store.url(forGrabacionId: id)))
+        let state = store.availability(forRecordingID: id)
+        #expect(state == .available(store.url(forRecordingID: id)))
     }
 
-    @Test func placeholderICloudEsDescargando() throws {
+    @Test func icloudPlaceholderIsDownloading() throws {
         let store = try makeStore()
         let id = UUID()
         // Un archivo evictado del contenedor ubicuo aparece como
@@ -126,11 +126,11 @@ struct RecordingAvailabilityTests {
         let placeholder = store.directoryURL.appending(path: ".\(id.uuidString).m4a.icloud")
         try Data().write(to: placeholder)
 
-        #expect(store.availability(forGrabacionId: id) == .descargando)
+        #expect(store.availability(forRecordingID: id) == .downloading)
     }
 
-    @Test func sinArchivoNiPlaceholderEsAusente() throws {
+    @Test func neitherFileNorPlaceholderIsMissing() throws {
         let store = try makeStore()
-        #expect(store.availability(forGrabacionId: UUID()) == .ausente)
+        #expect(store.availability(forRecordingID: UUID()) == .missing)
     }
 }

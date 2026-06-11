@@ -10,30 +10,30 @@ import Testing
 import SwiftData
 @testable import opospeak
 
-// MARK: - SesionPolicy
+// MARK: - SessionPolicy
 
-struct SesionPolicyTests {
+struct SessionPolicyTests {
 
-    private let ahora = Date(timeIntervalSince1970: 1_750_000_000)
+    private let now = Date(timeIntervalSince1970: 1_750_000_000)
 
-    @Test func dentroDeVentanaEsReutilizable() {
-        let hace10min = ahora.addingTimeInterval(-10 * 60)
-        #expect(SesionPolicy.esReutilizable(ultimaActividad: hace10min, ahora: ahora))
+    @Test func withinWindowIsReusable() {
+        let tenMinutesAgo = now.addingTimeInterval(-10 * 60)
+        #expect(SessionPolicy.isReusable(lastActivity: tenMinutesAgo, now: now))
     }
 
-    @Test func fueraDeVentanaNoEsReutilizable() {
-        let hace45min = ahora.addingTimeInterval(-45 * 60)
-        #expect(!SesionPolicy.esReutilizable(ultimaActividad: hace45min, ahora: ahora))
+    @Test func outsideWindowIsNotReusable() {
+        let fortyFiveMinutesAgo = now.addingTimeInterval(-45 * 60)
+        #expect(!SessionPolicy.isReusable(lastActivity: fortyFiveMinutesAgo, now: now))
     }
 
-    @Test func exactamenteEnElLimiteEsReutilizable() {
-        let hace30min = ahora.addingTimeInterval(-30 * 60)
-        #expect(SesionPolicy.esReutilizable(ultimaActividad: hace30min, ahora: ahora))
+    @Test func exactlyAtBoundaryIsReusable() {
+        let thirtyMinutesAgo = now.addingTimeInterval(-30 * 60)
+        #expect(SessionPolicy.isReusable(lastActivity: thirtyMinutesAgo, now: now))
     }
 
-    @Test func actividadFuturaNoEsReutilizable() {
-        let dentroDe5min = ahora.addingTimeInterval(5 * 60)
-        #expect(!SesionPolicy.esReutilizable(ultimaActividad: dentroDe5min, ahora: ahora))
+    @Test func futureActivityIsNotReusable() {
+        let inFiveMinutes = now.addingTimeInterval(5 * 60)
+        #expect(!SessionPolicy.isReusable(lastActivity: inFiveMinutes, now: now))
     }
 }
 
@@ -45,19 +45,19 @@ struct PracticeServiceTests {
     // Mismo patrón que DomainModelTests: esquema compartido y contenedores
     // retenidos — el deinit de un contenedor en uso crashea SwiftData.
     private static let sharedSchema = Schema([
-        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
 
-    private struct Entorno {
+    private struct TestEnvironment {
         let context: ModelContext
         let store: RecordingStore
         let service: PracticeService
-        let tema: Tema
+        let topic: Topic
     }
 
-    private func makeEntorno() throws -> Entorno {
+    private func makeEnvironment() throws -> TestEnvironment {
         let config = ModelConfiguration(
             "test-\(UUID().uuidString)",
             schema: Self.sharedSchema,
@@ -73,116 +73,116 @@ struct PracticeServiceTests {
         )
         try store.ensureDirectoryExists()
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 42, temario: temario)
-        context.insert(tema)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 42, syllabus: syllabus)
+        context.insert(topic)
         try context.save()
 
-        return Entorno(
+        return TestEnvironment(
             context: context,
             store: store,
             service: PracticeService(modelContext: context, recordingStore: store),
-            tema: tema
+            topic: topic
         )
     }
 
-    private func crearArchivoFalso(en store: RecordingStore, id: UUID) throws {
-        let url = store.url(forGrabacionId: id)
+    private func createFakeAudio(in store: RecordingStore, id: UUID) throws {
+        let url = store.url(forRecordingID: id)
         try Data(repeating: 0xAB, count: 2048).write(to: url)
     }
 
-    @Test func finishPersisteIntentoGrabacionYMetrica() throws {
-        let entorno = try makeEntorno()
-        let grabacionId = UUID()
-        try crearArchivoFalso(en: entorno.store, id: grabacionId)
+    @Test func finishPersistsAttemptRecordingAndMetric() throws {
+        let env = try makeEnvironment()
+        let recordingID = UUID()
+        try createFakeAudio(in: env.store, id: recordingID)
 
-        let inicio = Date(timeIntervalSince1970: 1_750_000_000)
-        let fin = inicio.addingTimeInterval(708)
-        let intento = try entorno.service.finish(
-            tema: entorno.tema, grabacionId: grabacionId, inicio: inicio, fin: fin
+        let startedAt = Date(timeIntervalSince1970: 1_750_000_000)
+        let endedAt = startedAt.addingTimeInterval(708)
+        let attempt = try env.service.finish(
+            topic: env.topic, recordingID: recordingID, startedAt: startedAt, endedAt: endedAt
         )
 
-        #expect(intento.duracionReal == 708)
-        #expect(intento.completado)
-        #expect(intento.tema?.id == entorno.tema.id)
-        #expect(intento.sesion != nil)
-        #expect(intento.sesion?.fechaFin == fin)
+        #expect(attempt.duration == 708)
+        #expect(attempt.isCompleted)
+        #expect(attempt.topic?.id == env.topic.id)
+        #expect(attempt.session != nil)
+        #expect(attempt.session?.endedAt == endedAt)
 
-        let grabaciones = try entorno.context.fetch(FetchDescriptor<Grabacion>())
-        #expect(grabaciones.count == 1)
-        #expect(grabaciones[0].id == grabacionId)
-        #expect(grabaciones[0].tamano == 2048)
-        #expect(grabaciones[0].duracion == 708)
+        let recordings = try env.context.fetch(FetchDescriptor<Recording>())
+        #expect(recordings.count == 1)
+        #expect(recordings[0].id == recordingID)
+        #expect(recordings[0].fileSize == 2048)
+        #expect(recordings[0].duration == 708)
 
-        let metricas = try entorno.context.fetch(FetchDescriptor<Metrica>())
-        #expect(metricas.count == 1)
-        #expect(metricas[0].tipo == .duracionTotal)
-        #expect(metricas[0].valor == 708)
+        let metrics = try env.context.fetch(FetchDescriptor<Metric>())
+        #expect(metrics.count == 1)
+        #expect(metrics[0].kind == .totalDuration)
+        #expect(metrics[0].value == 708)
     }
 
-    @Test func practicasCercanasCompartenSesion() throws {
-        let entorno = try makeEntorno()
+    @Test func closePracticesShareSession() throws {
+        let env = try makeEnvironment()
         let base = Date(timeIntervalSince1970: 1_750_000_000)
 
         let id1 = UUID()
-        try crearArchivoFalso(en: entorno.store, id: id1)
-        try entorno.service.finish(
-            tema: entorno.tema, grabacionId: id1,
-            inicio: base, fin: base.addingTimeInterval(600)
+        try createFakeAudio(in: env.store, id: id1)
+        try env.service.finish(
+            topic: env.topic, recordingID: id1,
+            startedAt: base, endedAt: base.addingTimeInterval(600)
         )
 
         // Segunda práctica 10 minutos después de terminar la primera.
-        let inicio2 = base.addingTimeInterval(600 + 10 * 60)
+        let secondStart = base.addingTimeInterval(600 + 10 * 60)
         let id2 = UUID()
-        try crearArchivoFalso(en: entorno.store, id: id2)
-        try entorno.service.finish(
-            tema: entorno.tema, grabacionId: id2,
-            inicio: inicio2, fin: inicio2.addingTimeInterval(600)
+        try createFakeAudio(in: env.store, id: id2)
+        try env.service.finish(
+            topic: env.topic, recordingID: id2,
+            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600)
         )
 
-        let sesiones = try entorno.context.fetch(FetchDescriptor<Sesion>())
-        #expect(sesiones.count == 1)
-        #expect(sesiones[0].intentos?.count == 2)
+        let sessions = try env.context.fetch(FetchDescriptor<PracticeSession>())
+        #expect(sessions.count == 1)
+        #expect(sessions[0].attempts?.count == 2)
     }
 
-    @Test func pausaLargaCreaSesionNueva() throws {
-        let entorno = try makeEntorno()
+    @Test func longBreakCreatesNewSession() throws {
+        let env = try makeEnvironment()
         let base = Date(timeIntervalSince1970: 1_750_000_000)
 
         let id1 = UUID()
-        try crearArchivoFalso(en: entorno.store, id: id1)
-        try entorno.service.finish(
-            tema: entorno.tema, grabacionId: id1,
-            inicio: base, fin: base.addingTimeInterval(600)
+        try createFakeAudio(in: env.store, id: id1)
+        try env.service.finish(
+            topic: env.topic, recordingID: id1,
+            startedAt: base, endedAt: base.addingTimeInterval(600)
         )
 
         // Segunda práctica 45 minutos después de terminar la primera.
-        let inicio2 = base.addingTimeInterval(600 + 45 * 60)
+        let secondStart = base.addingTimeInterval(600 + 45 * 60)
         let id2 = UUID()
-        try crearArchivoFalso(en: entorno.store, id: id2)
-        try entorno.service.finish(
-            tema: entorno.tema, grabacionId: id2,
-            inicio: inicio2, fin: inicio2.addingTimeInterval(600)
+        try createFakeAudio(in: env.store, id: id2)
+        try env.service.finish(
+            topic: env.topic, recordingID: id2,
+            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600)
         )
 
-        let sesiones = try entorno.context.fetch(FetchDescriptor<Sesion>())
-        #expect(sesiones.count == 2)
+        let sessions = try env.context.fetch(FetchDescriptor<PracticeSession>())
+        #expect(sessions.count == 2)
     }
 
-    @Test func discardBorraArchivoYNoPersisteNada() throws {
-        let entorno = try makeEntorno()
-        let grabacionId = UUID()
-        try crearArchivoFalso(en: entorno.store, id: grabacionId)
-        #expect(entorno.store.existingURL(forGrabacionId: grabacionId) != nil)
+    @Test func discardDeletesFileAndPersistsNothing() throws {
+        let env = try makeEnvironment()
+        let recordingID = UUID()
+        try createFakeAudio(in: env.store, id: recordingID)
+        #expect(env.store.existingURL(forRecordingID: recordingID) != nil)
 
-        entorno.service.discard(grabacionId: grabacionId)
+        env.service.discard(recordingID: recordingID)
 
-        #expect(entorno.store.existingURL(forGrabacionId: grabacionId) == nil)
-        #expect(try entorno.context.fetch(FetchDescriptor<Intento>()).isEmpty)
-        #expect(try entorno.context.fetch(FetchDescriptor<Grabacion>()).isEmpty)
-        #expect(try entorno.context.fetch(FetchDescriptor<Sesion>()).isEmpty)
+        #expect(env.store.existingURL(forRecordingID: recordingID) == nil)
+        #expect(try env.context.fetch(FetchDescriptor<Attempt>()).isEmpty)
+        #expect(try env.context.fetch(FetchDescriptor<Recording>()).isEmpty)
+        #expect(try env.context.fetch(FetchDescriptor<PracticeSession>()).isEmpty)
     }
 }

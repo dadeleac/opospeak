@@ -11,32 +11,32 @@ import SwiftUI
 //
 // Los tokens semánticos viven como colorsets en Assets.xcassets — única
 // fuente de verdad, con variantes claro/oscuro — y Xcode genera sus
-// símbolos automáticamente (`Color.tinta`, `.arena`, `.salvia`…).
+// símbolos automáticamente (`Color.ink`, `.paper`, `.sage`…).
 // Las vistas referencian tokens, nunca valores hex.
 //
-//   Tinta        Deep Ink — principal e interactivo (concentración)
-//   Pizarra      Slate — acentos secundarios
-//   Papel        fondo de pantalla: página limpia en claro, lectura
+//   Ink          Deep Ink — principal e interactivo (concentración)
+//   Slate        acentos secundarios
+//   Paper        fondo de pantalla: página limpia en claro, lectura
 //                nocturna en oscuro
-//   Arena        Warm Sand — superficies cálidas destacadas sobre Papel
+//   Sand         Warm Sand — superficies cálidas destacadas sobre Paper
 //                (bloques, tarjetas); no es el fondo de pantalla
-//   ArenaElevada superficies elevadas sobre Arena
-//   Salvia       Sage — avance y confirmación positiva
-//   Ambar        atención y repaso (archivar)
-//   RojoApagado  grabación y destructivo — serio, no alarmante
+//   ElevatedSand superficies elevadas sobre Sand
+//   Sage         avance y confirmación positiva
+//   Amber        atención y repaso (archivar)
+//   MutedRed     grabación y destructivo — serio, no alarmante
 
 /// Fondo de cuaderno para las pantallas persistentes. Las hojas de
 /// creación (herramientas transitorias) conservan el fondo de sistema.
-struct FondoEditorial: ViewModifier {
+struct EditorialBackground: ViewModifier {
     func body(content: Content) -> some View {
         content
             .scrollContentBackground(.hidden)
-            .background(Color.papel)
+            .background(Color.paper)
     }
 }
 
 extension View {
-    func fondoEditorial() -> some View {
-        modifier(FondoEditorial())
+    func editorialBackground() -> some View {
+        modifier(EditorialBackground())
     }
 }

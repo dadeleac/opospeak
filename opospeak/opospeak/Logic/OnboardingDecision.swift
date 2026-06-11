@@ -11,14 +11,14 @@ import Foundation
 /// datos restaurados por iCloud en un dispositivo nuevo NO es un usuario
 /// nuevo: se omite y se marca como completado en silencio.
 enum OnboardingDecision: Equatable {
-    case mostrar
-    case omitir
-    case omitirYMarcar
+    case show
+    case skip
+    case skipAndMark
 
-    /// `tieneDatos`: existe alguna oposición (o temarios pre-refactor).
-    static func debeMostrarse(completado: Bool, tieneDatos: Bool) -> OnboardingDecision {
-        if completado { return .omitir }
-        if tieneDatos { return .omitirYMarcar }
-        return .mostrar
+    /// `hasData`: existe alguna oposición (o temarios pre-refactor).
+    static func shouldShow(completed: Bool, hasData: Bool) -> OnboardingDecision {
+        if completed { return .skip }
+        if hasData { return .skipAndMark }
+        return .show
     }
 }

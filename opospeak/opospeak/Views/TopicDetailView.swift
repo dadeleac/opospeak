@@ -1,5 +1,5 @@
 //
-//  TemaDetailView.swift
+//  TopicDetailView.swift
 //  opospeak
 //
 //  Created by David de León Acosta on 11/06/2026.
@@ -10,21 +10,21 @@ import SwiftData
 
 // Centro de gravedad de la aplicación (define-information-architecture):
 // info del tema, historial de intentos y la acción Practicar prominente.
-struct TemaDetailView: View {
-    let tema: Tema
+struct TopicDetailView: View {
+    let topic: Topic
 
-    @State private var practicando = false
-    @State private var editando = false
+    @State private var practicing = false
+    @State private var editing = false
 
-    private var intentosOrdenados: [Intento] {
-        (tema.intentos ?? []).sorted { $0.fechaInicio > $1.fechaInicio }
+    private var sortedAttempts: [Attempt] {
+        (topic.attempts ?? []).sorted { $0.startedAt > $1.startedAt }
     }
 
     var body: some View {
         List {
             Section {
                 Button {
-                    practicando = true
+                    practicing = true
                 } label: {
                     Label("Practicar", systemImage: "mic.fill")
                         .font(.headline)
@@ -37,36 +37,36 @@ struct TemaDetailView: View {
                 .accessibilityHint("Inicia la grabación de una práctica oral de este tema")
             }
 
-            if !intentosOrdenados.isEmpty {
+            if !sortedAttempts.isEmpty {
                 Section("Historial") {
-                    ForEach(intentosOrdenados) { intento in
-                        NavigationLink(value: intento) {
-                            IntentoRow(intento: intento)
+                    ForEach(sortedAttempts) { attempt in
+                        NavigationLink(value: attempt) {
+                            AttemptRow(attempt: attempt)
                         }
                     }
                 }
             }
         }
-        .fondoEditorial()
-        .navigationTitle(tema.nombreVisible)
+        .editorialBackground()
+        .navigationTitle(topic.displayName)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    editando = true
+                    editing = true
                 } label: {
                     Label("Editar tema", systemImage: "pencil")
                 }
             }
         }
-        .sheet(isPresented: $editando) {
-            EditarTemaSheet(tema: tema)
+        .sheet(isPresented: $editing) {
+            EditTopicSheet(topic: topic)
         }
-        .fullScreenCover(isPresented: $practicando) {
-            PracticeView(tema: tema)
+        .fullScreenCover(isPresented: $practicing) {
+            PracticeView(topic: topic)
         }
         .overlay {
-            if intentosOrdenados.isEmpty {
+            if sortedAttempts.isEmpty {
                 ContentUnavailableView {
                     Label("Sin intentos", systemImage: "mic")
                 } description: {
@@ -81,43 +81,43 @@ struct TemaDetailView: View {
 /// Edición de número y título (tema-editing). El título puede quedar
 /// vacío — el tema vuelve a mostrarse como "Tema N". Los títulos nunca
 /// son obligatorios para practicar.
-struct EditarTemaSheet: View {
-    let tema: Tema
+struct EditTopicSheet: View {
+    let topic: Topic
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var numero: Int = 1
-    @State private var titulo = ""
+    @State private var number: Int = 1
+    @State private var title = ""
 
-    private var numeroDisponible: Bool {
-        guard numero != tema.numero else { return true }
-        return !(tema.temario?.numerosExistentes.contains(numero) ?? false)
+    private var isNumberAvailable: Bool {
+        guard number != topic.number else { return true }
+        return !(topic.syllabus?.existingNumbers.contains(number) ?? false)
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Stepper(value: $numero, in: 1...9999) {
+                    Stepper(value: $number, in: 1...9999) {
                         HStack {
                             Text("Número")
                             Spacer()
-                            Text("\(numero)")
-                                .foregroundStyle(numeroDisponible ? .secondary : Color.rojoApagado)
+                            Text("\(number)")
+                                .foregroundStyle(isNumberAvailable ? .secondary : Color.mutedRed)
                         }
                     }
                     .accessibilityLabel("Número de tema")
-                    .accessibilityValue("\(numero)")
+                    .accessibilityValue("\(number)")
                 } footer: {
-                    if !numeroDisponible {
-                        Text("Ya existe un tema con el número \(numero) en este temario.")
+                    if !isNumberAvailable {
+                        Text("Ya existe un tema con el número \(number) en este temario.")
                     }
                 }
                 Section {
-                    TextField("Título", text: $titulo)
+                    TextField("Título", text: $title)
                         .accessibilityLabel("Título del tema")
                 } footer: {
-                    Text("Puedes dejarlo vacío: el tema se mostrará como \"Tema \(numero)\".")
+                    Text("Puedes dejarlo vacío: el tema se mostrará como \"Tema \(number)\".")
                 }
             }
             .navigationTitle("Editar tema")
@@ -127,45 +127,45 @@ struct EditarTemaSheet: View {
                     Button("Cancelar") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") { guardar() }
-                        .disabled(!numeroDisponible)
+                    Button("Guardar") { save() }
+                        .disabled(!isNumberAvailable)
                 }
             }
             .onAppear {
-                numero = tema.numero
-                titulo = tema.titulo ?? ""
+                number = topic.number
+                title = topic.title ?? ""
             }
         }
     }
 
-    private func guardar() {
-        let limpio = titulo.trimmingCharacters(in: .whitespacesAndNewlines)
-        tema.numero = numero
-        tema.titulo = limpio.isEmpty ? nil : limpio
-        tema.fechaActualizacion = .now
+    private func save() {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        topic.number = number
+        topic.title = trimmed.isEmpty ? nil : trimmed
+        topic.updatedAt = .now
         dismiss()
     }
 }
 
-struct IntentoRow: View {
-    let intento: Intento
+struct AttemptRow: View {
+    let attempt: Attempt
 
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(intento.fechaInicio.formatted(date: .abbreviated, time: .shortened))
+                Text(attempt.startedAt.formatted(date: .abbreviated, time: .shortened))
                     .font(.headline)
-                Text(formatearDuracion(intento.duracionReal))
+                Text(formatDuration(attempt.duration))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             HStack(spacing: 8) {
-                if intento.grabacion != nil {
+                if attempt.recording != nil {
                     Image(systemName: "waveform")
                         .accessibilityLabel("Con grabación")
                 }
-                if intento.notas?.isEmpty == false {
+                if attempt.notes?.isEmpty == false {
                     Image(systemName: "note.text")
                         .accessibilityLabel("Con notas")
                 }
@@ -178,27 +178,27 @@ struct IntentoRow: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        for: Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    let oposicion = Oposicion(nombre: "Judicatura")
-    container.mainContext.insert(oposicion)
-    let temario = Temario(nombre: "Civil", oposicion: oposicion)
-    container.mainContext.insert(temario)
-    let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
-    container.mainContext.insert(tema)
-    let sesion = Sesion()
-    container.mainContext.insert(sesion)
-    let intento = Intento(tema: tema, sesion: sesion)
-    intento.duracionReal = 708
-    intento.completado = true
-    container.mainContext.insert(intento)
+    let opposition = Opposition(name: "Judicatura")
+    container.mainContext.insert(opposition)
+    let syllabus = Syllabus(name: "Civil", opposition: opposition)
+    container.mainContext.insert(syllabus)
+    let topic = Topic(number: 42, title: "Responsabilidad patrimonial", syllabus: syllabus)
+    container.mainContext.insert(topic)
+    let session = PracticeSession()
+    container.mainContext.insert(session)
+    let attempt = Attempt(topic: topic, session: session)
+    attempt.duration = 708
+    attempt.isCompleted = true
+    container.mainContext.insert(attempt)
 
     return NavigationStack {
-        TemaDetailView(tema: tema)
-            .navigationDestination(for: Intento.self) { IntentoDetailView(intento: $0) }
+        TopicDetailView(topic: topic)
+            .navigationDestination(for: Attempt.self) { AttemptDetailView(attempt: $0) }
     }
     .modelContainer(container)
-    .environment(AppEnvironment(modo: .local))
+    .environment(AppEnvironment(mode: .local))
 }

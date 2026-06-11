@@ -16,18 +16,18 @@ struct ExportTests {
     // Mismo patrón que el resto de suites: esquema compartido y
     // contenedores retenidos para evitar el crash de deinit de SwiftData.
     private static let sharedSchema = Schema([
-        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
 
-    private struct Entorno {
+    private struct TestEnvironment {
         let context: ModelContext
         let store: RecordingStore
         let service: ExportService
     }
 
-    private func makeEntorno() throws -> Entorno {
+    private func makeEnvironment() throws -> TestEnvironment {
         let config = ModelConfiguration(
             "test-\(UUID().uuidString)",
             schema: Self.sharedSchema,
@@ -42,7 +42,7 @@ struct ExportTests {
         )
         try store.ensureDirectoryExists()
 
-        return Entorno(
+        return TestEnvironment(
             context: container.mainContext,
             store: store,
             service: ExportService(
@@ -53,220 +53,242 @@ struct ExportTests {
         )
     }
 
-    /// Temario (con uno archivado), 2 temas, 2 intentos — uno con grabación
-    /// real en disco y nota, otro sin grabación.
-    private func poblar(_ entorno: Entorno) throws -> (conGrabacion: Intento, sinGrabacion: Intento) {
-        let context = entorno.context
+    /// Oposición con coma (test de escapado CSV), 2 temarios (uno archivado),
+    /// 2 temas, 2 intentos — uno con grabación real en disco y nota, otro sin.
+    private func seed(_ env: TestEnvironment) throws -> (withRecording: Attempt, withoutRecording: Attempt) {
+        let context = env.context
 
-        let oposicion = Oposicion(nombre: "Judicatura, turno libre")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let archivado = Temario(nombre: "Antiguo", oposicion: oposicion)
-        archivado.activo = false
-        context.insert(archivado)
+        let opposition = Opposition(name: "Judicatura, turno libre")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let archived = Syllabus(name: "Antiguo", opposition: opposition)
+        archived.isActive = false
+        context.insert(archived)
 
-        let tema1 = Tema(numero: 42, titulo: "Responsabilidad \"patrimonial\"", temario: temario)
-        context.insert(tema1)
-        let tema2 = Tema(numero: 7, temario: temario)
-        context.insert(tema2)
+        let topic1 = Topic(number: 42, title: "Responsabilidad \"patrimonial\"", syllabus: syllabus)
+        context.insert(topic1)
+        let topic2 = Topic(number: 7, syllabus: syllabus)
+        context.insert(topic2)
 
-        let sesion = Sesion()
-        context.insert(sesion)
+        let session = PracticeSession()
+        context.insert(session)
 
-        let intento1 = Intento(tema: tema1, sesion: sesion, fechaInicio: Date(timeIntervalSince1970: 1_750_000_000))
-        intento1.fechaFin = intento1.fechaInicio.addingTimeInterval(708)
-        intento1.duracionReal = 708
-        intento1.completado = true
-        context.insert(intento1)
+        let attempt1 = Attempt(topic: topic1, session: session, startedAt: Date(timeIntervalSince1970: 1_750_000_000))
+        attempt1.endedAt = attempt1.startedAt.addingTimeInterval(708)
+        attempt1.duration = 708
+        attempt1.isCompleted = true
+        context.insert(attempt1)
 
-        let grabacion = Grabacion(intento: intento1, duracion: 708, tamano: 4096)
-        context.insert(grabacion)
+        let recording = Recording(attempt: attempt1, duration: 708, fileSize: 4096)
+        context.insert(recording)
         try Data(repeating: 0xC5, count: 4096)
-            .write(to: entorno.store.url(forGrabacionId: grabacion.id))
+            .write(to: env.store.url(forRecordingID: recording.id))
 
-        context.insert(Metrica(intento: intento1, tipo: .duracionTotal, valor: 708))
-        context.insert(Nota(intento: intento1, contenido: "Bien, pero lento"))
+        context.insert(Metric(attempt: attempt1, kind: .totalDuration, value: 708))
+        context.insert(Note(attempt: attempt1, content: "Bien, pero lento"))
 
-        let intento2 = Intento(tema: tema2, sesion: sesion, fechaInicio: Date(timeIntervalSince1970: 1_750_010_000))
-        intento2.duracionReal = 300
-        context.insert(intento2)
+        let attempt2 = Attempt(topic: topic2, session: session, startedAt: Date(timeIntervalSince1970: 1_750_010_000))
+        attempt2.duration = 300
+        context.insert(attempt2)
 
         try context.save()
-        return (intento1, intento2)
+        return (attempt1, attempt2)
     }
 
-    private func leerJSON(_ paquete: URL, _ relativo: String) throws -> Data {
-        try Data(contentsOf: paquete.appending(path: relativo))
+    private func readJSON(_ package: URL, _ relativePath: String) throws -> Data {
+        try Data(contentsOf: package.appending(path: relativePath))
     }
 
-    @Test func paqueteCompletoContieneTodo() throws {
-        let entorno = try makeEntorno()
-        _ = try poblar(entorno)
+    @Test func fullPackageContainsEverything() throws {
+        let env = try makeEnvironment()
+        _ = try seed(env)
 
-        let paquete = try entorno.service.buildFullPackage()
+        let package = try env.service.buildFullPackage()
         let fm = FileManager.default
 
-        #expect(paquete.lastPathComponent == "opospeak-export")
-        for archivo in ["manifest.json", "data/oposiciones.json", "data/temarios.json", "data/temas.json",
-                        "data/sesiones.json", "data/intentos.json", "data/metricas.json",
-                        "data/notas.json", "data/intentos.csv"] {
+        #expect(package.lastPathComponent == "opospeak-export")
+        for file in ["manifest.json", "data/oposiciones.json", "data/temarios.json", "data/temas.json",
+                     "data/sesiones.json", "data/intentos.json", "data/metricas.json",
+                     "data/notas.json", "data/intentos.csv"] {
             #expect(
-                fm.fileExists(atPath: paquete.appending(path: archivo).path(percentEncoded: false)),
-                "falta \(archivo)"
+                fm.fileExists(atPath: package.appending(path: file).path(percentEncoded: false)),
+                "falta \(file)"
             )
         }
 
-        let grabados = try fm.contentsOfDirectory(
-            atPath: paquete.appending(path: "recordings").path(percentEncoded: false)
+        let recordings = try fm.contentsOfDirectory(
+            atPath: package.appending(path: "recordings").path(percentEncoded: false)
         )
-        #expect(grabados.count == 1)
-        #expect(grabados[0].hasSuffix(".m4a"))
+        #expect(recordings.count == 1)
+        #expect(recordings[0].hasSuffix(".m4a"))
     }
 
-    @Test func manifestCuentaLoExportado() throws {
-        let entorno = try makeEntorno()
-        _ = try poblar(entorno)
+    @Test func manifestCountsExportedData() throws {
+        let env = try makeEnvironment()
+        _ = try seed(env)
 
-        let paquete = try entorno.service.buildFullPackage()
+        let package = try env.service.buildFullPackage()
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let manifest = try decoder.decode(ManifestExport.self, from: leerJSON(paquete, "manifest.json"))
+        let manifest = try decoder.decode(ManifestExport.self, from: readJSON(package, "manifest.json"))
 
         #expect(manifest.format == "opospeak-export")
         #expect(manifest.version == 2)
         #expect(manifest.appVersion == "1.0-test")
-        #expect(manifest.counts.oposiciones == 1)
-        #expect(manifest.counts.temarios == 2)
-        #expect(manifest.counts.temas == 2)
-        #expect(manifest.counts.sesiones == 1)
-        #expect(manifest.counts.intentos == 2)
-        #expect(manifest.counts.grabaciones == 1)
-        #expect(manifest.counts.notas == 1)
+        #expect(manifest.counts.oppositions == 1)
+        #expect(manifest.counts.syllabi == 2)
+        #expect(manifest.counts.topics == 2)
+        #expect(manifest.counts.sessions == 1)
+        #expect(manifest.counts.attempts == 2)
+        #expect(manifest.counts.recordings == 1)
+        #expect(manifest.counts.notes == 1)
         #expect(manifest.recordingFormat == "m4a")
     }
 
-    @Test func grabacionAusenteNoBloqueaYSeRefleja() throws {
-        let entorno = try makeEntorno()
-        let (conGrabacion, _) = try poblar(entorno)
+    @Test func spanishContractKeysArePreserved() throws {
+        let env = try makeEnvironment()
+        _ = try seed(env)
 
-        // Borrar el archivo dejando los metadatos huérfanos.
-        if let grabacion = conGrabacion.grabacion {
-            try entorno.store.deleteRecording(id: grabacion.id)
-        }
+        let package = try env.service.buildFullPackage()
 
-        let paquete = try entorno.service.buildFullPackage()
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let manifest = try decoder.decode(ManifestExport.self, from: leerJSON(paquete, "manifest.json"))
+        // Las claves JSON son contrato v2 en español (CodingKeys explícitas).
+        let manifestText = try String(contentsOf: package.appending(path: "manifest.json"), encoding: .utf8)
+        #expect(manifestText.contains("\"temarios\""))
+        #expect(manifestText.contains("\"oposiciones\""))
 
-        #expect(manifest.counts.grabaciones == 0)
-        #expect(manifest.counts.intentos == 2)
+        let syllabiText = try String(contentsOf: package.appending(path: "data/temarios.json"), encoding: .utf8)
+        #expect(syllabiText.contains("\"nombre\""))
+        #expect(syllabiText.contains("\"oposicionId\""))
+        #expect(syllabiText.contains("\"fechaCreacion\""))
+
+        let attemptsText = try String(contentsOf: package.appending(path: "data/intentos.json"), encoding: .utf8)
+        #expect(attemptsText.contains("\"temaId\""))
+        #expect(attemptsText.contains("\"duracionReal\""))
+        #expect(attemptsText.contains("\"completado\""))
     }
 
-    @Test func relacionesSeReconstruyenPorId() throws {
-        let entorno = try makeEntorno()
-        _ = try poblar(entorno)
+    @Test func missingRecordingDoesNotBlockAndIsReflected() throws {
+        let env = try makeEnvironment()
+        let (withRecording, _) = try seed(env)
 
-        let paquete = try entorno.service.buildFullPackage()
+        // Borrar el archivo dejando los metadatos huérfanos.
+        if let recording = withRecording.recording {
+            try env.store.deleteRecording(id: recording.id)
+        }
+
+        let package = try env.service.buildFullPackage()
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let manifest = try decoder.decode(ManifestExport.self, from: readJSON(package, "manifest.json"))
+
+        #expect(manifest.counts.recordings == 0)
+        #expect(manifest.counts.attempts == 2)
+    }
+
+    @Test func relationshipsReconstructByID() throws {
+        let env = try makeEnvironment()
+        _ = try seed(env)
+
+        let package = try env.service.buildFullPackage()
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        let oposiciones = try decoder.decode([OposicionExport].self, from: leerJSON(paquete, "data/oposiciones.json"))
-        let temarios = try decoder.decode([TemarioExport].self, from: leerJSON(paquete, "data/temarios.json"))
-        let temas = try decoder.decode([TemaExport].self, from: leerJSON(paquete, "data/temas.json"))
-        let intentos = try decoder.decode([IntentoExport].self, from: leerJSON(paquete, "data/intentos.json"))
+        let oppositions = try decoder.decode([OppositionExport].self, from: readJSON(package, "data/oposiciones.json"))
+        let syllabi = try decoder.decode([SyllabusExport].self, from: readJSON(package, "data/temarios.json"))
+        let topics = try decoder.decode([TopicExport].self, from: readJSON(package, "data/temas.json"))
+        let attempts = try decoder.decode([AttemptExport].self, from: readJSON(package, "data/intentos.json"))
 
-        let idsOposicion = Set(oposiciones.map(\.id))
-        let idsTemario = Set(temarios.map(\.id))
-        let idsTema = Set(temas.map(\.id))
+        let oppositionIDs = Set(oppositions.map(\.id))
+        let syllabusIDs = Set(syllabi.map(\.id))
+        let topicIDs = Set(topics.map(\.id))
 
-        for temario in temarios {
-            #expect(temario.oposicionId.map(idsOposicion.contains) == true)
+        for syllabus in syllabi {
+            #expect(syllabus.oppositionID.map(oppositionIDs.contains) == true)
         }
-        for tema in temas where tema.activo {
-            #expect(tema.temarioId.map(idsTemario.contains) == true)
+        for topic in topics where topic.isActive {
+            #expect(topic.syllabusID.map(syllabusIDs.contains) == true)
         }
-        for intento in intentos {
-            #expect(intento.temaId.map(idsTema.contains) == true)
-            if let grabacion = intento.grabacion {
-                let archivo = paquete.appending(path: grabacion.archivo)
-                #expect(FileManager.default.fileExists(atPath: archivo.path(percentEncoded: false)))
+        for attempt in attempts {
+            #expect(attempt.topicID.map(topicIDs.contains) == true)
+            if let recording = attempt.recording {
+                let file = package.appending(path: recording.file)
+                #expect(FileManager.default.fileExists(atPath: file.path(percentEncoded: false)))
             }
         }
     }
 
-    @Test func audioExportadoEsIdenticoAlOriginal() throws {
-        let entorno = try makeEntorno()
-        let (conGrabacion, _) = try poblar(entorno)
-        let grabacion = try #require(conGrabacion.grabacion)
+    @Test func exportedAudioIsByteIdentical() throws {
+        let env = try makeEnvironment()
+        let (withRecording, _) = try seed(env)
+        let recording = try #require(withRecording.recording)
 
-        let paquete = try entorno.service.buildFullPackage()
-        let original = try Data(contentsOf: entorno.store.url(forGrabacionId: grabacion.id))
-        let exportado = try Data(
-            contentsOf: paquete.appending(path: "recordings/\(grabacion.id.uuidString).m4a")
+        let package = try env.service.buildFullPackage()
+        let original = try Data(contentsOf: env.store.url(forRecordingID: recording.id))
+        let exported = try Data(
+            contentsOf: package.appending(path: "recordings/\(recording.id.uuidString).m4a")
         )
-        #expect(original == exportado)
+        #expect(original == exported)
     }
 
-    @Test func csvTieneCabeceraFilasYEscapado() throws {
-        let entorno = try makeEntorno()
-        _ = try poblar(entorno)
+    @Test func csvHasHeaderRowsAndEscaping() throws {
+        let env = try makeEnvironment()
+        _ = try seed(env)
 
-        let paquete = try entorno.service.buildFullPackage()
+        let package = try env.service.buildFullPackage()
         let csv = try String(
-            contentsOf: paquete.appending(path: "data/intentos.csv"), encoding: .utf8
+            contentsOf: package.appending(path: "data/intentos.csv"), encoding: .utf8
         )
-        let lineas = csv.split(separator: "\n")
+        let lines = csv.split(separator: "\n")
 
-        #expect(lineas[0] == Substring(IntentosCSV.cabecera))
-        #expect(lineas.count == 3) // cabecera + 2 intentos
-        // El nombre del temario contiene una coma → debe ir entre comillas.
+        #expect(lines[0] == Substring(AttemptsCSV.header))
+        #expect(lines.count == 3) // cabecera + 2 intentos
+        // El nombre de la oposición contiene una coma → debe ir entre comillas.
         #expect(csv.contains("\"Judicatura, turno libre\""))
         // El título del tema contiene comillas → deben duplicarse.
         #expect(csv.contains("\"Responsabilidad \"\"patrimonial\"\"\""))
     }
 
-    @Test func escapadoCSV() {
-        #expect(IntentosCSV.escape("simple") == "simple")
-        #expect(IntentosCSV.escape("con, coma") == "\"con, coma\"")
-        #expect(IntentosCSV.escape("con \"comillas\"") == "\"con \"\"comillas\"\"\"")
+    @Test func csvEscaping() {
+        #expect(AttemptsCSV.escape("simple") == "simple")
+        #expect(AttemptsCSV.escape("con, coma") == "\"con, coma\"")
+        #expect(AttemptsCSV.escape("con \"comillas\"") == "\"con \"\"comillas\"\"\"")
     }
 
-    @Test func paqueteDeIntentoConGrabacion() throws {
-        let entorno = try makeEntorno()
-        let (conGrabacion, _) = try poblar(entorno)
-        let grabacion = try #require(conGrabacion.grabacion)
+    @Test func attemptPackageWithRecording() throws {
+        let env = try makeEnvironment()
+        let (withRecording, _) = try seed(env)
+        let recording = try #require(withRecording.recording)
 
-        let paquete = try entorno.service.buildIntentoPackage(intento: conGrabacion)
+        let package = try env.service.buildAttemptPackage(attempt: withRecording)
         let fm = FileManager.default
 
-        #expect(paquete.lastPathComponent == "intento-\(conGrabacion.id.uuidString)")
-        #expect(fm.fileExists(atPath: paquete.appending(path: "intento.json").path(percentEncoded: false)))
-        #expect(fm.fileExists(atPath: paquete.appending(path: "notas.json").path(percentEncoded: false)))
+        #expect(package.lastPathComponent == "intento-\(withRecording.id.uuidString)")
+        #expect(fm.fileExists(atPath: package.appending(path: "intento.json").path(percentEncoded: false)))
+        #expect(fm.fileExists(atPath: package.appending(path: "notas.json").path(percentEncoded: false)))
         #expect(fm.fileExists(
-            atPath: paquete.appending(path: "\(grabacion.id.uuidString).m4a").path(percentEncoded: false)
+            atPath: package.appending(path: "\(recording.id.uuidString).m4a").path(percentEncoded: false)
         ))
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let notas = try decoder.decode([NotaExport].self, from: leerJSON(paquete, "notas.json"))
-        #expect(notas.count == 1)
-        #expect(notas[0].contenido == "Bien, pero lento")
+        let notes = try decoder.decode([NoteExport].self, from: readJSON(package, "notas.json"))
+        #expect(notes.count == 1)
+        #expect(notes[0].content == "Bien, pero lento")
     }
 
-    @Test func paqueteDeIntentoSinGrabacion() throws {
-        let entorno = try makeEntorno()
-        let (_, sinGrabacion) = try poblar(entorno)
+    @Test func attemptPackageWithoutRecording() throws {
+        let env = try makeEnvironment()
+        let (_, withoutRecording) = try seed(env)
 
-        let paquete = try entorno.service.buildIntentoPackage(intento: sinGrabacion)
-        let contenido = try FileManager.default.contentsOfDirectory(
-            atPath: paquete.path(percentEncoded: false)
+        let package = try env.service.buildAttemptPackage(attempt: withoutRecording)
+        let contents = try FileManager.default.contentsOfDirectory(
+            atPath: package.path(percentEncoded: false)
         )
-        #expect(Set(contenido) == ["intento.json", "notas.json"])
+        #expect(Set(contents) == ["intento.json", "notas.json"])
     }
 
-    @Test func archiverProduceUnZipReal() throws {
+    @Test func archiverProducesRealZip() throws {
         let dir = FileManager.default.temporaryDirectory
             .appending(path: "ArchiverTest-\(UUID().uuidString)")
             .appending(path: "contenido", directoryHint: .isDirectory)
@@ -276,9 +298,9 @@ struct ExportTests {
         let zip = try ExportArchiver.zip(directory: dir)
 
         #expect(zip.lastPathComponent == "contenido.zip")
-        let datos = try Data(contentsOf: zip)
-        #expect(datos.count > 0)
+        let data = try Data(contentsOf: zip)
+        #expect(data.count > 0)
         // Firma PK de un zip.
-        #expect(datos.prefix(2) == Data([0x50, 0x4B]))
+        #expect(data.prefix(2) == Data([0x50, 0x4B]))
     }
 }

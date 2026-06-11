@@ -16,11 +16,11 @@ struct PracticeRepository {
     let modelContext: ModelContext
     let recordingStore: RecordingStore
 
-    func delete(intento: Intento) throws {
-        if let grabacion = intento.grabacion {
-            try recordingStore.deleteRecording(id: grabacion.id, formato: grabacion.formato)
+    func delete(attempt: Attempt) throws {
+        if let recording = attempt.recording {
+            try recordingStore.deleteRecording(id: recording.id, format: recording.format)
         }
-        modelContext.delete(intento)
+        modelContext.delete(attempt)
         try modelContext.save()
     }
 }

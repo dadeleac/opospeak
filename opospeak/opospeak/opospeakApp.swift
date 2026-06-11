@@ -12,21 +12,21 @@ import SwiftData
 struct opospeakApp: App {
 
     private static let schema = Schema([
-        Oposicion.self,
-        Temario.self,
-        Tema.self,
-        Sesion.self,
-        Intento.self,
-        Grabacion.self,
-        Metrica.self,
-        Nota.self,
+        Opposition.self,
+        Syllabus.self,
+        Topic.self,
+        PracticeSession.self,
+        Attempt.self,
+        Recording.self,
+        Metric.self,
+        Note.self,
     ])
 
     /// CloudKit primero; si el contenedor no puede inicializarse (sin sesión
     /// de iCloud, dispositivo restringido, error de contenedor), la app cae
     /// a almacenamiento local y funciona completa. Local-first nunca se
     /// compromete por la disponibilidad de la sincronización.
-    private static func makeContainer() -> (ModelContainer, SyncStatus.Modo) {
+    private static func makeContainer() -> (ModelContainer, SyncStatus.Mode) {
         do {
             let cloud = ModelConfiguration(
                 schema: schema,
@@ -44,23 +44,23 @@ struct opospeakApp: App {
     }
 
     private let sharedModelContainer: ModelContainer
-    @State private var entorno: AppEnvironment
+    @State private var appEnvironment: AppEnvironment
 
     init() {
-        let (container, modo) = Self.makeContainer()
+        let (container, mode) = Self.makeContainer()
         sharedModelContainer = container
-        _entorno = State(initialValue: AppEnvironment(modo: modo))
+        _appEnvironment = State(initialValue: AppEnvironment(mode: mode))
         // Antes de que ninguna vista consulte: los temarios pre-refactor
         // sin oposición se adoptan bajo una (pase idempotente).
-        OposicionBackfill.run(context: container.mainContext)
+        OppositionBackfill.run(context: container.mainContext)
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(entorno)
+                .environment(appEnvironment)
                 .task {
-                    await entorno.arrancar()
+                    await appEnvironment.bootstrap()
                 }
         }
         .modelContainer(sharedModelContainer)

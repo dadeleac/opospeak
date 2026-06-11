@@ -19,40 +19,40 @@ enum ExportArchiver {
     /// Comprime `directory` y deja el resultado en una URL estable con el
     /// nombre `<directory>.zip` dentro de un directorio temporal propio.
     static func zip(directory: URL) throws -> URL {
-        var resultado: URL?
-        var errorCoordinacion: NSError?
-        var errorCopia: Error?
+        var result: URL?
+        var coordinationError: NSError?
+        var copyError: Error?
 
         let coordinator = NSFileCoordinator()
         coordinator.coordinate(
             readingItemAt: directory,
             options: .forUploading,
-            error: &errorCoordinacion
-        ) { zipTemporal in
+            error: &coordinationError
+        ) { temporaryZip in
             do {
-                let destinoDir = FileManager.default.temporaryDirectory
+                let targetDir = FileManager.default.temporaryDirectory
                     .appending(path: "zip-\(UUID().uuidString)")
                 try FileManager.default.createDirectory(
-                    at: destinoDir, withIntermediateDirectories: true
+                    at: targetDir, withIntermediateDirectories: true
                 )
-                let destino = destinoDir.appending(path: "\(directory.lastPathComponent).zip")
+                let target = targetDir.appending(path: "\(directory.lastPathComponent).zip")
                 // El zip del coordinador vive solo dentro del bloque: copiar fuera.
-                try FileManager.default.copyItem(at: zipTemporal, to: destino)
-                resultado = destino
+                try FileManager.default.copyItem(at: temporaryZip, to: target)
+                result = target
             } catch {
-                errorCopia = error
+                copyError = error
             }
         }
 
-        if let errorCoordinacion {
-            throw ArchiveError.zipFailed(errorCoordinacion.localizedDescription)
+        if let coordinationError {
+            throw ArchiveError.zipFailed(coordinationError.localizedDescription)
         }
-        if let errorCopia {
-            throw ArchiveError.zipFailed(errorCopia.localizedDescription)
+        if let copyError {
+            throw ArchiveError.zipFailed(copyError.localizedDescription)
         }
-        guard let resultado else {
-            throw ArchiveError.zipFailed("No se generó el archivo.")
+        guard let result else {
+            throw ArchiveError.zipFailed("No zip produced.")
         }
-        return resultado
+        return result
     }
 }

@@ -245,6 +245,8 @@ Never rewrite historical audits or snapshots.
 
 Use OpenSpec first for significant product or technical changes.
 
+Language policy: Spanish for product vocabulary, documentation, and UI copy; English for all code-level identifiers (see the mapping table in `foundation/define-core-domain-model.md`). User-facing strings live in the iOS String Catalog with Spanish as the source language.
+
 Prefer small, deliberate decisions.
 
 Challenge scope creep.

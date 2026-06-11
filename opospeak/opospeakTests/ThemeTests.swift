@@ -14,24 +14,24 @@ import Testing
 struct ThemeTests {
 
     private static let tokens = [
-        "Tinta", "Pizarra", "Papel", "Arena", "ArenaElevada",
-        "Salvia", "Ambar", "RojoApagado", "AccentColor",
+        "Ink", "Slate", "Paper", "Sand", "ElevatedSand",
+        "Sage", "Amber", "MutedRed", "AccentColor",
     ]
 
     @Test(arguments: tokens)
-    func colorSemanticoResuelve(nombre: String) {
+    func semanticColorResolves(name: String) {
         #expect(
-            UIColor(named: nombre) != nil,
-            "El colorset '\(nombre)' no existe en el catálogo"
+            UIColor(named: name) != nil,
+            "El colorset '\(name)' no existe en el catálogo"
         )
     }
 
-    @Test func variantesClaroYOscuroSonDistintas() {
-        for nombre in Self.tokens {
-            guard let color = UIColor(named: nombre) else { continue }
-            let claro = color.resolvedColor(with: .init(userInterfaceStyle: .light))
-            let oscuro = color.resolvedColor(with: .init(userInterfaceStyle: .dark))
-            #expect(claro != oscuro, "'\(nombre)' no tiene variante oscura propia")
+    @Test func lightAndDarkVariantsDiffer() {
+        for name in Self.tokens {
+            guard let color = UIColor(named: name) else { continue }
+            let light = color.resolvedColor(with: .init(userInterfaceStyle: .light))
+            let dark = color.resolvedColor(with: .init(userInterfaceStyle: .dark))
+            #expect(light != dark, "'\(name)' no tiene variante oscura propia")
         }
     }
 }

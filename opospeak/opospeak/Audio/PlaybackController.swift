@@ -10,71 +10,71 @@ import Observation
 import Foundation
 
 /// Reproducción local de grabaciones (AVAudioPlayer es suficiente para
-/// archivos m4a en disco). La vista debe llamar a detener() al desaparecer.
+/// archivos m4a en disco). La vista debe llamar a stop() al desaparecer.
 @Observable
 final class PlaybackController {
 
-    private(set) var reproduciendo = false
-    private(set) var progreso: TimeInterval = 0
-    private(set) var duracion: TimeInterval = 0
-    private(set) var disponible = false
+    private(set) var isPlaying = false
+    private(set) var progress: TimeInterval = 0
+    private(set) var duration: TimeInterval = 0
+    private(set) var isAvailable = false
 
     private var player: AVAudioPlayer?
     private var timer: Timer?
 
-    func cargar(url: URL) {
-        detener()
+    func load(url: URL) {
+        stop()
         do {
             let player = try AVAudioPlayer(contentsOf: url)
             player.prepareToPlay()
             self.player = player
-            duracion = player.duration
-            progreso = 0
-            disponible = true
+            duration = player.duration
+            progress = 0
+            isAvailable = true
         } catch {
             player = nil
-            disponible = false
+            isAvailable = false
         }
     }
 
-    func alternar() {
+    func toggle() {
         guard let player else { return }
-        if reproduciendo {
+        if isPlaying {
             player.pause()
-            reproduciendo = false
+            isPlaying = false
             timer?.invalidate()
             timer = nil
         } else {
             try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
             try? AVAudioSession.sharedInstance().setActive(true)
             player.play()
-            reproduciendo = true
+            isPlaying = true
             timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated {
-                    self?.actualizar()
+                    self?.update()
                 }
             }
         }
     }
 
-    func detener() {
+    func stop() {
         timer?.invalidate()
         timer = nil
         player?.stop()
         player = nil
-        reproduciendo = false
-        progreso = 0
-        duracion = 0
-        disponible = false
+        isPlaying = false
+        progress = 0
+        duration = 0
+        isAvailable = false
     }
 
-    private func actualizar() {
+    private func update() {
         guard let player else { return }
-        progreso = player.currentTime
+        progress = player.currentTime
         // AVAudioPlayer se detiene solo al llegar al final.
-        if !player.isPlaying, reproduciendo {
-            reproduciendo = false
-            progreso = 0
+        if !player.isPlaying, isPlaying {
+            isPlaying = false
+            progress = 0
             player.currentTime = 0
             timer?.invalidate()
             timer = nil

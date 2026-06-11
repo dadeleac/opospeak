@@ -16,53 +16,53 @@ struct OnboardingView: View {
 
     /// Se invoca al completar el flujo con el temario creado, para que
     /// ContentView navegue directamente a su lista de temas.
-    let alCompletar: (Temario) -> Void
+    let onComplete: (Syllabus) -> Void
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    private enum Fase {
-        case bienvenida
-        case nombreOposicion
-        case nombreTemario
-        case temas
+    private enum Phase {
+        case welcome
+        case oppositionName
+        case syllabusName
+        case topics
     }
 
-    @State private var fase: Fase = .bienvenida
-    @State private var nombreOposicion = ""
-    @State private var nombreTemario = ""
-    @State private var cantidad = 25
-    @State private var oposicionCreada: Oposicion?
-    @State private var temarioCreado: Temario?
+    @State private var phase: Phase = .welcome
+    @State private var oppositionName = ""
+    @State private var syllabusName = ""
+    @State private var topicCount = 25
+    @State private var createdOpposition: Opposition?
+    @State private var createdSyllabus: Syllabus?
 
-    private static let ejemplosOposicion = ["Judicatura", "Notarías", "Inspección de Hacienda"]
-    private static let ejemplosTemario = ["Civil", "Penal", "Procesal"]
-    private static let atajos = [25, 50, 100, 200, 325]
+    private static let oppositionExamples = ["Judicatura", "Notarías", "Inspección de Hacienda"]
+    private static let syllabusExamples = ["Civil", "Penal", "Procesal"]
+    private static let quickPicks = [25, 50, 100, 200, 325]
 
     var body: some View {
         NavigationStack {
-            switch fase {
-            case .bienvenida:
-                bienvenida
-            case .nombreOposicion:
-                nombreOposicionFase
-            case .nombreTemario:
-                nombreTemarioFase
-            case .temas:
-                temasFase
+            switch phase {
+            case .welcome:
+                welcomeView
+            case .oppositionName:
+                oppositionNameView
+            case .syllabusName:
+                syllabusNameView
+            case .topics:
+                topicsView
             }
         }
     }
 
     // MARK: - Fase 1: bienvenida
 
-    private var bienvenida: some View {
+    private var welcomeView: some View {
         VStack(spacing: 24) {
             Spacer()
 
             Image(systemName: "mic.circle")
                 .font(.system(size: 72))
-                .foregroundStyle(Color.tinta)
+                .foregroundStyle(Color.ink)
                 .accessibilityHidden(true)
 
             Text("OpoSpeak")
@@ -80,7 +80,7 @@ struct OnboardingView: View {
             Spacer()
 
             Button {
-                fase = .nombreOposicion
+                phase = .oppositionName
             } label: {
                 Text("Empezar")
                     .font(.headline)
@@ -92,19 +92,19 @@ struct OnboardingView: View {
             .padding(.bottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.papel)
+        .background(Color.paper)
     }
 
     // MARK: - Fase 2: oposición
 
-    private var nombreOposicionValido: Bool {
-        !nombreOposicion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var isOppositionNameValid: Bool {
+        !oppositionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    private var nombreOposicionFase: some View {
+    private var oppositionNameView: some View {
         Form {
             Section {
-                TextField("Nombre de tu oposición", text: $nombreOposicion)
+                TextField("Nombre de tu oposición", text: $oppositionName)
                     .accessibilityLabel("Nombre de la oposición")
             } header: {
                 Text("¿Qué oposición preparas?")
@@ -113,11 +113,11 @@ struct OnboardingView: View {
             }
 
             Section("Sugerencias") {
-                ForEach(Self.ejemplosOposicion, id: \.self) { ejemplo in
-                    Button(ejemplo) {
-                        nombreOposicion = ejemplo
+                ForEach(Self.oppositionExamples, id: \.self) { example in
+                    Button(example) {
+                        oppositionName = example
                     }
-                    .accessibilityHint("Rellena el nombre con \(ejemplo)")
+                    .accessibilityHint("Rellena el nombre con \(example)")
                 }
             }
         }
@@ -126,36 +126,36 @@ struct OnboardingView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Continuar") {
-                    crearOposicion()
+                    createOpposition()
                 }
-                .disabled(!nombreOposicionValido)
+                .disabled(!isOppositionNameValid)
             }
         }
     }
 
     // MARK: - Fase 3: primer temario
 
-    private var nombreTemarioValido: Bool {
-        !nombreTemario.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var isSyllabusNameValid: Bool {
+        !syllabusName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    private var nombreTemarioFase: some View {
+    private var syllabusNameView: some View {
         Form {
             Section {
-                TextField("Nombre del temario", text: $nombreTemario)
+                TextField("Nombre del temario", text: $syllabusName)
                     .accessibilityLabel("Nombre del temario")
             } header: {
-                Text("Tu primer temario de \(nombreOposicion)")
+                Text("Tu primer temario de \(oppositionName)")
             } footer: {
                 Text("Solo necesitas el nombre. Podrás crear más temarios después.")
             }
 
             Section("Sugerencias") {
-                ForEach(Self.ejemplosTemario, id: \.self) { ejemplo in
-                    Button(ejemplo) {
-                        nombreTemario = ejemplo
+                ForEach(Self.syllabusExamples, id: \.self) { example in
+                    Button(example) {
+                        syllabusName = example
                     }
-                    .accessibilityHint("Rellena el nombre con \(ejemplo)")
+                    .accessibilityHint("Rellena el nombre con \(example)")
                 }
             }
         }
@@ -164,27 +164,27 @@ struct OnboardingView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Continuar") {
-                    crearTemario()
+                    createSyllabus()
                 }
-                .disabled(!nombreTemarioValido)
+                .disabled(!isSyllabusNameValid)
             }
         }
     }
 
     // MARK: - Fase 4: temas
 
-    private var temasFase: some View {
+    private var topicsView: some View {
         Form {
             Section {
-                Stepper(value: $cantidad, in: 1...TemaBulkCreator.maximoTemas) {
+                Stepper(value: $topicCount, in: 1...TopicBulkCreator.maxTopics) {
                     HStack {
                         Text("Temas")
                         Spacer()
-                        Text("\(cantidad)").foregroundStyle(.secondary)
+                        Text("\(topicCount)").foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityLabel("Número de temas")
-                .accessibilityValue("\(cantidad)")
+                .accessibilityValue("\(topicCount)")
             } header: {
                 Text("¿Cuántos temas tiene tu temario?")
             } footer: {
@@ -193,9 +193,9 @@ struct OnboardingView: View {
 
             Section {
                 HStack {
-                    ForEach(Self.atajos, id: \.self) { atajo in
-                        Button("\(atajo)") {
-                            cantidad = atajo
+                    ForEach(Self.quickPicks, id: \.self) { pick in
+                        Button("\(pick)") {
+                            topicCount = pick
                         }
                         .buttonStyle(.bordered)
                         .frame(maxWidth: .infinity)
@@ -207,20 +207,20 @@ struct OnboardingView: View {
 
             Section {
                 Button {
-                    crearTemasYTerminar()
+                    createTopicsAndFinish()
                 } label: {
-                    Text("Crear \(cantidad) temas")
+                    Text("Crear \(topicCount) temas")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
 
                 Button("Prefiero añadirlos después") {
-                    terminar()
+                    finish()
                 }
                 .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle(nombreTemario)
+        .navigationTitle(syllabusName)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -228,51 +228,51 @@ struct OnboardingView: View {
 
     /// Cada artefacto se persiste al salir de su fase: si el usuario
     /// abandona después, su trabajo se conserva.
-    private func crearOposicion() {
-        let limpio = nombreOposicion.trimmingCharacters(in: .whitespacesAndNewlines)
-        let oposicion = Oposicion(nombre: limpio)
-        modelContext.insert(oposicion)
-        oposicionCreada = oposicion
-        fase = .nombreTemario
+    private func createOpposition() {
+        let trimmed = oppositionName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let opposition = Opposition(name: trimmed)
+        modelContext.insert(opposition)
+        createdOpposition = opposition
+        phase = .syllabusName
     }
 
-    private func crearTemario() {
-        guard let oposicion = oposicionCreada else { return }
-        let limpio = nombreTemario.trimmingCharacters(in: .whitespacesAndNewlines)
-        let temario = Temario(nombre: limpio, oposicion: oposicion)
-        modelContext.insert(temario)
-        temarioCreado = temario
-        fase = .temas
+    private func createSyllabus() {
+        guard let opposition = createdOpposition else { return }
+        let trimmed = syllabusName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let syllabus = Syllabus(name: trimmed, opposition: opposition)
+        modelContext.insert(syllabus)
+        createdSyllabus = syllabus
+        phase = .topics
     }
 
-    private func crearTemasYTerminar() {
-        guard let temario = temarioCreado else { return }
-        let numeros = (try? TemaBulkCreator.plan(
-            existingNumbers: temario.numerosExistentes,
-            desde: 1,
-            hasta: cantidad
+    private func createTopicsAndFinish() {
+        guard let syllabus = createdSyllabus else { return }
+        let numbers = (try? TopicBulkCreator.plan(
+            existingNumbers: syllabus.existingNumbers,
+            from: 1,
+            to: topicCount
         )) ?? []
-        for numero in numeros {
-            modelContext.insert(Tema(numero: numero, temario: temario))
+        for number in numbers {
+            modelContext.insert(Topic(number: number, syllabus: syllabus))
         }
-        terminar()
+        finish()
     }
 
-    private func terminar() {
-        guard let temario = temarioCreado else {
+    private func finish() {
+        guard let syllabus = createdSyllabus else {
             dismiss()
             return
         }
         try? modelContext.save()
-        alCompletar(temario)
+        onComplete(syllabus)
         dismiss()
     }
 }
 
 #Preview {
     let container = try! ModelContainer(
-        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        for: Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     return OnboardingView { _ in }

@@ -16,29 +16,29 @@ import Foundation
 @Observable
 final class PracticeRecorder {
 
-    enum Estado: Equatable {
-        case inactivo
-        case grabando
-        case finalizado
-        case permisoDenegado
-        case fallo(String)
+    enum State: Equatable {
+        case idle
+        case recording
+        case finished
+        case permissionDenied
+        case failed(String)
     }
 
-    private(set) var estado: Estado = .inactivo
-    private(set) var transcurrido: TimeInterval = 0
-    private(set) var fechaInicio: Date?
-    private(set) var fechaFin: Date?
+    private(set) var state: State = .idle
+    private(set) var elapsed: TimeInterval = 0
+    private(set) var startedAt: Date?
+    private(set) var endedAt: Date?
 
     /// Identidad de la grabación, asignada al crear el recorder.
-    /// El archivo y el futuro modelo Grabacion comparten este id.
-    let grabacionId = UUID()
+    /// El archivo y el futuro modelo Recording comparten este id.
+    let recordingID = UUID()
 
     private let recordingStore: RecordingStore
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
 
     /// Voz, un solo hablante: AAC mono a 64 kbps (~30 MB/hora).
-    private static let ajustesGrabacion: [String: Any] = [
+    private static let recordingSettings: [String: Any] = [
         AVFormatIDKey: kAudioFormatMPEG4AAC,
         AVSampleRateKey: 44_100.0,
         AVNumberOfChannelsKey: 1,
@@ -46,19 +46,19 @@ final class PracticeRecorder {
     ]
 
     var fileURL: URL {
-        recordingStore.url(forGrabacionId: grabacionId)
+        recordingStore.url(forRecordingID: recordingID)
     }
 
     init(recordingStore: RecordingStore = RecordingStore()) {
         self.recordingStore = recordingStore
     }
 
-    func comenzar() async {
-        guard estado == .inactivo else { return }
+    func start() async {
+        guard state == .idle else { return }
 
-        let permitido = await AVAudioApplication.requestRecordPermission()
-        guard permitido else {
-            estado = .permisoDenegado
+        let granted = await AVAudioApplication.requestRecordPermission()
+        guard granted else {
+            state = .permissionDenied
             return
         }
 
@@ -68,50 +68,50 @@ final class PracticeRecorder {
             try session.setActive(true)
 
             try recordingStore.ensureDirectoryExists()
-            let grabador = try AVAudioRecorder(url: fileURL, settings: Self.ajustesGrabacion)
-            guard grabador.record() else {
-                estado = .fallo("No se pudo iniciar la grabación.")
+            let audioRecorder = try AVAudioRecorder(url: fileURL, settings: Self.recordingSettings)
+            guard audioRecorder.record() else {
+                state = .failed(String(localized: "No se pudo iniciar la grabación."))
                 return
             }
 
-            recorder = grabador
-            fechaInicio = .now
-            estado = .grabando
+            recorder = audioRecorder
+            startedAt = .now
+            state = .recording
 
             timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self, let recorder = self.recorder else { return }
-                    self.transcurrido = recorder.currentTime
+                    self.elapsed = recorder.currentTime
                 }
             }
         } catch {
-            estado = .fallo(error.localizedDescription)
+            state = .failed(error.localizedDescription)
         }
     }
 
     /// Detiene la grabación y deja el archivo en su ubicación final.
-    func finalizar() {
-        guard estado == .grabando else { return }
-        detenerGrabador()
-        fechaFin = .now
-        estado = .finalizado
+    func finish() {
+        guard state == .recording else { return }
+        stopRecorder()
+        endedAt = .now
+        state = .finished
     }
 
     /// Abandona la práctica: detiene y borra el archivo parcial.
-    func descartar() {
-        detenerGrabador()
-        try? recordingStore.deleteRecording(id: grabacionId)
-        estado = .inactivo
-        transcurrido = 0
-        fechaInicio = nil
-        fechaFin = nil
+    func discard() {
+        stopRecorder()
+        try? recordingStore.deleteRecording(id: recordingID)
+        state = .idle
+        elapsed = 0
+        startedAt = nil
+        endedAt = nil
     }
 
-    private func detenerGrabador() {
+    private func stopRecorder() {
         timer?.invalidate()
         timer = nil
         if let recorder {
-            transcurrido = recorder.currentTime
+            elapsed = recorder.currentTime
             recorder.stop()
         }
         recorder = nil

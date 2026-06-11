@@ -11,54 +11,54 @@ import SwiftData
 // La experiencia central del producto (define-practice-session-flow):
 // la interfaz desaparece — cronómetro, estado de grabación y finalizar.
 struct PracticeView: View {
-    let tema: Tema
+    let topic: Topic
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(AppEnvironment.self) private var entorno
+    @Environment(AppEnvironment.self) private var environment
 
     @State private var recorder: PracticeRecorder?
-    @State private var resumen: ResumenPractica?
+    @State private var summary: PracticeSummary?
 
-    private struct ResumenPractica {
-        let duracion: TimeInterval
-        let fecha: Date
+    private struct PracticeSummary {
+        let duration: TimeInterval
+        let date: Date
     }
 
     var body: some View {
         NavigationStack {
             Group {
                 if let recorder {
-                    switch recorder.estado {
-                    case .inactivo:
+                    switch recorder.state {
+                    case .idle:
                         ProgressView()
-                    case .grabando:
-                        grabando(recorder)
-                    case .finalizado:
-                        if let resumen {
-                            resumenView(resumen)
+                    case .recording:
+                        recordingView(recorder)
+                    case .finished:
+                        if let summary {
+                            summaryView(summary)
                         }
-                    case .permisoDenegado:
-                        permisoDenegado
-                    case .fallo(let mensaje):
-                        fallo(mensaje)
+                    case .permissionDenied:
+                        permissionDeniedView
+                    case .failed(let message):
+                        failureView(message)
                     }
                 } else {
                     ProgressView()
                 }
             }
-            .navigationTitle(tema.nombreVisible)
+            .navigationTitle(topic.displayName)
             .navigationBarTitleDisplayMode(.inline)
         }
         .task {
             guard recorder == nil else { return }
-            let nuevo = PracticeRecorder(recordingStore: entorno.recordingStore)
-            recorder = nuevo
-            await nuevo.comenzar()
+            let newRecorder = PracticeRecorder(recordingStore: environment.recordingStore)
+            recorder = newRecorder
+            await newRecorder.start()
         }
-        .interactiveDismissDisabled(recorder?.estado == .grabando)
-        .onChange(of: recorder?.estado == .grabando, initial: true) { _, grabando in
-            UIApplication.shared.isIdleTimerDisabled = grabando
+        .interactiveDismissDisabled(recorder?.state == .recording)
+        .onChange(of: recorder?.state == .recording, initial: true) { _, isRecording in
+            UIApplication.shared.isIdleTimerDisabled = isRecording
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -67,13 +67,13 @@ struct PracticeView: View {
 
     // MARK: - Grabando
 
-    private func grabando(_ recorder: PracticeRecorder) -> some View {
+    private func recordingView(_ recorder: PracticeRecorder) -> some View {
         VStack(spacing: 32) {
             Spacer()
 
             HStack(spacing: 8) {
                 Circle()
-                    .fill(Color.rojoApagado)
+                    .fill(Color.mutedRed)
                     .frame(width: 12, height: 12)
                 Text("Grabando")
                     .font(.subheadline)
@@ -81,16 +81,16 @@ struct PracticeView: View {
             }
             .accessibilityElement(children: .combine)
 
-            Text(formatearDuracion(recorder.transcurrido))
+            Text(formatDuration(recorder.elapsed))
                 .font(.system(.largeTitle, design: .rounded, weight: .light))
                 .monospacedDigit()
                 .accessibilityLabel("Tiempo transcurrido")
-                .accessibilityValue(formatearDuracion(recorder.transcurrido))
+                .accessibilityValue(formatDuration(recorder.elapsed))
 
             Spacer()
 
             Button {
-                finalizar()
+                finish()
             } label: {
                 Label("Finalizar", systemImage: "stop.fill")
                     .font(.headline)
@@ -101,9 +101,9 @@ struct PracticeView: View {
             .padding(.horizontal)
 
             Button("Descartar práctica", role: .destructive) {
-                descartar()
+                discard()
             }
-            .tint(.rojoApagado)
+            .tint(.mutedRed)
             .font(.subheadline)
             .padding(.bottom)
         }
@@ -111,16 +111,16 @@ struct PracticeView: View {
 
     // MARK: - Resumen
 
-    private func resumenView(_ resumen: ResumenPractica) -> some View {
+    private func summaryView(_ summary: PracticeSummary) -> some View {
         List {
             Section {
-                LabeledContent("Tema", value: tema.nombreVisible)
-                LabeledContent("Duración", value: formatearDuracion(resumen.duracion))
+                LabeledContent("Tema", value: topic.displayName)
+                LabeledContent("Duración", value: formatDuration(summary.duration))
                 LabeledContent("Fecha") {
-                    Text(resumen.fecha.formatted(date: .long, time: .shortened))
+                    Text(summary.date.formatted(date: .long, time: .shortened))
                 }
                 Label("Grabación guardada", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(Color.salvia)
+                    .foregroundStyle(Color.sage)
             } header: {
                 Text("Práctica completada")
             } footer: {
@@ -141,7 +141,7 @@ struct PracticeView: View {
 
     // MARK: - Permiso y errores
 
-    private var permisoDenegado: some View {
+    private var permissionDeniedView: some View {
         ContentUnavailableView {
             Label("Micrófono no disponible", systemImage: "mic.slash")
         } description: {
@@ -155,11 +155,11 @@ struct PracticeView: View {
         }
     }
 
-    private func fallo(_ mensaje: String) -> some View {
+    private func failureView(_ message: String) -> some View {
         ContentUnavailableView {
             Label("No se pudo grabar", systemImage: "exclamationmark.triangle")
         } description: {
-            Text(mensaje)
+            Text(message)
         } actions: {
             Button("Cerrar") { dismiss() }
         }
@@ -167,47 +167,52 @@ struct PracticeView: View {
 
     // MARK: - Acciones
 
-    private func finalizar() {
+    private func finish() {
         guard let recorder else { return }
-        recorder.finalizar()
-        guard let inicio = recorder.fechaInicio, let fin = recorder.fechaFin else {
+        recorder.finish()
+        guard let startedAt = recorder.startedAt, let endedAt = recorder.endedAt else {
             dismiss()
             return
         }
 
         let service = PracticeService(
             modelContext: modelContext,
-            recordingStore: entorno.recordingStore
+            recordingStore: environment.recordingStore
         )
         do {
-            try service.finish(tema: tema, grabacionId: recorder.grabacionId, inicio: inicio, fin: fin)
-            resumen = ResumenPractica(duracion: fin.timeIntervalSince(inicio), fecha: fin)
+            try service.finish(
+                topic: topic,
+                recordingID: recorder.recordingID,
+                startedAt: startedAt,
+                endedAt: endedAt
+            )
+            summary = PracticeSummary(duration: endedAt.timeIntervalSince(startedAt), date: endedAt)
         } catch {
-            recorder.descartar()
+            recorder.discard()
             dismiss()
         }
     }
 
-    private func descartar() {
-        recorder?.descartar()
+    private func discard() {
+        recorder?.discard()
         dismiss()
     }
 }
 
 #Preview {
     let container = try! ModelContainer(
-        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        for: Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    let oposicion = Oposicion(nombre: "Judicatura")
-    container.mainContext.insert(oposicion)
-    let temario = Temario(nombre: "Civil", oposicion: oposicion)
-    container.mainContext.insert(temario)
-    let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
-    container.mainContext.insert(tema)
+    let opposition = Opposition(name: "Judicatura")
+    container.mainContext.insert(opposition)
+    let syllabus = Syllabus(name: "Civil", opposition: opposition)
+    container.mainContext.insert(syllabus)
+    let topic = Topic(number: 42, title: "Responsabilidad patrimonial", syllabus: syllabus)
+    container.mainContext.insert(topic)
 
-    return PracticeView(tema: tema)
+    return PracticeView(topic: topic)
         .modelContainer(container)
-        .environment(AppEnvironment(modo: .local))
+        .environment(AppEnvironment(mode: .local))
 }

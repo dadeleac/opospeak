@@ -17,8 +17,8 @@ struct DomainModelTests {
     // el deinit de un ModelContainer mientras otro está en uso crashea
     // SwiftData (EXC_BREAKPOINT en estado global compartido).
     private static let sharedSchema = Schema([
-        Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
     ])
     private static var retainedContainers: [ModelContainer] = []
 
@@ -33,88 +33,88 @@ struct DomainModelTests {
         return container
     }
 
-    @Test func crearTemarioConInformacionMinima() throws {
+    @Test func createSyllabusWithMinimumInformation() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
         try context.save()
 
-        let temarios = try context.fetch(FetchDescriptor<Temario>())
-        #expect(temarios.count == 1)
-        #expect(temarios[0].nombre == "Civil")
-        #expect(temarios[0].descripcion == nil)
-        #expect(temarios[0].temas?.isEmpty == true)
-        #expect(temarios[0].oposicion?.nombre == "Judicatura")
-        #expect(oposicion.temarios?.count == 1)
+        let syllabi = try context.fetch(FetchDescriptor<Syllabus>())
+        #expect(syllabi.count == 1)
+        #expect(syllabi[0].name == "Civil")
+        #expect(syllabi[0].summary == nil)
+        #expect(syllabi[0].topics?.isEmpty == true)
+        #expect(syllabi[0].opposition?.name == "Judicatura")
+        #expect(opposition.syllabi?.count == 1)
     }
 
-    @Test func temaSinTituloPerteneceASuTemario() throws {
+    @Test func untitledTopicBelongsToItsSyllabus() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 42, temario: temario)
-        context.insert(tema)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 42, syllabus: syllabus)
+        context.insert(topic)
         try context.save()
 
-        #expect(tema.titulo == nil)
-        #expect(tema.temario?.id == temario.id)
-        #expect(temario.temas?.first?.id == tema.id)
+        #expect(topic.title == nil)
+        #expect(topic.syllabus?.id == syllabus.id)
+        #expect(syllabus.topics?.first?.id == topic.id)
     }
 
-    @Test func intentoCompletoVinculaTemaYSesion() throws {
+    @Test func completedAttemptLinksTopicAndSession() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 42, titulo: "Responsabilidad patrimonial", temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 42, title: "Responsabilidad patrimonial", syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
 
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
-        intento.duracionReal = 708
-        intento.fechaFin = intento.fechaInicio.addingTimeInterval(708)
-        intento.completado = true
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        attempt.duration = 708
+        attempt.endedAt = attempt.startedAt.addingTimeInterval(708)
+        attempt.isCompleted = true
         try context.save()
 
-        #expect(intento.tema?.numero == 42)
-        #expect(intento.sesion?.id == sesion.id)
-        #expect(intento.duracionReal == 708)
-        #expect(intento.completado)
-        #expect(tema.intentos?.count == 1)
-        #expect(sesion.intentos?.count == 1)
+        #expect(attempt.topic?.number == 42)
+        #expect(attempt.session?.id == session.id)
+        #expect(attempt.duration == 708)
+        #expect(attempt.isCompleted)
+        #expect(topic.attempts?.count == 1)
+        #expect(session.attempts?.count == 1)
     }
 
-    @Test func intentoSinGrabacionEsValido() throws {
+    @Test func attemptWithoutRecordingIsValid() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 1, temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 1, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
         try context.save()
 
-        #expect(intento.grabacion == nil)
-        let intentos = try context.fetch(FetchDescriptor<Intento>())
-        #expect(intentos.count == 1)
+        #expect(attempt.recording == nil)
+        let attempts = try context.fetch(FetchDescriptor<Attempt>())
+        #expect(attempts.count == 1)
     }
 
-    @Test func borrarIntentoEliminaSatelitesYArchivo() throws {
+    @Test func deletingAttemptRemovesSatellitesAndFile() throws {
         let context = try makeContainer().mainContext
         let store = RecordingStore(
             directoryURL: FileManager.default.temporaryDirectory
@@ -122,121 +122,121 @@ struct DomainModelTests {
         )
         try store.ensureDirectoryExists()
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 7, temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
-        let grabacion = Grabacion(intento: intento, duracion: 600, tamano: 1024)
-        context.insert(grabacion)
-        context.insert(Metrica(intento: intento, tipo: .duracionTotal, valor: 600))
-        context.insert(Metrica(intento: intento, tipo: .diferenciaObjetivo, valor: -30))
-        context.insert(Nota(intento: intento, contenido: "Demasiado rápido al inicio"))
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 7, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        let recording = Recording(attempt: attempt, duration: 600, fileSize: 1024)
+        context.insert(recording)
+        context.insert(Metric(attempt: attempt, kind: .totalDuration, value: 600))
+        context.insert(Metric(attempt: attempt, kind: .targetDelta, value: -30))
+        context.insert(Note(attempt: attempt, content: "Demasiado rápido al inicio"))
         try context.save()
 
-        let audioURL = store.url(forGrabacionId: grabacion.id, formato: grabacion.formato)
+        let audioURL = store.url(forRecordingID: recording.id, format: recording.format)
         try Data("audio".utf8).write(to: audioURL)
         #expect(FileManager.default.fileExists(atPath: audioURL.path()))
 
         let repository = PracticeRepository(modelContext: context, recordingStore: store)
-        try repository.delete(intento: intento)
+        try repository.delete(attempt: attempt)
 
-        #expect(try context.fetch(FetchDescriptor<Intento>()).isEmpty)
-        #expect(try context.fetch(FetchDescriptor<Grabacion>()).isEmpty)
-        #expect(try context.fetch(FetchDescriptor<Metrica>()).isEmpty)
-        #expect(try context.fetch(FetchDescriptor<Nota>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Attempt>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Recording>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Metric>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Note>()).isEmpty)
         #expect(!FileManager.default.fileExists(atPath: audioURL.path()))
         // El tema sobrevive: el borrado de un intento nunca toca el tema.
-        #expect(try context.fetch(FetchDescriptor<Tema>()).count == 1)
+        #expect(try context.fetch(FetchDescriptor<Topic>()).count == 1)
     }
 
-    @Test func borrarSesionConservaIntentos() throws {
+    @Test func deletingSessionPreservesAttempts() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 3, temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 3, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
         try context.save()
 
-        context.delete(sesion)
+        context.delete(session)
         try context.save()
 
-        let intentos = try context.fetch(FetchDescriptor<Intento>())
-        #expect(intentos.count == 1)
-        #expect(intentos[0].sesion == nil)
-        #expect(intentos[0].tema?.id == tema.id)
+        let attempts = try context.fetch(FetchDescriptor<Attempt>())
+        #expect(attempts.count == 1)
+        #expect(attempts[0].session == nil)
+        #expect(attempts[0].topic?.id == topic.id)
     }
 
-    @Test func archivarTemaConservaHistorial() throws {
+    @Test func archivingTopicPreservesHistory() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 5, temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
-        context.insert(Nota(intento: intento, contenido: "Bien"))
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 5, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        context.insert(Note(attempt: attempt, content: "Bien"))
         try context.save()
 
-        tema.activo = false
+        topic.isActive = false
         try context.save()
 
-        #expect(tema.activo == false)
-        #expect(try context.fetch(FetchDescriptor<Intento>()).count == 1)
-        #expect(try context.fetch(FetchDescriptor<Nota>()).count == 1)
+        #expect(topic.isActive == false)
+        #expect(try context.fetch(FetchDescriptor<Attempt>()).count == 1)
+        #expect(try context.fetch(FetchDescriptor<Note>()).count == 1)
     }
 
-    @Test func borrarTemarioCascadaCompleta() throws {
+    @Test func deletingSyllabusCascades() throws {
         let context = try makeContainer().mainContext
 
-        let oposicion = Oposicion(nombre: "Judicatura")
-        context.insert(oposicion)
-        let temario = Temario(nombre: "Civil", oposicion: oposicion)
-        context.insert(temario)
-        let tema = Tema(numero: 1, temario: temario)
-        context.insert(tema)
-        let sesion = Sesion()
-        context.insert(sesion)
-        let intento = Intento(tema: tema, sesion: sesion)
-        context.insert(intento)
-        context.insert(Nota(intento: intento, contenido: "x"))
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 1, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        context.insert(Note(attempt: attempt, content: "x"))
         try context.save()
 
-        context.delete(temario)
+        context.delete(syllabus)
         try context.save()
 
-        #expect(try context.fetch(FetchDescriptor<Tema>()).isEmpty)
-        #expect(try context.fetch(FetchDescriptor<Intento>()).isEmpty)
-        #expect(try context.fetch(FetchDescriptor<Nota>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Topic>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Attempt>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Note>()).isEmpty)
         // La sesión no pertenece al temario: sobrevive.
-        #expect(try context.fetch(FetchDescriptor<Sesion>()).count == 1)
+        #expect(try context.fetch(FetchDescriptor<PracticeSession>()).count == 1)
     }
 
-    @Test func recordingStoreResuelveURLsPorIdentidad() throws {
+    @Test func recordingStoreResolvesURLsByIdentity() throws {
         let dir = FileManager.default.temporaryDirectory
             .appending(path: "RecordingStoreTests-\(UUID().uuidString)")
         let store = RecordingStore(directoryURL: dir)
         try store.ensureDirectoryExists()
 
         let id = UUID()
-        let url = store.url(forGrabacionId: id)
+        let url = store.url(forRecordingID: id)
         #expect(url.lastPathComponent == "\(id.uuidString).m4a")
         // Comparar URLs estandarizadas: /tmp es symlink de /private/tmp y
         // deletingLastPathComponent deja barra final.

@@ -9,60 +9,60 @@ import Foundation
 import SwiftData
 
 /// Único punto de escritura al finalizar una práctica: sesión (reutilizada
-/// o nueva según SesionPolicy), Intento, Grabación y Métrica se guardan en
+/// o nueva según SessionPolicy), Intento, Grabación y Métrica se guardan en
 /// una sola transacción. El archivo de audio ya debe existir en disco.
 struct PracticeService {
     let modelContext: ModelContext
     let recordingStore: RecordingStore
 
     @discardableResult
-    func finish(tema: Tema, grabacionId: UUID, inicio: Date, fin: Date) throws -> Intento {
-        let duracion = fin.timeIntervalSince(inicio)
-        let sesion = try sesionActiva(en: fin)
+    func finish(topic: Topic, recordingID: UUID, startedAt: Date, endedAt: Date) throws -> Attempt {
+        let duration = endedAt.timeIntervalSince(startedAt)
+        let session = try activeSession(at: endedAt)
 
-        let intento = Intento(tema: tema, sesion: sesion, fechaInicio: inicio)
-        intento.fechaFin = fin
-        intento.duracionReal = duracion
-        intento.completado = true
-        modelContext.insert(intento)
+        let attempt = Attempt(topic: topic, session: session, startedAt: startedAt)
+        attempt.endedAt = endedAt
+        attempt.duration = duration
+        attempt.isCompleted = true
+        modelContext.insert(attempt)
 
-        let fileURL = recordingStore.url(forGrabacionId: grabacionId)
-        let atributos = try? FileManager.default.attributesOfItem(
+        let fileURL = recordingStore.url(forRecordingID: recordingID)
+        let attributes = try? FileManager.default.attributesOfItem(
             atPath: fileURL.path(percentEncoded: false)
         )
-        let tamano = (atributos?[.size] as? Int64) ?? 0
+        let fileSize = (attributes?[.size] as? Int64) ?? 0
 
-        let grabacion = Grabacion(intento: intento, duracion: duracion, tamano: tamano)
-        grabacion.id = grabacionId
-        modelContext.insert(grabacion)
+        let recording = Recording(attempt: attempt, duration: duration, fileSize: fileSize)
+        recording.id = recordingID
+        modelContext.insert(recording)
 
-        modelContext.insert(Metrica(intento: intento, tipo: .duracionTotal, valor: duracion, fecha: fin))
+        modelContext.insert(Metric(attempt: attempt, kind: .totalDuration, value: duration, date: endedAt))
 
-        sesion.fechaFin = fin
+        session.endedAt = endedAt
         try modelContext.save()
-        return intento
+        return attempt
     }
 
     /// Abandona una práctica: borra el archivo parcial, no persiste nada.
-    func discard(grabacionId: UUID) {
-        try? recordingStore.deleteRecording(id: grabacionId)
+    func discard(recordingID: UUID) {
+        try? recordingStore.deleteRecording(id: recordingID)
     }
 
-    private func sesionActiva(en fecha: Date) throws -> Sesion {
-        var descriptor = FetchDescriptor<Sesion>(
-            sortBy: [SortDescriptor(\.fechaInicio, order: .reverse)]
+    private func activeSession(at date: Date) throws -> PracticeSession {
+        var descriptor = FetchDescriptor<PracticeSession>(
+            sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
         )
         descriptor.fetchLimit = 5
-        let recientes = try modelContext.fetch(descriptor)
+        let recent = try modelContext.fetch(descriptor)
 
-        if let reutilizable = recientes.first(where: {
-            SesionPolicy.esReutilizable(ultimaActividad: $0.fechaFin ?? $0.fechaInicio, ahora: fecha)
+        if let reusable = recent.first(where: {
+            SessionPolicy.isReusable(lastActivity: $0.endedAt ?? $0.startedAt, now: date)
         }) {
-            return reutilizable
+            return reusable
         }
 
-        let nueva = Sesion(fechaInicio: fecha)
-        modelContext.insert(nueva)
-        return nueva
+        let session = PracticeSession(startedAt: date)
+        modelContext.insert(session)
+        return session
     }
 }

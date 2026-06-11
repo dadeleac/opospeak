@@ -12,62 +12,62 @@ import SwiftData
 // La práctica no es pestaña: nace siempre desde el tema.
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @AppStorage("onboardingCompletado") private var onboardingCompletado = false
+    @AppStorage("onboardingCompleted") private var onboardingCompleted = false
 
-    @State private var rutaTemarios = NavigationPath()
-    @State private var mostrandoOnboarding = false
+    @State private var syllabusPath = NavigationPath()
+    @State private var showingOnboarding = false
 
     var body: some View {
         TabView {
             Tab("Temarios", systemImage: "books.vertical") {
-                NavigationStack(path: $rutaTemarios) {
-                    TemariosListView()
+                NavigationStack(path: $syllabusPath) {
+                    SyllabusListView()
                 }
             }
             Tab("Progreso", systemImage: "chart.line.uptrend.xyaxis") {
                 NavigationStack {
-                    ProgresoView()
+                    ProgressOverviewView()
                 }
             }
             Tab("Ajustes", systemImage: "gearshape") {
                 NavigationStack {
-                    AjustesView()
+                    SettingsView()
                 }
             }
         }
         .task {
-            evaluarOnboarding()
+            evaluateOnboarding()
         }
-        .fullScreenCover(isPresented: $mostrandoOnboarding) {
+        .fullScreenCover(isPresented: $showingOnboarding) {
             // Cerrar de cualquier forma termina el onboarding para siempre;
             // los estados vacíos toman el relevo (onboarding continuo).
-            onboardingCompletado = true
+            onboardingCompleted = true
         } content: {
-            OnboardingView { temario in
-                rutaTemarios.append(temario)
+            OnboardingView { syllabus in
+                syllabusPath.append(syllabus)
             }
         }
     }
 
-    private func evaluarOnboarding() {
-        var oposiciones = FetchDescriptor<Oposicion>()
-        oposiciones.fetchLimit = 1
-        var temarios = FetchDescriptor<Temario>()
-        temarios.fetchLimit = 1
-        let tieneDatos = ((try? modelContext.fetchCount(oposiciones)) ?? 0) > 0
-            || ((try? modelContext.fetchCount(temarios)) ?? 0) > 0
+    private func evaluateOnboarding() {
+        var oppositions = FetchDescriptor<Opposition>()
+        oppositions.fetchLimit = 1
+        var syllabi = FetchDescriptor<Syllabus>()
+        syllabi.fetchLimit = 1
+        let hasData = ((try? modelContext.fetchCount(oppositions)) ?? 0) > 0
+            || ((try? modelContext.fetchCount(syllabi)) ?? 0) > 0
 
-        switch OnboardingDecision.debeMostrarse(
-            completado: onboardingCompletado,
-            tieneDatos: tieneDatos
+        switch OnboardingDecision.shouldShow(
+            completed: onboardingCompleted,
+            hasData: hasData
         ) {
-        case .mostrar:
-            mostrandoOnboarding = true
-        case .omitirYMarcar:
+        case .show:
+            showingOnboarding = true
+        case .skipAndMark:
             // Datos restaurados (p. ej. iCloud en dispositivo nuevo):
             // un usuario que vuelve no es un usuario nuevo.
-            onboardingCompletado = true
-        case .omitir:
+            onboardingCompleted = true
+        case .skip:
             break
         }
     }
@@ -75,11 +75,11 @@ struct ContentView: View {
 
 #Preview {
     let container = try! ModelContainer(
-        for: Oposicion.self, Temario.self, Tema.self, Sesion.self, Intento.self,
-        Grabacion.self, Metrica.self, Nota.self,
+        for: Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     return ContentView()
         .modelContainer(container)
-        .environment(AppEnvironment(modo: .local))
+        .environment(AppEnvironment(mode: .local))
 }

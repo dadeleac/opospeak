@@ -200,9 +200,10 @@
 				};
 			};
 			buildConfigurationList = ED880CB12FDA94B700188036 /* Build configuration list for PBXProject "opospeak" */;
-			developmentRegion = en;
+			developmentRegion = es;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				es,
 				en,
 				Base,
 			);

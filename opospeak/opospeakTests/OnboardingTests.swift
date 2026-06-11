@@ -10,26 +10,26 @@ import Testing
 
 struct OnboardingDecisionTests {
 
-    @Test func usuarioNuevoSinDatosVeOnboarding() {
+    @Test func newUserWithoutDataSeesOnboarding() {
         #expect(
-            OnboardingDecision.debeMostrarse(completado: false, tieneDatos: false) == .mostrar
+            OnboardingDecision.shouldShow(completed: false, hasData: false) == .show
         )
     }
 
-    @Test func datosRestauradosOmitenYMarcan() {
+    @Test func restoredDataSkipsAndMarks() {
         // Dispositivo nuevo con datos de iCloud (oposiciones o temarios
         // pre-refactor): usuario que vuelve.
         #expect(
-            OnboardingDecision.debeMostrarse(completado: false, tieneDatos: true) == .omitirYMarcar
+            OnboardingDecision.shouldShow(completed: false, hasData: true) == .skipAndMark
         )
     }
 
-    @Test func yaCompletadoNuncaReaparece() {
+    @Test func completedNeverReappears() {
         #expect(
-            OnboardingDecision.debeMostrarse(completado: true, tieneDatos: false) == .omitir
+            OnboardingDecision.shouldShow(completed: true, hasData: false) == .skip
         )
         #expect(
-            OnboardingDecision.debeMostrarse(completado: true, tieneDatos: true) == .omitir
+            OnboardingDecision.shouldShow(completed: true, hasData: true) == .skip
         )
     }
 }

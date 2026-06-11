@@ -13,45 +13,45 @@ import Observation
 @Observable
 final class SyncStatus {
 
-    enum Modo {
+    enum Mode {
         case icloud
         case local
     }
 
-    enum Cuenta: Equatable {
-        case desconocida
-        case disponible
-        case sinCuenta
-        case otra
+    enum AccountState: Equatable {
+        case unknown
+        case available
+        case noAccount
+        case other
     }
 
     /// Modo con el que se creó el ModelContainer (no cambia en caliente).
-    let modo: Modo
-    private(set) var cuenta: Cuenta = .desconocida
+    let mode: Mode
+    private(set) var accountState: AccountState = .unknown
 
-    init(modo: Modo) {
-        self.modo = modo
+    init(mode: Mode) {
+        self.mode = mode
     }
 
-    var descripcion: String {
-        guard modo == .icloud else { return "No disponible" }
-        return switch cuenta {
-        case .disponible: "Activa"
-        case .sinCuenta: "Sin cuenta de iCloud"
-        case .desconocida: "Comprobando…"
-        case .otra: "No disponible"
+    var statusDescription: String {
+        guard mode == .icloud else { return String(localized: "No disponible") }
+        return switch accountState {
+        case .available: String(localized: "Activa")
+        case .noAccount: String(localized: "Sin cuenta de iCloud")
+        case .unknown: String(localized: "Comprobando…")
+        case .other: String(localized: "No disponible")
         }
     }
 
-    func actualizarCuenta() async {
-        guard modo == .icloud else { return }
-        let estado = try? await CKContainer(
+    func refreshAccount() async {
+        guard mode == .icloud else { return }
+        let status = try? await CKContainer(
             identifier: RecordingLocation.containerIdentifier
         ).accountStatus()
-        cuenta = switch estado {
-        case .available: .disponible
-        case .noAccount: .sinCuenta
-        default: .otra
+        accountState = switch status {
+        case .available: .available
+        case .noAccount: .noAccount
+        default: .other
         }
     }
 }
@@ -65,28 +65,28 @@ final class AppEnvironment {
     private(set) var recordingStore: RecordingStore
     let syncStatus: SyncStatus
 
-    init(modo: SyncStatus.Modo) {
+    init(mode: SyncStatus.Mode) {
         recordingStore = RecordingStore()
-        syncStatus = SyncStatus(modo: modo)
+        syncStatus = SyncStatus(mode: mode)
     }
 
     /// Resuelve el contenedor ubicuo (fuera del hilo principal), migra las
     /// grabaciones locales si procede y actualiza el estado de cuenta.
     /// La migración es idempotente: corre en cada arranque sin coste si
     /// no hay nada que mover.
-    func arrancar() async {
+    func bootstrap() async {
         let ubiquity = await Task.detached(priority: .utility) {
             RecordingLocation.ubiquityURL()
         }.value
 
         if let ubiquity {
-            let destino = RecordingLocation.resolve(ubiquity: ubiquity)
-            RecordingMigrator.migrate(from: RecordingLocation.localURL, to: destino)
-            let store = RecordingStore(directoryURL: destino)
+            let target = RecordingLocation.resolve(ubiquity: ubiquity)
+            RecordingMigrator.migrate(from: RecordingLocation.localURL, to: target)
+            let store = RecordingStore(directoryURL: target)
             try? store.ensureDirectoryExists()
             recordingStore = store
         }
 
-        await syncStatus.actualizarCuenta()
+        await syncStatus.refreshAccount()
     }
 }

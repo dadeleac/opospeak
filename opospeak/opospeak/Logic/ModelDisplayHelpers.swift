@@ -7,43 +7,43 @@
 
 import Foundation
 
-extension Tema: TemaSortable {
-    var intentoCount: Int { intentos?.count ?? 0 }
+extension Topic: TopicSortable {
+    var attemptCount: Int { attempts?.count ?? 0 }
 
-    var ultimaPractica: Date? {
-        intentos?.map(\.fechaInicio).max()
+    var lastPracticedAt: Date? {
+        attempts?.map(\.startedAt).max()
     }
 
     /// "Tema 42" cuando no hay título; el título cuando existe.
-    var nombreVisible: String {
-        if let titulo, !titulo.isEmpty { return titulo }
-        return "Tema \(numero)"
+    var displayName: String {
+        if let title, !title.isEmpty { return title }
+        return String(localized: "Tema \(number)")
     }
 }
 
-extension Temario {
-    var temasActivos: [Tema] {
-        temas?.filter(\.activo) ?? []
+extension Syllabus {
+    var activeTopics: [Topic] {
+        topics?.filter(\.isActive) ?? []
     }
 
     /// Fecha del intento más reciente entre todos los temas del temario.
-    var actividadReciente: Date? {
-        temas?.compactMap(\.ultimaPractica).max()
+    var recentActivity: Date? {
+        topics?.compactMap(\.lastPracticedAt).max()
     }
 
     /// Siguiente número libre, contando también temas archivados.
-    var siguienteNumeroLibre: Int {
-        (temas?.map(\.numero).max() ?? 0) + 1
+    var nextFreeNumber: Int {
+        (topics?.map(\.number).max() ?? 0) + 1
     }
 
-    var numerosExistentes: Set<Int> {
-        Set(temas?.map(\.numero) ?? [])
+    var existingNumbers: Set<Int> {
+        Set(topics?.map(\.number) ?? [])
     }
 }
 
 /// Formatea segundos como "11:48" o "1:02:30".
-func formatearDuracion(_ segundos: TimeInterval) -> String {
-    let total = Int(segundos.rounded())
+func formatDuration(_ seconds: TimeInterval) -> String {
+    let total = Int(seconds.rounded())
     let h = total / 3600
     let m = (total % 3600) / 60
     let s = total % 60
