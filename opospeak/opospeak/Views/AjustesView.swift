@@ -12,6 +12,7 @@ import SwiftData
 // (define-information-architecture). No es un cajón de funcionalidades.
 struct AjustesView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) private var entorno
 
     @State private var exportando = false
     @State private var exportURL: URL?
@@ -58,11 +59,12 @@ struct AjustesView: View {
                 .accessibilityHint("Genera un paquete con todos tus datos y grabaciones")
 
                 LabeledContent {
-                    Text("Próximamente")
+                    Text(entorno.syncStatus.descripcion)
                         .foregroundStyle(.secondary)
                 } label: {
                     Label("Sincronización iCloud", systemImage: "icloud")
                 }
+                .accessibilityElement(children: .combine)
             } header: {
                 Text("Datos")
             } footer: {
@@ -92,7 +94,7 @@ struct AjustesView: View {
         Task {
             defer { exportando = false }
             do {
-                let service = ExportService(modelContext: modelContext, recordingStore: RecordingStore())
+                let service = ExportService(modelContext: modelContext, recordingStore: entorno.recordingStore)
                 let paquete = try service.buildFullPackage()
                 exportURL = try ExportArchiver.zip(directory: paquete)
                 try? FileManager.default.removeItem(at: paquete.deletingLastPathComponent())
@@ -115,4 +117,5 @@ extension URL: @retroactive Identifiable {
     NavigationStack {
         AjustesView()
     }
+    .environment(AppEnvironment(modo: .local))
 }

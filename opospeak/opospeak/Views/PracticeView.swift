@@ -15,8 +15,9 @@ struct PracticeView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) private var entorno
 
-    @State private var recorder = PracticeRecorder()
+    @State private var recorder: PracticeRecorder?
     @State private var resumen: ResumenPractica?
 
     private struct ResumenPractica {
@@ -27,29 +28,36 @@ struct PracticeView: View {
     var body: some View {
         NavigationStack {
             Group {
-                switch recorder.estado {
-                case .inactivo:
-                    ProgressView()
-                case .grabando:
-                    grabando
-                case .finalizado:
-                    if let resumen {
-                        resumenView(resumen)
+                if let recorder {
+                    switch recorder.estado {
+                    case .inactivo:
+                        ProgressView()
+                    case .grabando:
+                        grabando(recorder)
+                    case .finalizado:
+                        if let resumen {
+                            resumenView(resumen)
+                        }
+                    case .permisoDenegado:
+                        permisoDenegado
+                    case .fallo(let mensaje):
+                        fallo(mensaje)
                     }
-                case .permisoDenegado:
-                    permisoDenegado
-                case .fallo(let mensaje):
-                    fallo(mensaje)
+                } else {
+                    ProgressView()
                 }
             }
             .navigationTitle(tema.nombreVisible)
             .navigationBarTitleDisplayMode(.inline)
         }
         .task {
-            await recorder.comenzar()
+            guard recorder == nil else { return }
+            let nuevo = PracticeRecorder(recordingStore: entorno.recordingStore)
+            recorder = nuevo
+            await nuevo.comenzar()
         }
-        .interactiveDismissDisabled(recorder.estado == .grabando)
-        .onChange(of: recorder.estado == .grabando, initial: true) { _, grabando in
+        .interactiveDismissDisabled(recorder?.estado == .grabando)
+        .onChange(of: recorder?.estado == .grabando, initial: true) { _, grabando in
             UIApplication.shared.isIdleTimerDisabled = grabando
         }
         .onDisappear {
@@ -59,7 +67,7 @@ struct PracticeView: View {
 
     // MARK: - Grabando
 
-    private var grabando: some View {
+    private func grabando(_ recorder: PracticeRecorder) -> some View {
         VStack(spacing: 32) {
             Spacer()
 
@@ -159,13 +167,17 @@ struct PracticeView: View {
     // MARK: - Acciones
 
     private func finalizar() {
+        guard let recorder else { return }
         recorder.finalizar()
         guard let inicio = recorder.fechaInicio, let fin = recorder.fechaFin else {
             dismiss()
             return
         }
 
-        let service = PracticeService(modelContext: modelContext, recordingStore: RecordingStore())
+        let service = PracticeService(
+            modelContext: modelContext,
+            recordingStore: entorno.recordingStore
+        )
         do {
             try service.finish(tema: tema, grabacionId: recorder.grabacionId, inicio: inicio, fin: fin)
             resumen = ResumenPractica(duracion: fin.timeIntervalSince(inicio), fecha: fin)
@@ -176,7 +188,7 @@ struct PracticeView: View {
     }
 
     private func descartar() {
-        recorder.descartar()
+        recorder?.descartar()
         dismiss()
     }
 }
@@ -194,4 +206,5 @@ struct PracticeView: View {
 
     return PracticeView(tema: tema)
         .modelContainer(container)
+        .environment(AppEnvironment(modo: .local))
 }

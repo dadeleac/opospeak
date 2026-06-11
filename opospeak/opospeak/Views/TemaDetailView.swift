@@ -115,4 +115,5 @@ struct IntentoRow: View {
             .navigationDestination(for: Intento.self) { IntentoDetailView(intento: $0) }
     }
     .modelContainer(container)
+    .environment(AppEnvironment(modo: .local))
 }

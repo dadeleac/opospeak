@@ -12,12 +12,12 @@ struct IntentoDetailView: View {
     let intento: Intento
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) private var entorno
     @State private var nuevaNota = ""
     @State private var playback = PlaybackController()
     @State private var exportando = false
     @State private var exportURL: URL?
-
-    private let recordingStore = RecordingStore()
+    @State private var estadoGrabacion: RecordingStore.Availability = .ausente
 
     private var notasOrdenadas: [Nota] {
         (intento.notas ?? []).sorted { $0.fechaCreacion < $1.fechaCreacion }
@@ -37,43 +37,45 @@ struct IntentoDetailView: View {
                 }
             }
 
-            if let grabacion = intento.grabacion {
+            if intento.grabacion != nil {
                 Section("Grabación") {
-                    if playback.disponible {
-                        HStack(spacing: 16) {
-                            Button {
-                                playback.alternar()
-                            } label: {
-                                Image(systemName: playback.reproduciendo ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 44))
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(playback.reproduciendo ? "Pausar" : "Reproducir")
-
-                            VStack(alignment: .leading, spacing: 6) {
-                                ProgressView(value: playback.progreso, total: max(playback.duracion, 1))
-                                HStack {
-                                    Text(formatearDuracion(playback.progreso))
-                                    Spacer()
-                                    Text(formatearDuracion(playback.duracion))
+                    switch estadoGrabacion {
+                    case .disponible:
+                        if playback.disponible {
+                            HStack(spacing: 16) {
+                                Button {
+                                    playback.alternar()
+                                } label: {
+                                    Image(systemName: playback.reproduciendo ? "pause.circle.fill" : "play.circle.fill")
+                                        .font(.system(size: 44))
                                 }
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(playback.reproduciendo ? "Pausar" : "Reproducir")
+
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ProgressView(value: playback.progreso, total: max(playback.duracion, 1))
+                                    HStack {
+                                        Text(formatearDuracion(playback.progreso))
+                                        Spacer()
+                                        Text(formatearDuracion(playback.duracion))
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                                }
                             }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
-                    } else {
+                    case .descargando:
+                        HStack(spacing: 12) {
+                            ProgressView()
+                            Text("Descargando de iCloud…")
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                    case .ausente:
                         Label("Grabación no disponible", systemImage: "waveform.slash")
                             .foregroundStyle(.secondary)
-                    }
-                }
-                .onAppear {
-                    if let url = recordingStore.existingURL(
-                        forGrabacionId: grabacion.id,
-                        formato: grabacion.formato
-                    ) {
-                        playback.cargar(url: url)
                     }
                 }
             }
@@ -123,8 +125,36 @@ struct IntentoDetailView: View {
                 exportURL = nil
             }
         }
+        .task {
+            await vigilarGrabacion()
+        }
         .onDisappear {
             playback.detener()
+        }
+    }
+
+    /// Evalúa la disponibilidad de la grabación; si está descargándose de
+    /// iCloud, sondea hasta que aparezca el archivo (la tarea se cancela
+    /// sola al salir de la vista).
+    private func vigilarGrabacion() async {
+        guard let grabacion = intento.grabacion else { return }
+        while !Task.isCancelled {
+            let estado = entorno.recordingStore.availability(
+                forGrabacionId: grabacion.id,
+                formato: grabacion.formato
+            )
+            estadoGrabacion = estado
+            switch estado {
+            case .disponible(let url):
+                if !playback.disponible {
+                    playback.cargar(url: url)
+                }
+                return
+            case .ausente:
+                return
+            case .descargando:
+                try? await Task.sleep(for: .milliseconds(600))
+            }
         }
     }
 
@@ -133,7 +163,10 @@ struct IntentoDetailView: View {
         Task {
             defer { exportando = false }
             do {
-                let service = ExportService(modelContext: modelContext, recordingStore: recordingStore)
+                let service = ExportService(
+                    modelContext: modelContext,
+                    recordingStore: entorno.recordingStore
+                )
                 let paquete = try service.buildIntentoPackage(intento: intento)
                 exportURL = try ExportArchiver.zip(directory: paquete)
                 try? FileManager.default.removeItem(at: paquete.deletingLastPathComponent())
@@ -172,4 +205,5 @@ struct IntentoDetailView: View {
         IntentoDetailView(intento: intento)
     }
     .modelContainer(container)
+    .environment(AppEnvironment(modo: .local))
 }

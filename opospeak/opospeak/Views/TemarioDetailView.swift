@@ -283,4 +283,5 @@ struct AltaRapidaSheet: View {
             .navigationDestination(for: Tema.self) { TemaDetailView(tema: $0) }
     }
     .modelContainer(container)
+    .environment(AppEnvironment(modo: .local))
 }

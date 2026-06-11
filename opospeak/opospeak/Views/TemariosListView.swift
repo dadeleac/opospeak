@@ -157,6 +157,7 @@ struct NuevoTemarioSheet: View {
         TemariosListView()
     }
     .modelContainer(container)
+    .environment(AppEnvironment(modo: .local))
 }
 
 #Preview("Vacío") {
@@ -169,4 +170,5 @@ struct NuevoTemarioSheet: View {
         TemariosListView()
     }
     .modelContainer(container)
+    .environment(AppEnvironment(modo: .local))
 }

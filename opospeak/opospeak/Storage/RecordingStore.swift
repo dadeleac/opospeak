@@ -49,4 +49,28 @@ struct RecordingStore {
         guard let fileURL = existingURL(forGrabacionId: id, formato: formato) else { return }
         try FileManager.default.removeItem(at: fileURL)
     }
+
+    // MARK: - iCloud
+
+    enum Availability: Equatable {
+        case disponible(URL)
+        case descargando
+        case ausente
+    }
+
+    /// Estado de una grabación contemplando iCloud: si el archivo no está
+    /// en disco pero existe su placeholder `.icloud` (archivo evictado del
+    /// contenedor ubicuo), lanza la descarga y reporta `.descargando`.
+    func availability(forGrabacionId id: UUID, formato: String = "m4a") -> Availability {
+        if let url = existingURL(forGrabacionId: id, formato: formato) {
+            return .disponible(url)
+        }
+        let placeholder = directoryURL.appending(path: ".\(id.uuidString).\(formato).icloud")
+        if FileManager.default.fileExists(atPath: placeholder.path(percentEncoded: false)) {
+            let destino = url(forGrabacionId: id, formato: formato)
+            try? FileManager.default.startDownloadingUbiquitousItem(at: destino)
+            return .descargando
+        }
+        return .ausente
+    }
 }

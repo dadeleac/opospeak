@@ -179,7 +179,17 @@ Export is implemented (OpenSpec change `add-export`, completed):
 - Native zip via NSFileCoordinator `.forUploading` (no dependencies); system share sheet; works offline; temp artifacts cleaned up.
 - Full suite green (45 tests).
 
-Remaining MVP changes: iCloud sync activation, onboarding, visual identity. Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
+iCloud sync is implemented (OpenSpec change `add-icloud-sync`, completed):
+
+- SwiftData + CloudKit private-database mirroring for all entities; sync follows the system iCloud account — no app-level login, ever.
+- Bulletproof fallback: if the CloudKit store cannot initialize, the app falls back to local-only storage and works completely (local-first never compromised).
+- Recordings sync via the iCloud Drive ubiquity container: `RecordingLocation` resolves the directory at startup (off-main), `RecordingMigrator` moves local files once (idempotent, copy-verify-delete, never destructive).
+- Evicted files (`.icloud` placeholders) download on demand; the intento detail shows "Descargando de iCloud…" distinct from "no disponible".
+- `AppEnvironment` centralizes the resolved RecordingStore (replacing ad-hoc constructions) and `SyncStatus` powers the honest Ajustes row (Activa / Sin cuenta de iCloud / No disponible) with zero nagging.
+- Entitlements completed (CloudKit + CloudDocuments + ubiquity container `iCloud.com.daviddeleonacosta.opospeak`); remote-notification background mode added.
+- Full suite green (54 tests). Real device-to-device sync requires a manual check with a signed-in iCloud account (consistent with the foundation's audit gates); CloudKit schema deploy to production is a TestFlight-checklist step.
+
+Remaining MVP changes: onboarding, visual identity. Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
 
 ---
 

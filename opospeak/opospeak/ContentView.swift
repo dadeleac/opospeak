@@ -40,4 +40,5 @@ struct ContentView: View {
     )
     return ContentView()
         .modelContainer(container)
+        .environment(AppEnvironment(modo: .local))
 }
