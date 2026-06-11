@@ -7,9 +7,12 @@
 
 import SwiftUI
 import SwiftData
+import Charts
 
-// Centro de gravedad de la aplicación (define-information-architecture):
-// info del tema, historial de intentos y la acción Practicar prominente.
+// La Ficha de tema: el banco de trabajo del opositor para un tema
+// (centro de gravedad, define-information-architecture). Estado, hechos,
+// evolución y notas — toda la semántica temporal viene de
+// TopicInsightsModel; la vista jamás reimplementa una definición.
 struct TopicDetailView: View {
     let topic: Topic
 
@@ -18,6 +21,33 @@ struct TopicDetailView: View {
 
     private var sortedAttempts: [Attempt] {
         (topic.attempts ?? []).sorted { $0.startedAt > $1.startedAt }
+    }
+
+    // La cadencia es agrupada: el insight de este tema necesita los hechos
+    // de todos los temas activos de la oposición (vía relaciones, sin queries).
+    private var insight: TopicInsight? {
+        let syllabi = topic.syllabus?.opposition?.syllabi ?? []
+        let allTopics = syllabi.flatMap { $0.topics ?? [] }.filter(\.isActive)
+        let facts = allTopics.map(TopicFacts.init(topic:))
+        let (insights, _) = TopicInsightsModel.evaluate(topics: facts, reference: .now)
+        return insights.first { $0.topicID == topic.id }
+    }
+
+    /// Últimas 10 duraciones con tiempo, en orden cronológico.
+    private var evolutionPoints: [(index: Int, minutes: Double)] {
+        let timed = (topic.attempts ?? [])
+            .filter { $0.duration > 0 }
+            .sorted { $0.startedAt < $1.startedAt }
+            .suffix(10)
+        return timed.enumerated().map { ($0.offset + 1, $0.element.duration / 60) }
+    }
+
+    private var recentNotes: [Note] {
+        (topic.attempts ?? [])
+            .flatMap { $0.notes ?? [] }
+            .sorted { $0.createdAt > $1.createdAt }
+            .prefix(3)
+            .map { $0 }
     }
 
     var body: some View {
@@ -35,6 +65,18 @@ struct TopicDetailView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
                 .accessibilityHint("Inicia la grabación de una práctica oral de este tema")
+            }
+
+            if let insight {
+                stateSection(insight)
+            }
+
+            if evolutionPoints.count >= 2 {
+                evolutionSection
+            }
+
+            if !recentNotes.isEmpty {
+                notesSection
             }
 
             if !sortedAttempts.isEmpty {
@@ -65,14 +107,108 @@ struct TopicDetailView: View {
         .fullScreenCover(isPresented: $practicing) {
             PracticeView(topic: topic)
         }
-        .overlay {
-            if sortedAttempts.isEmpty {
-                ContentUnavailableView {
-                    Label("Sin intentos", systemImage: "mic")
-                } description: {
-                    Text("Cuando practiques este tema, tu historial aparecerá aquí.")
+    }
+
+    // MARK: - Estado
+
+    /// Etiqueta, icono, acento y explicación por estado — la copy son las
+    /// frases de una línea de la fundación. Siempre icono + texto: el
+    /// color nunca es la única señal. Olvidado es Amber (atención),
+    /// deliberadamente nunca rojo: el olvido no es un juicio.
+    private func stateInfo(_ state: TopicState) -> (label: String, icon: String, color: Color, explanation: String) {
+        switch state {
+        case .pending:
+            (String(localized: "Pendiente"), "circle.dashed", .slate,
+             String(localized: "Todavía no lo has cantado."))
+        case .recent:
+            (String(localized: "Reciente"), "checkmark.circle", .sage,
+             String(localized: "Lo cantaste esta semana."))
+        case .current:
+            (String(localized: "Al día"), "clock", .slate,
+             String(localized: "Dentro de tu ritmo habitual."))
+        case .forgotten:
+            (String(localized: "Olvidado"), "clock.arrow.circlepath", .amber,
+             String(localized: "Llevas más del doble de tu ritmo sin cantarlo."))
+        }
+    }
+
+    private func stateSection(_ insight: TopicInsight) -> some View {
+        let info = stateInfo(insight.state)
+        let totalTime = (topic.attempts ?? []).reduce(0) { $0 + $1.duration }
+
+        return Section("Estado") {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Image(systemName: info.icon)
+                        .foregroundStyle(info.color)
+                    Text(info.label)
+                        .font(.headline)
                 }
-                .allowsHitTesting(false)
+                Text(info.explanation)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+
+            if insight.attemptCount > 0 {
+                LabeledContent("Intentos", value: "\(insight.attemptCount)")
+                LabeledContent("Tiempo total", value: formatDuration(totalTime))
+                if let days = insight.daysSinceLastPractice {
+                    LabeledContent("Última práctica") {
+                        Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Evolución
+
+    private var evolutionSection: some View {
+        Section("Evolución") {
+            Chart(evolutionPoints, id: \.index) { point in
+                LineMark(
+                    x: .value("Intento", point.index),
+                    y: .value("Minutos", point.minutes)
+                )
+                .foregroundStyle(Color.ink)
+                PointMark(
+                    x: .value("Intento", point.index),
+                    y: .value("Minutos", point.minutes)
+                )
+                .foregroundStyle(Color.ink)
+            }
+            .chartXAxis(.hidden)
+            .chartYAxisLabel("min")
+            .frame(height: 120)
+            .padding(.vertical, 4)
+            .accessibilityLabel("Evolución de duraciones")
+            .accessibilityValue(evolutionAccessibilitySummary)
+        }
+    }
+
+    private var evolutionAccessibilitySummary: String {
+        guard let first = evolutionPoints.first, let last = evolutionPoints.last else { return "" }
+        return String(localized: "De \(Int(first.minutes)) a \(Int(last.minutes)) minutos en los últimos \(evolutionPoints.count) intentos")
+    }
+
+    // MARK: - Notas
+
+    private var notesSection: some View {
+        Section("Notas recientes") {
+            ForEach(recentNotes) { note in
+                if let attempt = note.attempt {
+                    NavigationLink(value: attempt) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(note.content)
+                                .lineLimit(2)
+                            Text(note.createdAt.formatted(date: .abbreviated, time: .omitted))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
             }
         }
     }

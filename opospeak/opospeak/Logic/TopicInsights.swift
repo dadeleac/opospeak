@@ -22,6 +22,17 @@ struct TopicFacts {
     let attemptDates: [Date]
 }
 
+extension TopicFacts {
+    /// Proyección desde el modelo. Todo consumidor (Ficha, Vuelta,
+    /// extracción) construye las entradas exactamente igual.
+    init(topic: Topic) {
+        self.init(
+            topicID: topic.id,
+            attemptDates: (topic.attempts ?? []).map(\.startedAt)
+        )
+    }
+}
+
 /// Estado temporal de un tema. Exactamente uno por tema activo.
 enum TopicState: Equatable {
     /// Nunca practicado.
