@@ -189,7 +189,15 @@ iCloud sync is implemented (OpenSpec change `add-icloud-sync`, completed):
 - Entitlements completed (CloudKit + CloudDocuments + ubiquity container `iCloud.com.daviddeleonacosta.opospeak`); remote-notification background mode added.
 - Full suite green (54 tests). Real device-to-device sync requires a manual check with a signed-in iCloud account (consistent with the foundation's audit gates); CloudKit schema deploy to production is a TestFlight-checklist step.
 
-Remaining MVP changes: onboarding, visual identity. Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
+Onboarding is implemented (OpenSpec change `add-onboarding`, completed):
+
+- Three-phase first-run flow over the Temarios tab: brief welcome (privacy visible, single "Empezar" action) → first temario (name only, tappable examples) → bulk temas ("¿Cuántos temas tiene tu temario?" with quick-pick shortcuts), landing directly inside the created temario.
+- Every step skippable; work persists at phase transitions (abandoning after the temario keeps it); dismissal ends onboarding permanently and empty states take over.
+- `OnboardingDecision` (pure, tested): shows only for genuinely new users — data restored via iCloud on a new device silently marks onboarding complete.
+- `onboardingCompletado` lives in UserDefaults (device-local UX, deliberately NOT synced).
+- No permissions upfront, no account, no sample data, no carousel. Full suite green (57 tests).
+
+Remaining MVP change: visual identity (Deep Ink / Warm Sand theming). Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
 
 ---
 
