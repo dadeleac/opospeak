@@ -157,15 +157,21 @@ Sobre "Necesita repaso": *necesita* habla de tiempo transcurrido relativo al rit
 
 ---
 
-## **Salud del temario**
+## **El estado del temario**
 
 La métrica de cobertura principal: cuántos temas hay en cada grupo visible.
 
 ```txt
-X al día · Y necesitan repaso · Z sin practicar
+2 al día
+0 necesitan repaso
+24 sin practicar
 ```
 
-Se calcula sobre estados, así que **decae sola con el tiempo**: no se puede "completar" cantando cada tema una vez y parando cuatro meses. Es la respuesta honesta a "¿cómo llevo realmente el temario?".
+Se calcula sobre estados, así que **decae sola con el tiempo**: no se puede "completar" cantando cada tema una vez y parando cuatro meses. Es la respuesta honesta a "¿cómo llevo el temario?".
+
+Deliberadamente NO se llama "salud": ese vocabulario (salud financiera, health score) pertenece al SaaS, no al opositor. El opositor pregunta "¿cómo llevo el temario?", "¿qué tengo abandonado?" — y la pantalla responde con sus palabras.
+
+Los tres grupos se muestran siempre, incluidos los que están a cero: ver "0 necesitan repaso" enseña el vocabulario de estados antes de que haga falta.
 
 La cobertura por vuelta es otra cosa: posición de rotación, secundaria.
 

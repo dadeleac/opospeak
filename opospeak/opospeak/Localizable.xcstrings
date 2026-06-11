@@ -23,16 +23,6 @@
     "%lld al día" : {
 
     },
-    "%lld al día · %lld necesitan repaso · %lld sin practicar" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld al día · %2$lld necesitan repaso · %3$lld sin practicar"
-          }
-        }
-      }
-    },
     "%lld intentos" : {
 
     },
@@ -52,6 +42,9 @@
 
     },
     "%lld′" : {
+
+    },
+    "1 necesita repaso" : {
 
     },
     "Abre el detalle del estado del temario" : {
@@ -495,9 +488,6 @@
 
     },
     "Reproducir" : {
-
-    },
-    "Salud del temario" : {
 
     },
     "Se crearán %lld temas sin título: Tema %lld … Tema %lld." : {

@@ -58,7 +58,7 @@ struct TopicInsight: Equatable {
 /// sobre estados — decae sola con el tiempo, no se puede "completar"
 /// tocando cada tema una vez. La cobertura por vuelta es otra cosa:
 /// posición de rotación, secundaria.
-struct SyllabusHealth: Equatable {
+struct SyllabusStatus: Equatable {
     /// recent + current.
     let upToDate: Int
     /// forgotten.
@@ -177,7 +177,7 @@ enum TopicInsightsModel {
     }
 
     /// Salud del temario a partir de los insights evaluados.
-    static func health(_ insights: [TopicInsight]) -> SyllabusHealth {
+    static func status(_ insights: [TopicInsight]) -> SyllabusStatus {
         var upToDate = 0
         var needsReview = 0
         var unpracticed = 0
@@ -188,7 +188,7 @@ enum TopicInsightsModel {
             case .pending: unpracticed += 1
             }
         }
-        return SyllabusHealth(
+        return SyllabusStatus(
             upToDate: upToDate,
             needsReview: needsReview,
             unpracticed: unpracticed

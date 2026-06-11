@@ -141,7 +141,7 @@ struct TopicInsightsTests {
             topic(daysAgo: []),
         ]
         let (insights, _) = TopicInsightsModel.evaluate(topics: topics, reference: reference)
-        let health = TopicInsightsModel.health(insights)
+        let health = TopicInsightsModel.status(insights)
 
         #expect(health.upToDate == 2)
         #expect(health.needsReview == 1)
@@ -155,16 +155,16 @@ struct TopicInsightsTests {
         let topics = [topic(daysAgo: [30])]
 
         let (now, _) = TopicInsightsModel.evaluate(topics: topics, reference: reference)
-        #expect(TopicInsightsModel.health(now).upToDate == 1)
+        #expect(TopicInsightsModel.status(now).upToDate == 1)
 
         let later = reference.addingTimeInterval(30 * day)
         let (afterMonth, _) = TopicInsightsModel.evaluate(topics: topics, reference: later)
-        #expect(TopicInsightsModel.health(afterMonth).needsReview == 1)
-        #expect(TopicInsightsModel.health(afterMonth).upToDate == 0)
+        #expect(TopicInsightsModel.status(afterMonth).needsReview == 1)
+        #expect(TopicInsightsModel.status(afterMonth).upToDate == 0)
     }
 
-    @Test func emptySyllabusHealthIsZero() {
-        let health = TopicInsightsModel.health([])
+    @Test func emptySyllabusStatusIsZero() {
+        let health = TopicInsightsModel.status([])
         #expect(health.total == 0)
     }
 
