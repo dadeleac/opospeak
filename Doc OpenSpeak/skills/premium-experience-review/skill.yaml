@@ -1,0 +1,55 @@
+name: premium-experience-review
+version: 1.0.0
+description: >
+  Reviews whether the product feels refined, emotionally coherent,
+  trustworthy, calm, intentional and worthy of premium positioning.
+category:
+  - ux
+  - product
+  - brand
+tags:
+  - premium
+  - emotional-coherence
+  - trust
+  - calmness
+  - perceived-quality
+  - product-identity
+inputs:
+  required:
+    - product_context
+  optional:
+    - screenshots
+    - screen_recordings
+    - product_philosophy
+    - onboarding_flows
+    - monetization_flows
+    - copywriting
+    - design_system
+    - app_store_assets
+    - previous_audits
+outputs:
+  - executive_summary
+  - evidence_notes
+  - confidence_notes
+  - scores
+  - premium_risks
+  - emotional_coherence_findings
+  - trust_findings
+  - feature_creep_risks
+  - observed_issues
+  - strategic_recommendations
+  - recommended_next_iteration
+  - open_questions
+language: es-ES
+evidence_required: true
+confidence_required: true
+separate_observations_from_recommendations: true
+do_not_invent_missing_information: true
+severity_levels:
+  - critical
+  - high
+  - medium
+  - low
+depends_on:
+  - ../README.md
+prompt: prompt.md

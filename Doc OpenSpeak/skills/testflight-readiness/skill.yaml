@@ -1,0 +1,59 @@
+name: testflight-readiness
+version: 1.0.0
+description: >
+  Reviews whether the app is ready for internal testing, closed beta or public
+  TestFlight distribution without damaging trust, perception or feedback quality.
+category:
+  - release
+  - qa
+  - product
+tags:
+  - testflight
+  - beta
+  - release-readiness
+  - stability
+  - polish
+  - feedback
+  - trust
+  - ios
+inputs:
+  required:
+    - product_context
+  optional:
+    - screenshots
+    - screen_recordings
+    - build_notes
+    - known_limitations
+    - crash_reports
+    - onboarding_flows
+    - permission_flows
+    - analytics_setup
+    - privacy_manifest
+    - previous_audits
+outputs:
+  - executive_summary
+  - evidence_notes
+  - confidence_notes
+  - scores
+  - release_risks
+  - stability_findings
+  - product_polish_findings
+  - onboarding_findings
+  - public_beta_suitability
+  - observed_issues
+  - strategic_recommendations
+  - recommended_next_iteration
+  - open_questions
+language: es-ES
+evidence_required: true
+confidence_required: true
+separate_observations_from_recommendations: true
+do_not_invent_missing_information: true
+severity_levels:
+  - critical
+  - high
+  - medium
+  - low
+depends_on:
+  - ../README.md
+prompt: prompt.md

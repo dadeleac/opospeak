@@ -1,0 +1,60 @@
+name: onboarding-retention-review
+version: 1.0.0
+description: >
+  Reviews onboarding quality, first-session experience, habit formation,
+  emotional attachment and healthy D1/D7/D30/D365 retention potential.
+category:
+  - product
+  - retention
+  - ux
+tags:
+  - onboarding
+  - retention
+  - d1
+  - d7
+  - d30
+  - d365
+  - habit-formation
+  - emotional-attachment
+  - notifications
+  - psychological-safety
+inputs:
+  required:
+    - product_context
+  optional:
+    - onboarding_screenshots
+    - screen_recordings
+    - notification_strategy
+    - permission_flows
+    - monetization_flows
+    - product_philosophy
+    - app_store_assets
+    - user_journey
+    - previous_audits
+outputs:
+  - executive_summary
+  - evidence_notes
+  - confidence_notes
+  - scores
+  - retention_risks
+  - onboarding_friction_analysis
+  - emotional_connection_findings
+  - psychological_safety_findings
+  - notification_findings
+  - observed_issues
+  - strategic_recommendations
+  - recommended_next_iteration
+  - open_questions
+language: es-ES
+evidence_required: true
+confidence_required: true
+separate_observations_from_recommendations: true
+do_not_invent_missing_information: true
+severity_levels:
+  - critical
+  - high
+  - medium
+  - low
+depends_on:
+  - ../README.md
+prompt: prompt.md

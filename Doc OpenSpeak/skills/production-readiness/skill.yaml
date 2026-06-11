@@ -1,0 +1,61 @@
+name: production-readiness
+version: 1.0.0
+description: >
+  Reviews whether the app is ready for public App Store production release
+  as a reliable, sustainable, trustworthy and high-quality product.
+category:
+  - release
+  - production
+  - product
+tags:
+  - production
+  - app-store
+  - release-readiness
+  - reliability
+  - observability
+  - privacy
+  - security
+  - sustainability
+  - monetization
+inputs:
+  required:
+    - product_context
+  optional:
+    - previous_audits
+    - crash_analytics
+    - performance_measurements
+    - app_store_assets
+    - privacy_documents
+    - privacy_manifest
+    - production_checklist
+    - testflight_feedback
+    - ci_cd_config
+    - analytics_setup
+    - monetization_flows
+outputs:
+  - executive_summary
+  - evidence_notes
+  - confidence_notes
+  - scores
+  - production_risks
+  - reliability_findings
+  - operational_readiness_findings
+  - security_privacy_findings
+  - app_store_readiness_findings
+  - observed_issues
+  - strategic_recommendations
+  - recommended_next_iteration
+  - open_questions
+language: es-ES
+evidence_required: true
+confidence_required: true
+separate_observations_from_recommendations: true
+do_not_invent_missing_information: true
+severity_levels:
+  - critical
+  - high
+  - medium
+  - low
+depends_on:
+  - ../README.md
+prompt: prompt.md

@@ -1,0 +1,139 @@
+# ==========================================
+# macOS
+# ==========================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ==========================================
+# Xcode
+# ==========================================
+
+DerivedData/
+.build/
+
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+
+# Build products
+build/
+Build/
+
+# ==========================================
+# Swift Testing
+# ==========================================
+
+.xctestplan.user
+
+# ==========================================
+# Logs
+# ==========================================
+
+*.log
+
+# ==========================================
+# Environment / Secrets
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+Secrets/
+secrets/
+Private/
+
+Config/Secrets.plist
+Config/Private.xcconfig
+
+*.p8
+*.pem
+*.key
+*.mobileprovision
+
+# ==========================================
+# CloudKit local development
+# ==========================================
+
+*.ckAsset
+
+# ==========================================
+# OpenSpec
+# ==========================================
+
+# Temporary OpenSpec work
+openspec/.cache/
+openspec/tmp/
+openspec/temp/
+
+# ==========================================
+# AI / Agent temporary files
+# ==========================================
+
+.agent-work/
+.codex/
+.claude/
+.cursor/
+
+# Local notes
+scratch/
+tmp/
+temp/
+
+# ==========================================
+# Snapshots generated locally
+# ==========================================
+
+snapshots/generated/
+snapshots/tmp/
+
+# ==========================================
+# Archives
+# ==========================================
+
+*.zip
+*.tar
+*.tar.gz
+
+# ==========================================
+# Coverage
+# ==========================================
+
+coverage/
+*.profdata
+*.xccovreport
+*.xccovarchive
+
+# ==========================================
+# Fastlane (if added later)
+# ==========================================
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+
+# ==========================================
+# Crash dumps
+# ==========================================
+
+*.crash
+
+# ==========================================
+# Local databases for debugging
+# ==========================================
+
+*.sqlite-shm
+*.sqlite-wal
+
+# Keep actual persisted app data out of git
+LocalData/
+DebugData/

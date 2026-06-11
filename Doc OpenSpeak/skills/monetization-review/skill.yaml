@@ -1,0 +1,59 @@
+name: monetization-review
+version: 1.0.0
+description: >
+  Reviews whether monetization aligns with product identity, trust,
+  premium positioning, perceived fairness, retention and long-term sustainability.
+category:
+  - product
+  - monetization
+  - strategy
+tags:
+  - monetization
+  - paywall
+  - subscriptions
+  - pricing
+  - premium
+  - trust
+  - conversion
+  - retention
+  - app-store
+inputs:
+  required:
+    - product_context
+  optional:
+    - paywall_screenshots
+    - pricing_strategy
+    - subscription_flows
+    - app_store_assets
+    - onboarding_flows
+    - feature_matrix
+    - product_philosophy
+    - competitor_references
+    - previous_audits
+outputs:
+  - executive_summary
+  - evidence_notes
+  - confidence_notes
+  - scores
+  - monetization_risks
+  - paywall_analysis
+  - trust_findings
+  - premium_positioning_findings
+  - free_vs_premium_analysis
+  - observed_issues
+  - strategic_recommendations
+  - recommended_next_iteration
+  - open_questions
+language: es-ES
+evidence_required: true
+confidence_required: true
+separate_observations_from_recommendations: true
+do_not_invent_missing_information: true
+severity_levels:
+  - critical
+  - high
+  - medium
+  - low
+depends_on:
+  - ../README.md
+prompt: prompt.md
