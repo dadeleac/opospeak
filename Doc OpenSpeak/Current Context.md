@@ -273,6 +273,13 @@ That base is implemented (OpenSpec change `add-topic-insights-model`, completed)
 - Reference implementation in `Logic/TopicInsights.swift` (pure: `TopicFacts` → insights + `StudyCycle`), named constants in one place, 12 table-driven tests (boundaries, cold start, outlier resistance, mid-round position, new-topic reopening, suggestion ordering). Suite green (98 tests).
 - No UI in this change — next changes consume the model: **Ficha de tema** first (construction order), then **Vuelta al temario** (the IA decision of where it lives is taken there), then weighted extraction.
 
+The Ficha de tema is implemented (OpenSpec change `add-topic-card`, completed):
+
+- The topic detail is now the opositor's workbench: prominent Practicar (unchanged) → **Estado** (state + the foundation's one-sentence explanation + facts: attempts, total time, days since last) → **Evolución** (restrained Swift Charts line of the last 10 timed durations, Ink, only with ≥2 timed attempts, accessibility summary) → **Notas recientes** (latest 3 across attempts, linking to their intento) → Historial.
+- All temporal semantics come from `TopicInsightsModel` (pooled cadence computed at opposition scope via relationships); the view re-implements nothing. `TopicFacts(topic:)` projection initializer added so every consumer builds inputs identically.
+- State colors with restraint: Slate (pendiente/al día), Sage (reciente), **Amber for olvidado — attention, deliberately never red** (forgetting is time, not judgment); always icon + text.
+- Suite green (100 tests). Next in the arc: **La vuelta al temario** (includes the IA decision of where it lives), then weighted extraction.
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

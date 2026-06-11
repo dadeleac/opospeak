@@ -50,6 +50,9 @@
     "Ajustes" : {
 
     },
+    "Al día" : {
+
+    },
     "Alta rápida" : {
 
     },
@@ -140,9 +143,6 @@
     "Cronómetro" : {
 
     },
-    "Cuando practiques este tema, tu historial aparecerá aquí." : {
-
-    },
     "Cuando queden %lld min" : {
 
     },
@@ -165,7 +165,20 @@
     "Datos" : {
 
     },
+    "De %lld a %lld minutos en los últimos %lld intentos" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "De %1$lld a %2$lld minutos en los últimos %3$lld intentos"
+          }
+        }
+      }
+    },
     "Dentro de tu oposición organizarás tus temarios: Civil, Penal, bloques…" : {
+
+    },
+    "Dentro de tu ritmo habitual." : {
 
     },
     "Descargando de iCloud…" : {
@@ -219,6 +232,12 @@
     "Estado" : {
 
     },
+    "Evolución" : {
+
+    },
+    "Evolución de duraciones" : {
+
+    },
     "Exportar mis datos" : {
 
     },
@@ -252,6 +271,9 @@
     "Guardar nota" : {
 
     },
+    "Hace %lld días" : {
+
+    },
     "Hasta" : {
 
     },
@@ -259,6 +281,9 @@
 
     },
     "Historial" : {
+
+    },
+    "Hoy" : {
 
     },
     "Inicia la grabación de una práctica oral de este tema" : {
@@ -274,6 +299,12 @@
 
     },
     "La oposición agrupa tus temarios. Por ejemplo: Judicatura, con los temarios Civil, Penal y Procesal." : {
+
+    },
+    "Llevas más del doble de tu ritmo sin cantarlo." : {
+
+    },
+    "Lo cantaste esta semana." : {
 
     },
     "Más practicado" : {
@@ -292,6 +323,12 @@
 
     },
     "Micrófono no disponible" : {
+
+    },
+    "min" : {
+
+    },
+    "Minutos" : {
 
     },
     "Modo" : {
@@ -327,6 +364,9 @@
     "Notas" : {
 
     },
+    "Notas recientes" : {
+
+    },
     "Nueva nota" : {
 
     },
@@ -351,6 +391,9 @@
     "Objetivo" : {
 
     },
+    "Olvidado" : {
+
+    },
     "Opcional" : {
 
     },
@@ -373,6 +416,9 @@
 
     },
     "Pausar" : {
+
+    },
+    "Pendiente" : {
 
     },
     "Pendientes de práctica" : {
@@ -411,6 +457,9 @@
     "Reanudar" : {
 
     },
+    "Reciente" : {
+
+    },
     "Rellena el nombre con %@" : {
 
     },
@@ -444,9 +493,6 @@
 
     },
     "Sin cuenta de iCloud" : {
-
-    },
-    "Sin intentos" : {
 
     },
     "Sin practicar" : {
@@ -503,6 +549,9 @@
     "Tiempo restante" : {
 
     },
+    "Tiempo total" : {
+
+    },
     "Tiempo transcurrido" : {
 
     },
@@ -510,6 +559,9 @@
 
     },
     "Título del tema" : {
+
+    },
+    "Todavía no lo has cantado." : {
 
     },
     "Todavía sin progreso" : {
@@ -534,6 +586,9 @@
 
     },
     "Tus datos son tuyos" : {
+
+    },
+    "Última práctica" : {
 
     },
     "Última práctica %@" : {

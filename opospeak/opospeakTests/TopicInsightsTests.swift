@@ -7,6 +7,7 @@
 
 import Foundation
 import Testing
+import SwiftData
 @testable import opospeak
 
 struct TopicInsightsTests {
@@ -146,5 +147,69 @@ struct TopicInsightsTests {
         // Entre olvidados: el de práctica más antigua primero.
         #expect(ordered[1].topicID == oldForgotten.topicID)
         #expect(ordered[2].topicID == newerForgotten.topicID)
+    }
+}
+
+// MARK: - Proyección desde modelos
+
+@MainActor
+struct TopicFactsProjectionTests {
+
+    private static let sharedSchema = Schema([
+        Opposition.self, Syllabus.self, Topic.self, PracticeSession.self,
+        Attempt.self, Recording.self, Metric.self, Note.self,
+    ])
+    private static var retainedContainers: [ModelContainer] = []
+
+    @Test func projectsAttemptDatesFromModel() throws {
+        let config = ModelConfiguration(
+            "test-\(UUID().uuidString)",
+            schema: Self.sharedSchema,
+            isStoredInMemoryOnly: true
+        )
+        let container = try ModelContainer(for: Self.sharedSchema, configurations: [config])
+        Self.retainedContainers.append(container)
+        let context = container.mainContext
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 42, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let date1 = Date(timeIntervalSince1970: 1_750_000_000)
+        let date2 = date1.addingTimeInterval(86_400)
+        context.insert(Attempt(topic: topic, session: session, startedAt: date1))
+        context.insert(Attempt(topic: topic, session: session, startedAt: date2))
+        try context.save()
+
+        let facts = TopicFacts(topic: topic)
+
+        #expect(facts.topicID == topic.id)
+        #expect(Set(facts.attemptDates) == Set([date1, date2]))
+    }
+
+    @Test func pendingTopicProjectsEmpty() throws {
+        let config = ModelConfiguration(
+            "test-\(UUID().uuidString)",
+            schema: Self.sharedSchema,
+            isStoredInMemoryOnly: true
+        )
+        let container = try ModelContainer(for: Self.sharedSchema, configurations: [config])
+        Self.retainedContainers.append(container)
+        let context = container.mainContext
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 1, syllabus: syllabus)
+        context.insert(topic)
+        try context.save()
+
+        let facts = TopicFacts(topic: topic)
+        #expect(facts.attemptDates.isEmpty)
     }
 }
