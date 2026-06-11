@@ -32,7 +32,7 @@ struct PracticeView: View {
                     switch recorder.state {
                     case .idle:
                         ProgressView()
-                    case .recording:
+                    case .recording, .paused:
                         recordingView(recorder)
                     case .finished:
                         if let summary {
@@ -56,7 +56,9 @@ struct PracticeView: View {
             recorder = newRecorder
             await newRecorder.start()
         }
-        .interactiveDismissDisabled(recorder?.state == .recording)
+        .interactiveDismissDisabled(recorder?.state == .recording || recorder?.state == .paused)
+        // La pantalla solo se mantiene despierta grabando; en pausa puede
+        // dormirse (la práctica sobrevive en el archivo).
         .onChange(of: recorder?.state == .recording, initial: true) { _, isRecording in
             UIApplication.shared.isIdleTimerDisabled = isRecording
         }
@@ -68,26 +70,54 @@ struct PracticeView: View {
     // MARK: - Grabando
 
     private func recordingView(_ recorder: PracticeRecorder) -> some View {
-        VStack(spacing: 32) {
+        let isPaused = recorder.state == .paused
+
+        return VStack(spacing: 32) {
             Spacer()
 
+            // Dos temperaturas inequívocas: color + icono + texto,
+            // nunca solo color.
             HStack(spacing: 8) {
-                Circle()
-                    .fill(Color.mutedRed)
-                    .frame(width: 12, height: 12)
-                Text("Grabando")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                if isPaused {
+                    Image(systemName: "pause.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.amber)
+                    Text("En pausa")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Circle()
+                        .fill(Color.mutedRed)
+                        .frame(width: 12, height: 12)
+                    Text("Grabando")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
             .accessibilityElement(children: .combine)
 
             Text(formatDuration(recorder.elapsed))
                 .font(.system(.largeTitle, design: .rounded, weight: .light))
                 .monospacedDigit()
-                .accessibilityLabel("Tiempo transcurrido")
+                .foregroundStyle(isPaused ? .secondary : .primary)
+                .accessibilityLabel(isPaused ? "Tiempo grabado, en pausa" : "Tiempo transcurrido")
                 .accessibilityValue(formatDuration(recorder.elapsed))
 
             Spacer()
+
+            Button {
+                isPaused ? recorder.resume() : recorder.pause()
+            } label: {
+                Label(
+                    isPaused ? "Reanudar" : "Pausar",
+                    systemImage: isPaused ? "play.fill" : "pause.fill"
+                )
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
 
             Button {
                 finish()
@@ -96,7 +126,7 @@ struct PracticeView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .controlSize(.large)
             .padding(.horizontal)
 
@@ -180,13 +210,16 @@ struct PracticeView: View {
             recordingStore: environment.recordingStore
         )
         do {
+            // Duración = tiempo realmente grabado, no tiempo de pared:
+            // una práctica con pausas dura lo que dura su audio.
             try service.finish(
                 topic: topic,
                 recordingID: recorder.recordingID,
                 startedAt: startedAt,
-                endedAt: endedAt
+                endedAt: endedAt,
+                duration: recorder.elapsed
             )
-            summary = PracticeSummary(duration: endedAt.timeIntervalSince(startedAt), date: endedAt)
+            summary = PracticeSummary(duration: recorder.elapsed, date: endedAt)
         } catch {
             recorder.discard()
             dismiss()

@@ -19,6 +19,7 @@ final class PracticeRecorder {
     enum State: Equatable {
         case idle
         case recording
+        case paused
         case finished
         case permissionDenied
         case failed(String)
@@ -36,6 +37,7 @@ final class PracticeRecorder {
     private let recordingStore: RecordingStore
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
+    private var interruptionObserver: NSObjectProtocol?
 
     /// Voz, un solo hablante: AAC mono a 64 kbps (~30 MB/hora).
     private static let recordingSettings: [String: Any] = [
@@ -77,21 +79,46 @@ final class PracticeRecorder {
             recorder = audioRecorder
             startedAt = .now
             state = .recording
-
-            timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    guard let self, let recorder = self.recorder else { return }
-                    self.elapsed = recorder.currentTime
-                }
-            }
+            startTimer()
+            observeInterruptions()
         } catch {
             state = .failed(error.localizedDescription)
         }
     }
 
+    /// Pausa la grabación: el audio continúa después en el mismo archivo,
+    /// sin hueco ni fragmento; el cronómetro queda congelado.
+    func pause() {
+        guard state == .recording, let recorder else { return }
+        recorder.pause()
+        elapsed = recorder.currentTime
+        timer?.invalidate()
+        timer = nil
+        state = .paused
+    }
+
+    /// Reanuda tras una pausa, re-asegurando la sesión de audio (otra app
+    /// pudo tomarla durante una llamada).
+    func resume() {
+        guard state == .paused, let recorder else { return }
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            state = .failed(error.localizedDescription)
+            return
+        }
+        guard recorder.record() else {
+            state = .failed(String(localized: "No se pudo reanudar la grabación."))
+            return
+        }
+        state = .recording
+        startTimer()
+    }
+
     /// Detiene la grabación y deja el archivo en su ubicación final.
+    /// Válido grabando o en pausa.
     func finish() {
-        guard state == .recording else { return }
+        guard state == .recording || state == .paused else { return }
         stopRecorder()
         endedAt = .now
         state = .finished
@@ -107,9 +134,44 @@ final class PracticeRecorder {
         endedAt = nil
     }
 
+    private func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, let recorder = self.recorder else { return }
+                self.elapsed = recorder.currentTime
+            }
+        }
+    }
+
+    /// Una interrupción del sistema (llamada, Siri) pausa en lugar de
+    /// perder la práctica. Nunca se reanuda sola: el usuario decide
+    /// cuándo está listo.
+    private func observeInterruptions() {
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            MainActor.assumeIsolated {
+                guard let self,
+                      let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                      let type = AVAudioSession.InterruptionType(rawValue: rawType)
+                else { return }
+                if type == .began, self.state == .recording {
+                    self.pause()
+                }
+                // .ended: permanecer en pausa; reanudación manual.
+            }
+        }
+    }
+
     private func stopRecorder() {
         timer?.invalidate()
         timer = nil
+        if let interruptionObserver {
+            NotificationCenter.default.removeObserver(interruptionObserver)
+            self.interruptionObserver = nil
+        }
         if let recorder {
             elapsed = recorder.currentTime
             recorder.stop()

@@ -155,21 +155,28 @@ Versión inicial:
 
 # **Pausa**
 
-## **Decisión inicial**
+## **Decisión inicial (revertida)**
 
-No incorporar pausa en la primera versión.
+La primera versión excluyó la pausa por tres temores técnicos: inconsistencias temporales, fragmentación de audio y dudas en métricas.
+
+La implementación real los desmintió: la grabación nativa continúa en el mismo archivo sin cortes, el cronómetro mide solo tiempo grabado, y el hueco de la pausa no existe en el audio (las métricas futuras salen más limpias, no más sucias).
 
 ---
 
-## **Motivo**
+## **Decisión vigente**
 
-La práctica real de oposiciones es continua.
+La práctica puede pausarse y reanudarse.
 
-La pausa introduce complejidad adicional:
+La vida real interrumpe: llaman a la puerta, entra una llamada. Una grabación de veinte minutos descartada por una interrupción es peor que una pausa honesta.
 
-- inconsistencias temporales
-- fragmentación de audio
-- dudas en métricas
+---
+
+## **Reglas**
+
+- El audio continúa en el mismo archivo, sin hueco ni fragmento.
+- La duración del intento es el tiempo realmente grabado, nunca el tiempo de pared transcurrido.
+- Las interrupciones del sistema (llamadas, Siri) pausan automáticamente; la reanudación es siempre manual.
+- Pausar no conlleva juicio: ninguna métrica lo penaliza. Es una herramienta personal de entrenamiento.
 
 ---
 

@@ -102,7 +102,8 @@ struct PracticeServiceTests {
         let startedAt = Date(timeIntervalSince1970: 1_750_000_000)
         let endedAt = startedAt.addingTimeInterval(708)
         let attempt = try env.service.finish(
-            topic: env.topic, recordingID: recordingID, startedAt: startedAt, endedAt: endedAt
+            topic: env.topic, recordingID: recordingID,
+            startedAt: startedAt, endedAt: endedAt, duration: 708
         )
 
         #expect(attempt.duration == 708)
@@ -131,7 +132,7 @@ struct PracticeServiceTests {
         try createFakeAudio(in: env.store, id: id1)
         try env.service.finish(
             topic: env.topic, recordingID: id1,
-            startedAt: base, endedAt: base.addingTimeInterval(600)
+            startedAt: base, endedAt: base.addingTimeInterval(600), duration: 600
         )
 
         // Segunda práctica 10 minutos después de terminar la primera.
@@ -140,7 +141,7 @@ struct PracticeServiceTests {
         try createFakeAudio(in: env.store, id: id2)
         try env.service.finish(
             topic: env.topic, recordingID: id2,
-            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600)
+            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600), duration: 600
         )
 
         let sessions = try env.context.fetch(FetchDescriptor<PracticeSession>())
@@ -156,7 +157,7 @@ struct PracticeServiceTests {
         try createFakeAudio(in: env.store, id: id1)
         try env.service.finish(
             topic: env.topic, recordingID: id1,
-            startedAt: base, endedAt: base.addingTimeInterval(600)
+            startedAt: base, endedAt: base.addingTimeInterval(600), duration: 600
         )
 
         // Segunda práctica 45 minutos después de terminar la primera.
@@ -165,11 +166,37 @@ struct PracticeServiceTests {
         try createFakeAudio(in: env.store, id: id2)
         try env.service.finish(
             topic: env.topic, recordingID: id2,
-            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600)
+            startedAt: secondStart, endedAt: secondStart.addingTimeInterval(600), duration: 600
         )
 
         let sessions = try env.context.fetch(FetchDescriptor<PracticeSession>())
         #expect(sessions.count == 2)
+    }
+
+    @Test func pausedPracticeStoresRecordedDurationNotWallClock() throws {
+        let env = try makeEnvironment()
+        let recordingID = UUID()
+        try createFakeAudio(in: env.store, id: recordingID)
+
+        // 22 minutos de pared, 12 grabados (10 de pausa): la duración
+        // persistida debe ser la del audio, nunca la de las fechas.
+        let startedAt = Date(timeIntervalSince1970: 1_750_000_000)
+        let endedAt = startedAt.addingTimeInterval(22 * 60)
+        let recordedDuration: TimeInterval = 12 * 60
+
+        let attempt = try env.service.finish(
+            topic: env.topic, recordingID: recordingID,
+            startedAt: startedAt, endedAt: endedAt, duration: recordedDuration
+        )
+
+        #expect(attempt.duration == recordedDuration)
+        #expect(attempt.startedAt == startedAt)
+        #expect(attempt.endedAt == endedAt)
+
+        let recordings = try env.context.fetch(FetchDescriptor<Recording>())
+        #expect(recordings[0].duration == recordedDuration)
+        let metrics = try env.context.fetch(FetchDescriptor<Metric>())
+        #expect(metrics[0].value == recordedDuration)
     }
 
     @Test func discardDeletesFileAndPersistsNothing() throws {

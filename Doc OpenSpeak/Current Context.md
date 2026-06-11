@@ -233,6 +233,18 @@ Implemented in OpenSpec change `refactor-english-codebase` (completed):
 - Local stores reset (no users). **Release-checklist note: reset the dev CloudKit container schema in the Console before the next device build** (entity names changed).
 - Full suite green (75 tests).
 
+---
+
+## Practice Pause
+
+Implemented in OpenSpec change `add-practice-pause` (completed):
+
+- Pause/resume during practice: same m4a file, no gap, timer counts recorded time only. Foundation's original no-pause decision deliberately reversed in `define-practice-session-flow` (its technical fears were disproved by the implementation).
+- System interruptions (calls, Siri) auto-pause instead of failing; resume is always manual; pre-interruption audio is never lost.
+- Duration semantics fixed: `Attempt.duration` = recorded speaking time, passed explicitly to `PracticeService.finish` (never derived from wall-clock dates — the silent-corruption bug pause would have caused). `startedAt`/`endedAt` remain wall times; export contract unchanged.
+- Paused UI: Amber icon + "En pausa" (never color alone), Reanudar prominent, Finalizar/discard available; screen may sleep while paused; swipe-dismiss blocked in both states. No metric judges pausing.
+- Key test: 22 wall-clock minutes with 10 paused → persisted duration is 12 (suite green, 76 tests). Manual device check pending: real pause/resume audio continuity and incoming-call auto-pause.
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

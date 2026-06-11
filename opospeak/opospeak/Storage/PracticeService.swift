@@ -15,9 +15,17 @@ struct PracticeService {
     let modelContext: ModelContext
     let recordingStore: RecordingStore
 
+    /// `duration` es el tiempo realmente grabado (medido por el recorder),
+    /// nunca derivado de las fechas: una práctica con pausas dura lo que
+    /// dura su audio, no el tiempo de pared transcurrido.
     @discardableResult
-    func finish(topic: Topic, recordingID: UUID, startedAt: Date, endedAt: Date) throws -> Attempt {
-        let duration = endedAt.timeIntervalSince(startedAt)
+    func finish(
+        topic: Topic,
+        recordingID: UUID,
+        startedAt: Date,
+        endedAt: Date,
+        duration: TimeInterval
+    ) throws -> Attempt {
         let session = try activeSession(at: endedAt)
 
         let attempt = Attempt(topic: topic, session: session, startedAt: startedAt)

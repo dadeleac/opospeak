@@ -1,7 +1,495 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "¿Cuántos temas tiene tu temario?" : {
 
+    },
+    "¿Qué oposición preparas?" : {
+
+    },
+    "%@ · %lld intentos" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$lld intentos"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld intentos" : {
+
+    },
+    "%lld temas" : {
+
+    },
+    "Abrir Ajustes" : {
+
+    },
+    "Aceptar" : {
+
+    },
+    "Activa" : {
+
+    },
+    "Ajustes" : {
+
+    },
+    "Alta rápida" : {
+
+    },
+    "Añade tus temas para empezar a practicar." : {
+
+    },
+    "Añadir" : {
+
+    },
+    "Añadir nota…" : {
+
+    },
+    "Añadir tema" : {
+
+    },
+    "Aplicación" : {
+
+    },
+    "Archivar" : {
+
+    },
+    "Buscar por número o título" : {
+
+    },
+    "Cambia el nombre de tu oposición" : {
+
+    },
+    "Cancelar" : {
+
+    },
+    "Cerrar" : {
+
+    },
+    "Cobertura" : {
+
+    },
+    "Compartir intento" : {
+
+    },
+    "Completado" : {
+
+    },
+    "Comprobando…" : {
+
+    },
+    "Con grabación" : {
+
+    },
+    "Con notas" : {
+
+    },
+    "Consistencia" : {
+
+    },
+    "Continuar" : {
+
+    },
+    "Crea tu primer temario — por ejemplo Civil, Penal o Bloque I — para organizar tus temas." : {
+
+    },
+    "Crea tu temario" : {
+
+    },
+    "Crear" : {
+
+    },
+    "Crear %lld" : {
+
+    },
+    "Crear %lld temas" : {
+
+    },
+    "Crear temario" : {
+
+    },
+    "Crear temas del 1 al N" : {
+
+    },
+    "Cuando practiques este tema, tu historial aparecerá aquí." : {
+
+    },
+    "Datos" : {
+
+    },
+    "Dentro de tu oposición organizarás tus temarios: Civil, Penal, bloques…" : {
+
+    },
+    "Descargando de iCloud…" : {
+
+    },
+    "Descartar práctica" : {
+
+    },
+    "Descripción" : {
+
+    },
+    "Descripción del temario" : {
+
+    },
+    "Desde" : {
+
+    },
+    "Días con práctica" : {
+
+    },
+    "Distribución" : {
+
+    },
+    "Duración" : {
+
+    },
+    "Editar tema" : {
+
+    },
+    "El intento ya forma parte del historial de este tema." : {
+
+    },
+    "El paquete incluye todos tus temarios, temas, intentos, notas y grabaciones en formatos abiertos (JSON, CSV, m4a)." : {
+
+    },
+    "El rango no es válido." : {
+
+    },
+    "Empezar" : {
+
+    },
+    "En pausa" : {
+
+    },
+    "Estado" : {
+
+    },
+    "Exportar mis datos" : {
+
+    },
+    "Fecha" : {
+
+    },
+    "Finalizar" : {
+
+    },
+    "Genera un paquete con todos tus datos y grabaciones" : {
+
+    },
+    "Grabación" : {
+
+    },
+    "Grabación guardada" : {
+
+    },
+    "Grabación no disponible" : {
+
+    },
+    "Grabando" : {
+
+    },
+    "Guardar" : {
+
+    },
+    "Guardar nota" : {
+
+    },
+    "Hasta" : {
+
+    },
+    "Hecho" : {
+
+    },
+    "Historial" : {
+
+    },
+    "Inicia la grabación de una práctica oral de este tema" : {
+
+    },
+    "Inténtalo de nuevo. Si el problema continúa, comprueba el espacio disponible." : {
+
+    },
+    "Intento" : {
+
+    },
+    "Intentos" : {
+
+    },
+    "La oposición agrupa tus temarios. Por ejemplo: Judicatura, con los temarios Civil, Penal y Procesal." : {
+
+    },
+    "Más practicado" : {
+
+    },
+    "Más practicados" : {
+
+    },
+    "Menos practicado" : {
+
+    },
+    "Menos practicados" : {
+
+    },
+    "Mi oposición" : {
+
+    },
+    "Micrófono no disponible" : {
+
+    },
+    "No disponible" : {
+
+    },
+    "No se pudo exportar" : {
+
+    },
+    "No se pudo grabar" : {
+
+    },
+    "No se pudo iniciar la grabación." : {
+
+    },
+    "No se pudo reanudar la grabación." : {
+
+    },
+    "Nombre" : {
+
+    },
+    "Nombre de la oposición" : {
+
+    },
+    "Nombre de tu oposición" : {
+
+    },
+    "Nombre del temario" : {
+
+    },
+    "Notas" : {
+
+    },
+    "Nueva nota" : {
+
+    },
+    "Nuevo tema" : {
+
+    },
+    "Nuevo temario" : {
+
+    },
+    "Nuevo temario de %@" : {
+
+    },
+    "Número" : {
+
+    },
+    "Número de tema" : {
+
+    },
+    "Número de temas" : {
+
+    },
+    "Opcional" : {
+
+    },
+    "Oposición" : {
+
+    },
+    "OpoSpeak" : {
+
+    },
+    "OpoSpeak necesita el micrófono para grabar tu práctica oral. Puedes permitirlo en Ajustes del sistema." : {
+
+    },
+    "Orden del temario" : {
+
+    },
+    "Ordenar" : {
+
+    },
+    "Pausar" : {
+
+    },
+    "Pendientes de práctica" : {
+
+    },
+    "Por ejemplo: Civil, Penal, Procesal, Bloque I." : {
+
+    },
+    "Práctica completada" : {
+
+    },
+    "Practicar" : {
+
+    },
+    "Prefiero añadirlos después" : {
+
+    },
+    "Primer número" : {
+
+    },
+    "Privacidad" : {
+
+    },
+    "Progreso" : {
+
+    },
+    "Puedes dejarlo vacío: el tema se mostrará como \"Tema %lld\"." : {
+
+    },
+    "Reanudar" : {
+
+    },
+    "Rellena el nombre con %@" : {
+
+    },
+    "Reproducir" : {
+
+    },
+    "Se crearán %lld temas sin título: Tema %lld … Tema %lld." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Se crearán %1$lld temas sin título: Tema %2$lld … Tema %3$lld."
+          }
+        }
+      }
+    },
+    "Se crearán %lld temas. Se omiten %lld que ya existen." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Se crearán %1$lld temas. Se omiten %2$lld que ya existen."
+          }
+        }
+      }
+    },
+    "Se crearán como Tema 1, Tema 2… Podrás añadir títulos cuando quieras." : {
+
+    },
+    "Sin completar" : {
+
+    },
+    "Sin cuenta de iCloud" : {
+
+    },
+    "Sin intentos" : {
+
+    },
+    "Sin practicar" : {
+
+    },
+    "Sin practicar todavía" : {
+
+    },
+    "Sin temarios" : {
+
+    },
+    "Sin temas" : {
+
+    },
+    "Sincronización iCloud" : {
+
+    },
+    "Solo necesitas el nombre. Podrás crear más temarios después." : {
+
+    },
+    "Sugerencias" : {
+
+    },
+    "Tema" : {
+
+    },
+    "Tema %lld" : {
+
+    },
+    "Temarios" : {
+
+    },
+    "Temas" : {
+
+    },
+    "Temas practicados" : {
+
+    },
+    "Temas trabajados" : {
+
+    },
+    "Tiempo acumulado" : {
+
+    },
+    "Tiempo grabado, en pausa" : {
+
+    },
+    "Tiempo transcurrido" : {
+
+    },
+    "Título" : {
+
+    },
+    "Título del tema" : {
+
+    },
+    "Todavía sin progreso" : {
+
+    },
+    "Todo se guarda en tu dispositivo. Sin cuenta, sin servidores propios. Podrás exportarlo todo, siempre." : {
+
+    },
+    "Tu historial completo de práctica oral: organiza tus temas, graba tus intentos y observa tu evolución a lo largo de los años." : {
+
+    },
+    "Tu oposición" : {
+
+    },
+    "Tu primer temario de %@" : {
+
+    },
+    "Tu progreso aparecerá aquí a medida que practiques tus temas. Empieza desde la pestaña Temarios." : {
+
+    },
+    "Tus datos son privados y viven en tu dispositivo." : {
+
+    },
+    "Tus datos son tuyos" : {
+
+    },
+    "Última práctica %@" : {
+
+    },
+    "Último número" : {
+
+    },
+    "Último: %@" : {
+
+    },
+    "Últimos 7 días" : {
+
+    },
+    "Últimos 30 días" : {
+
+    },
+    "Últimos practicados" : {
+
+    },
+    "Versión" : {
+
+    },
+    "Volumen" : {
+
+    },
+    "Ya existe un tema con el número %lld en este temario." : {
+
+    },
+    "Ya existe un tema con el número %lld." : {
+
+    }
   },
   "version" : "1.0"
 }
