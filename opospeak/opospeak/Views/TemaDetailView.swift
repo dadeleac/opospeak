@@ -46,6 +46,7 @@ struct TemaDetailView: View {
                 }
             }
         }
+        .fondoEditorial()
         .navigationTitle(tema.nombreVisible)
         .navigationBarTitleDisplayMode(.large)
         .fullScreenCover(isPresented: $practicando) {

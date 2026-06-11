@@ -58,6 +58,7 @@ struct ProgresoView: View {
                 }
             }
         }
+        .fondoEditorial()
         .navigationTitle("Progreso")
         .overlay {
             if !resumen.hayActividad {

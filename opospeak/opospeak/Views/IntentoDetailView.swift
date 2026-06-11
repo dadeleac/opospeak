@@ -103,6 +103,7 @@ struct IntentoDetailView: View {
                 }
             }
         }
+        .fondoEditorial()
         .navigationTitle(intento.tema?.nombreVisible ?? "Intento")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

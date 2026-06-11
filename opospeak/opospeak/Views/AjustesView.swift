@@ -75,6 +75,7 @@ struct AjustesView: View {
                 LabeledContent("Versión", value: version)
             }
         }
+        .fondoEditorial()
         .navigationTitle("Ajustes")
         .sheet(item: $exportURL) { url in
             ShareSheet(url: url) {

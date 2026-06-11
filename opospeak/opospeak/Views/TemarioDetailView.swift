@@ -39,10 +39,11 @@ struct TemarioDetailView: View {
                     } label: {
                         Label("Archivar", systemImage: "archivebox")
                     }
-                    .tint(.orange)
+                    .tint(.ambar)
                 }
             }
         }
+        .fondoEditorial()
         .navigationTitle(temario.nombre)
         .searchable(text: $busqueda, prompt: "Buscar por número o título")
         .toolbar {

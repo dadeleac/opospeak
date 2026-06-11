@@ -55,6 +55,7 @@ struct OnboardingView: View {
 
             Image(systemName: "mic.circle")
                 .font(.system(size: 72))
+                .foregroundStyle(Color.tinta)
                 .accessibilityHidden(true)
 
             Text("OpoSpeak")
@@ -83,6 +84,8 @@ struct OnboardingView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.arena)
     }
 
     // MARK: - Fase 2: primer temario

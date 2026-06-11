@@ -27,10 +27,11 @@ struct TemariosListView: View {
                     } label: {
                         Label("Archivar", systemImage: "archivebox")
                     }
-                    .tint(.orange)
+                    .tint(.ambar)
                 }
             }
         }
+        .fondoEditorial()
         .navigationTitle("Temarios")
         .navigationDestination(for: Temario.self) { temario in
             TemarioDetailView(temario: temario)

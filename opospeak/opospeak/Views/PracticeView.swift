@@ -73,7 +73,7 @@ struct PracticeView: View {
 
             HStack(spacing: 8) {
                 Circle()
-                    .fill(.red)
+                    .fill(Color.rojoApagado)
                     .frame(width: 12, height: 12)
                 Text("Grabando")
                     .font(.subheadline)
@@ -103,6 +103,7 @@ struct PracticeView: View {
             Button("Descartar práctica", role: .destructive) {
                 descartar()
             }
+            .tint(.rojoApagado)
             .font(.subheadline)
             .padding(.bottom)
         }
@@ -119,7 +120,7 @@ struct PracticeView: View {
                     Text(resumen.fecha.formatted(date: .long, time: .shortened))
                 }
                 Label("Grabación guardada", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.salvia)
             } header: {
                 Text("Práctica completada")
             } footer: {

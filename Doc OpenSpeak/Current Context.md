@@ -197,7 +197,16 @@ Onboarding is implemented (OpenSpec change `add-onboarding`, completed):
 - `onboardingCompletado` lives in UserDefaults (device-local UX, deliberately NOT synced).
 - No permissions upfront, no account, no sample data, no carousel. Full suite green (57 tests).
 
-Remaining MVP change: visual identity (Deep Ink / Warm Sand theming). Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
+The visual identity is implemented (OpenSpec change `add-visual-identity`, completed):
+
+- Semantic color system as asset-catalog colorsets with tuned dark variants: Tinta (Deep Ink, global tint via AccentColor), Pizarra, Arena (+ ArenaElevada) as the notebook background, Salvia, Ámbar, Rojo Apagado. Xcode-generated symbols; views never see hex.
+- Dark variants lightened for contrast (ink-tinted near-black background — "nocturnal reading", not pure black); AA contrast verified for text-bearing pairs.
+- Restrained application: editorial sand background on persistent screens (creation sheets keep system backgrounds), Ámbar for archive swipes, Rojo Apagado for recording/destructive, Salvia for positive confirmation. No layout/behavior/typography changes.
+- Resolution test guards every colorset (existence + distinct dark variant). Full suite green (66 tests).
+
+**The MVP feature set is complete**: domain model, three-tab IA, practice recording, export, iCloud sync, onboarding, and visual identity — all spec'd through OpenSpec and tested.
+
+Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---
 
