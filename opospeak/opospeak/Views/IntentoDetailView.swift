@@ -14,6 +14,8 @@ struct IntentoDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var nuevaNota = ""
     @State private var playback = PlaybackController()
+    @State private var exportando = false
+    @State private var exportURL: URL?
 
     private let recordingStore = RecordingStore()
 
@@ -101,8 +103,43 @@ struct IntentoDetailView: View {
         }
         .navigationTitle(intento.tema?.nombreVisible ?? "Intento")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    exportar()
+                } label: {
+                    if exportando {
+                        ProgressView()
+                    } else {
+                        Label("Compartir intento", systemImage: "square.and.arrow.up")
+                    }
+                }
+                .disabled(exportando)
+            }
+        }
+        .sheet(item: $exportURL) { url in
+            ShareSheet(url: url) {
+                try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
+                exportURL = nil
+            }
+        }
         .onDisappear {
             playback.detener()
+        }
+    }
+
+    private func exportar() {
+        exportando = true
+        Task {
+            defer { exportando = false }
+            do {
+                let service = ExportService(modelContext: modelContext, recordingStore: recordingStore)
+                let paquete = try service.buildIntentoPackage(intento: intento)
+                exportURL = try ExportArchiver.zip(directory: paquete)
+                try? FileManager.default.removeItem(at: paquete.deletingLastPathComponent())
+            } catch {
+                // Sin alerta dedicada: el botón vuelve a estar disponible.
+            }
         }
     }
 

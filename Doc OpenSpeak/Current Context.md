@@ -168,7 +168,18 @@ The practice flow is implemented (OpenSpec change `add-practice-flow`, completed
 - Fixed a latent RecordingStore bug: `URL.path()` percent-encodes "Application Support", breaking FileManager checks.
 - Full suite green (35 tests).
 
-The app is now end-to-end usable: create temario → temas → practice → record → review → listen. Remaining MVP changes: export, iCloud sync activation, onboarding, visual identity.
+The app is now end-to-end usable: create temario → temas → practice → record → review → listen.
+
+Export is implemented (OpenSpec change `add-export`, completed):
+
+- Full package from Ajustes: `opospeak-export.zip` with manifest.json (format/version/counts for future import validation), data/ (6 JSON files + intentos.csv with RFC 4180 escaping) and recordings/ (byte-identical m4a copies), per `define-export-format`.
+- Grabación metadata embedded in each intento's JSON entry (v1 decision per the foundation's lean); relative file paths; ISO 8601; stable UUIDs; archived data included; missing files tolerated and reflected in counts.
+- Single-intento package (intento.json + notas.json + audio) shared from the intento detail toolbar.
+- Export DTOs (`ExportModels`) decoupled from SwiftData models — the package schema is a public contract.
+- Native zip via NSFileCoordinator `.forUploading` (no dependencies); system share sheet; works offline; temp artifacts cleaned up.
+- Full suite green (45 tests).
+
+Remaining MVP changes: iCloud sync activation, onboarding, visual identity. Import/restore of export packages is a natural post-MVP change (manifest fields already support validation).
 
 ---
 

@@ -6,10 +6,17 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // Ajustes contiene solo lo que no pertenece al flujo de práctica
 // (define-information-architecture). No es un cajón de funcionalidades.
 struct AjustesView: View {
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var exportando = false
+    @State private var exportURL: URL?
+    @State private var exportError = false
+
     private var version: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -35,19 +42,31 @@ struct AjustesView: View {
                 Text("Privacidad")
             }
 
-            Section("Datos") {
-                LabeledContent {
-                    Text("Próximamente")
-                        .foregroundStyle(.secondary)
+            Section {
+                Button {
+                    exportar()
                 } label: {
-                    Label("Exportar mis datos", systemImage: "square.and.arrow.up")
+                    HStack {
+                        Label("Exportar mis datos", systemImage: "square.and.arrow.up")
+                        Spacer()
+                        if exportando {
+                            ProgressView()
+                        }
+                    }
                 }
+                .disabled(exportando)
+                .accessibilityHint("Genera un paquete con todos tus datos y grabaciones")
+
                 LabeledContent {
                     Text("Próximamente")
                         .foregroundStyle(.secondary)
                 } label: {
                     Label("Sincronización iCloud", systemImage: "icloud")
                 }
+            } header: {
+                Text("Datos")
+            } footer: {
+                Text("El paquete incluye todos tus temarios, temas, intentos, notas y grabaciones en formatos abiertos (JSON, CSV, m4a).")
             }
 
             Section("Aplicación") {
@@ -55,7 +74,41 @@ struct AjustesView: View {
             }
         }
         .navigationTitle("Ajustes")
+        .sheet(item: $exportURL) { url in
+            ShareSheet(url: url) {
+                limpiarTemporal(url)
+                exportURL = nil
+            }
+        }
+        .alert("No se pudo exportar", isPresented: $exportError) {
+            Button("Aceptar", role: .cancel) {}
+        } message: {
+            Text("Inténtalo de nuevo. Si el problema continúa, comprueba el espacio disponible.")
+        }
     }
+
+    private func exportar() {
+        exportando = true
+        Task {
+            defer { exportando = false }
+            do {
+                let service = ExportService(modelContext: modelContext, recordingStore: RecordingStore())
+                let paquete = try service.buildFullPackage()
+                exportURL = try ExportArchiver.zip(directory: paquete)
+                try? FileManager.default.removeItem(at: paquete.deletingLastPathComponent())
+            } catch {
+                exportError = true
+            }
+        }
+    }
+
+    private func limpiarTemporal(_ url: URL) {
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
+    }
+}
+
+extension URL: @retroactive Identifiable {
+    public var id: String { absoluteString }
 }
 
 #Preview {
