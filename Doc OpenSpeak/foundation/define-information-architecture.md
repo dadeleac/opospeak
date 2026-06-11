@@ -272,6 +272,39 @@ Historial    → Detalle de tema + Progreso
 
 ---
 
+# **La Vuelta al temario**
+
+## **Decisión**
+
+La Vuelta vive en la pestaña Temarios, no en Progreso.
+
+El criterio: Temarios responde "¿qué voy a practicar?"; Progreso responde "¿cómo voy?". La Vuelta responde a la primera pregunta.
+
+---
+
+## **Estructura**
+
+```txt
+Temarios (cabecera)
+   └── Tarjeta de Vuelta: vuelta actual, cobertura,
+       temas olvidados, Ver detalle
+            └── Detalle de la Vuelta: cobertura, mapa del
+                temario, olvidados, pendientes, recientes
+                     └── Cada tema → su Ficha
+```
+
+La pantalla de inicio deja de ser espacio vacío: comunica el estado real de la preparación antes de listar dónde ir.
+
+---
+
+## **Reglas**
+
+- La tarjeta es factual: posición, nunca prescripción. Sin "tema sugerido" hasta que los datos acumulados justifiquen recomendaciones (decisión deliberada de fases).
+- Progreso permanece reflexivo e intacto.
+- Toda la semántica (estados, vuelta, cobertura) proviene de `define-topic-insights-model`.
+
+---
+
 # **La oposición no es una pantalla**
 
 ## **Decisión**

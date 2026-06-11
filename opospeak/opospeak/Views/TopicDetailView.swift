@@ -111,29 +111,8 @@ struct TopicDetailView: View {
 
     // MARK: - Estado
 
-    /// Etiqueta, icono, acento y explicación por estado — la copy son las
-    /// frases de una línea de la fundación. Siempre icono + texto: el
-    /// color nunca es la única señal. Olvidado es Amber (atención),
-    /// deliberadamente nunca rojo: el olvido no es un juicio.
-    private func stateInfo(_ state: TopicState) -> (label: String, icon: String, color: Color, explanation: String) {
-        switch state {
-        case .pending:
-            (String(localized: "Pendiente"), "circle.dashed", .slate,
-             String(localized: "Todavía no lo has cantado."))
-        case .recent:
-            (String(localized: "Reciente"), "checkmark.circle", .sage,
-             String(localized: "Lo cantaste esta semana."))
-        case .current:
-            (String(localized: "Al día"), "clock", .slate,
-             String(localized: "Dentro de tu ritmo habitual."))
-        case .forgotten:
-            (String(localized: "Olvidado"), "clock.arrow.circlepath", .amber,
-             String(localized: "Llevas más del doble de tu ritmo sin cantarlo."))
-        }
-    }
-
     private func stateSection(_ insight: TopicInsight) -> some View {
-        let info = stateInfo(insight.state)
+        let info = TopicStateStyle(insight.state)
         let totalTime = (topic.attempts ?? []).reduce(0) { $0 + $1.duration }
 
         return Section("Estado") {

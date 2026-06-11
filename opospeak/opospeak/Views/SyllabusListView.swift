@@ -34,8 +34,19 @@ struct SyllabusListView: View {
         return syllabi.filter { $0.opposition?.id == active.id }
     }
 
+    private var activeTopics: [Topic] {
+        visibleSyllabi.flatMap { $0.topics ?? [] }.filter(\.isActive)
+    }
+
     var body: some View {
         List {
+            // La tarjeta de la Vuelta: la pantalla de inicio responde
+            // "¿qué voy a practicar?" con la posición real de la
+            // preparación. Hechos, nunca prescripción.
+            if !activeTopics.isEmpty {
+                StudyCycleCard(topics: activeTopics)
+            }
+
             ForEach(visibleSyllabi) { syllabus in
                 NavigationLink(value: syllabus) {
                     SyllabusRow(syllabus: syllabus)
@@ -60,6 +71,9 @@ struct SyllabusListView: View {
         }
         .navigationDestination(for: Attempt.self) { attempt in
             AttemptDetailView(attempt: attempt)
+        }
+        .navigationDestination(for: StudyCycleDestination.self) { _ in
+            StudyCycleView()
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

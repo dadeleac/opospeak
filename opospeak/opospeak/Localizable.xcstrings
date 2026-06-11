@@ -20,6 +20,16 @@
     "%lld" : {
 
     },
+    "%lld de %lld temas practicados" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld de %2$lld temas practicados"
+          }
+        }
+      }
+    },
     "%lld intentos" : {
 
     },
@@ -32,7 +42,13 @@
     "%lld temas" : {
 
     },
+    "%lld temas olvidados" : {
+
+    },
     "%lld′" : {
+
+    },
+    "Abre el detalle de la vuelta al temario" : {
 
     },
     "Abre la configuración del cronómetro" : {
@@ -307,6 +323,9 @@
     "Lo cantaste esta semana." : {
 
     },
+    "Mapa del temario" : {
+
+    },
     "Más practicado" : {
 
     },
@@ -522,13 +541,32 @@
     "Tema %lld" : {
 
     },
+    "Tema %lld, %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tema %1$lld, %2$@"
+          }
+        }
+      }
+    },
     "Temarios" : {
 
     },
     "Temas" : {
 
     },
+    "Temas olvidados" : {
+
+    },
+    "Temas pendientes" : {
+
+    },
     "Temas practicados" : {
+
+    },
+    "Temas recientes" : {
 
     },
     "Temas trabajados" : {
@@ -616,6 +654,25 @@
 
     },
     "Volumen" : {
+
+    },
+    "Vuelta %lld" : {
+
+    },
+    "Vuelta %lld · %lld de %lld temas practicados" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Vuelta %1$lld · %2$lld de %3$lld temas practicados"
+          }
+        }
+      }
+    },
+    "Vuelta actual" : {
+
+    },
+    "Vuelta al temario" : {
 
     },
     "Ya existe un tema con el número %lld en este temario." : {

@@ -280,6 +280,14 @@ The Ficha de tema is implemented (OpenSpec change `add-topic-card`, completed):
 - State colors with restraint: Slate (pendiente/al día), Sage (reciente), **Amber for olvidado — attention, deliberately never red** (forgetting is time, not judgment); always icon + text.
 - Suite green (100 tests). Next in the arc: **La vuelta al temario** (includes the IA decision of where it lives), then weighted extraction.
 
+La Vuelta al temario is implemented (OpenSpec change `add-study-cycle-view`, completed):
+
+- **IA decision taken with David over real screens**: the Vuelta lives in **Temarios** (it answers "¿qué voy a practicar?"), not in Progreso ("¿cómo voy?", stays reflective and untouched). Recorded in `define-information-architecture`.
+- **Phase 1 — Vuelta card** as the Temarios header, strictly factual: vuelta actual, cobertura with a calm bar, "X temas olvidados" (hidden at zero), Ver detalle. **No suggestions** — David's explicit call: recommendations are earned with data (Phase 3: tema sugerido + weighted extraction, deferred until usage justifies them; the model's canonical ordering waits internally).
+- **Phase 2 — Vuelta detail** (`StudyCycleView`, Temarios stack): cobertura summary, **mapa del temario** (state-tinted grid with topic numbers; legend with icon+text+color; per-cell accessibility labels; grouped lists as the textual channel — color never the only signal), and factual groups: olvidados (oldest first), pendientes, recientes. Every topic → its Ficha.
+- `TopicStateStyle` extracted as the single presentation home for state styling (Ficha, card, map, legend consume the same).
+- The home screen is now alive: after months of use it communicates the real state of the preparation — the answer to "why not Voice Memos" becomes *because it shows you the real state of your preparation*. Suite green (100 tests).
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---
