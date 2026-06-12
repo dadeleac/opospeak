@@ -297,6 +297,13 @@ Cycle semantics refined after device review (OpenSpec change `refine-study-cycle
 - David's verdict on the arc: *"La Vuelta empieza a parecer el eje diferenciador de OpoSpeak."* Suite green (103 tests).
 - **Second review refinements**: breakdown is vertical with all three states always shown (zeros included — they teach the vocabulary; "2 al día" can no longer read as daily frequency); the **"salud" concept was dropped** from visible vocabulary and the foundation (SaaS-speak foreign to opositores — the opositor asks "¿cómo llevo el temario?"); code renamed `SyllabusStatus`; map legend gained tint swatches identical to the cells so the mapping reads even when a state has no examples; previews seed all three states. Note: the state-transition definitions David asked about already live in `define-topic-insights-model` (exact formulas, boundary-tested) — the open question is threshold calibration with real usage.
 
+The syllabus is a unit of state (OpenSpec change `add-syllabus-state`, completed — conclusions from an advisor conversation adopted with corrections):
+
+- **Aggregation levels in the foundation** (extension of `define-topic-insights-model`, deliberately NOT a new document — fragmenting the unified semantics would recreate the drift it prevents; the advisor's "syllabus-health" name would also reintroduce the dropped "health" vocabulary): tema → temario → oposición, one computation over different subsets. **Cadence stays opposition-wide** (the rhythm belongs to the person, not the block).
+- **Reference-date honesty in `evaluate`**: attempts after the reference are filtered out — evaluating at a past date is a truthful time machine. This is the seam for the next change: **Progreso as Evolución** (photo vs film boundary; evolution derived retroactively, zero snapshots; revision of `define-progress-and-history-model`, not a new doc).
+- **Estado screen with per-syllabus blocks** when the opposition has >1 active syllabus: each block shows name + compact breakdown + its own grid (duplicate "Tema 1" solved structurally); qualified rows ("Tema 1 — Civil") in Siguiente, groups and Ver-todos lists; the Ficha shows its temario as navigation subtitle. **Single-syllabus oppositions see zero change.** Rejected: invented codes (C1/O1), syllabus colors, per-syllabus-only state.
+- Suite green (105 tests). Next: Progreso as Evolución.
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

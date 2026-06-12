@@ -91,6 +91,9 @@ struct TopicDetailView: View {
         }
         .editorialBackground()
         .navigationTitle(topic.displayName)
+        // El temario como contexto: "Tema 1" deja de ser ambiguo cuando
+        // la oposición tiene varios temarios.
+        .navigationSubtitle(topic.syllabus?.name ?? "")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

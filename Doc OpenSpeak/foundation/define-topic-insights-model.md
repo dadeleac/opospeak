@@ -177,6 +177,42 @@ La cobertura por vuelta es otra cosa: posición de rotación, secundaria.
 
 ---
 
+# **Niveles de agregación**
+
+El mismo cálculo de estado opera a tres alcances:
+
+```txt
+Tema      → su estado individual
+Temario   → agregado sobre sus temas activos
+Oposición → agregado sobre todos los temas activos
+```
+
+El temario no es una carpeta: es una unidad de estado. El opositor piensa "voy mal en Procesal, Civil lo tengo controlado" — y eso solo es visible si el temario agrega.
+
+---
+
+## **Regla**
+
+Un solo cálculo, distinto subconjunto. Jamás un modelo paralelo por nivel: las definiciones de estado y sus umbrales son únicos.
+
+---
+
+## **La cadencia es de la persona**
+
+La cadencia de revisita se calcula siempre a nivel de oposición, en todos los alcances.
+
+El ritmo de estudio pertenece al opositor, no al bloque: un usuario no "rota Civil cada 10 días y Procesal cada 30" — rota su preparación.
+
+---
+
+## **Honestidad de referencia**
+
+La evaluación en una fecha dada considera únicamente los intentos anteriores o iguales a esa fecha: el pasado no ve el futuro.
+
+Consecuencia deliberada: el estado de cualquier fecha pasada es derivable con exactitud — la evolución histórica ("estado hace 90 días") sale del mismo cálculo, sin snapshots persistidos. Es la costura sobre la que se construirá Progreso como evolución.
+
+---
+
 # **La vuelta**
 
 ## **Definición**

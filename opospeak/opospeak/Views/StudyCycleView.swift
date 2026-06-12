@@ -117,10 +117,21 @@ struct StudyCycleView: View {
         return oppositions.first
     }
 
-    private var activeTopics: [Topic] {
+    private var activeSyllabi: [Syllabus] {
         (activeOpposition?.syllabi ?? [])
-            .flatMap { $0.topics ?? [] }
             .filter(\.isActive)
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
+    private var activeTopics: [Topic] {
+        activeSyllabi.flatMap { $0.topics ?? [] }.filter(\.isActive)
+    }
+
+    /// Con varios temarios, el contexto aparece donde hace falta;
+    /// con uno solo, la pantalla no paga ruido por una ambigüedad
+    /// que no puede existir.
+    private var isMultiSyllabus: Bool {
+        activeSyllabi.count > 1
     }
 
     private var evaluation: (insights: [TopicInsight], cycle: StudyCycle) {
@@ -206,9 +217,16 @@ struct StudyCycleView: View {
                 selectedTopic = topic
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(topic.displayName)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(topic.displayName)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        if isMultiSyllabus, let name = topic.syllabus?.name {
+                            Text("— \(name)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     Text(nextReason(insight))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -231,31 +249,61 @@ struct StudyCycleView: View {
 
     // MARK: - Mapa
 
-    private func mapSection(byID: [UUID: TopicInsight]) -> some View {
-        let sorted = activeTopics.sorted { $0.number < $1.number }
+    /// Texto compacto del desglose de un bloque (bajo el nombre del
+    /// temario, el contexto está establecido).
+    private func blockBreakdown(_ status: SyllabusStatus) -> String {
+        let review = status.needsReview == 1
+            ? String(localized: "1 necesita repaso")
+            : String(localized: "\(status.needsReview) necesitan repaso")
+        return String(localized: "\(status.upToDate) al día · ") + review
+            + String(localized: " · \(status.unpracticed) sin practicar")
+    }
 
-        return Section {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 6)], spacing: 6) {
-                ForEach(sorted) { topic in
-                    let state = byID[topic.id]?.state ?? .pending
-                    let style = TopicStateStyle(state)
-                    Button {
-                        selectedTopic = topic
-                    } label: {
-                        Text("\(topic.number)")
-                            .font(.caption)
-                            .monospacedDigit()
-                            .frame(minWidth: 40, minHeight: 36)
-                            .background(
-                                style.color.opacity(style.mapTintOpacity),
-                                in: RoundedRectangle(cornerRadius: 6)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Tema \(topic.number), \(style.label)")
+    private func mapGrid(topics: [Topic], byID: [UUID: TopicInsight]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 40), spacing: 6)], spacing: 6) {
+            ForEach(topics.sorted { $0.number < $1.number }) { topic in
+                let state = byID[topic.id]?.state ?? .pending
+                let style = TopicStateStyle(state)
+                Button {
+                    selectedTopic = topic
+                } label: {
+                    Text("\(topic.number)")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .frame(minWidth: 40, minHeight: 36)
+                        .background(
+                            style.color.opacity(style.mapTintOpacity),
+                            in: RoundedRectangle(cornerRadius: 6)
+                        )
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Tema \(topic.number), \(style.label)")
             }
-            .padding(.vertical, 4)
+        }
+    }
+
+    private func mapSection(byID: [UUID: TopicInsight]) -> some View {
+        Section {
+            if isMultiSyllabus {
+                // Bloques por temario: los números son únicos dentro de su
+                // bloque — la ambigüedad desaparece estructuralmente.
+                ForEach(activeSyllabi) { syllabus in
+                    let blockTopics = (syllabus.topics ?? []).filter(\.isActive)
+                    let blockInsights = blockTopics.compactMap { byID[$0.id] }
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(syllabus.name)
+                            .font(.subheadline.weight(.semibold))
+                        Text(blockBreakdown(TopicInsightsModel.status(blockInsights)))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        mapGrid(topics: blockTopics, byID: byID)
+                    }
+                    .padding(.vertical, 4)
+                }
+            } else {
+                mapGrid(topics: activeTopics, byID: byID)
+                    .padding(.vertical, 4)
+            }
 
             // Leyenda: tres estados visibles, con la MISMA muestra de tinte
             // que las celdas del mapa (la correspondencia celda↔leyenda se
@@ -293,7 +341,14 @@ struct StudyCycleView: View {
                 if let topic = topic(for: insight) {
                     NavigationLink(value: topic) {
                         HStack {
-                            Text(topic.displayName)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(topic.displayName)
+                                if isMultiSyllabus, let name = topic.syllabus?.name {
+                                    Text(name)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                             Spacer()
                             if let days = insight.daysSinceLastPractice {
                                 Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
@@ -337,6 +392,10 @@ struct StateGroupListView: View {
             .filter(\.isActive)
     }
 
+    private var isMultiSyllabus: Bool {
+        (activeOpposition?.syllabi ?? []).filter(\.isActive).count > 1
+    }
+
     private var rows: [(topic: Topic, insight: TopicInsight)] {
         let (insights, _) = TopicInsightsModel.evaluate(
             topics: activeTopics.map(TopicFacts.init(topic:)),
@@ -359,7 +418,14 @@ struct StateGroupListView: View {
             ForEach(rows, id: \.topic.id) { row in
                 NavigationLink(value: row.topic) {
                     HStack {
-                        Text(row.topic.displayName)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(row.topic.displayName)
+                            if isMultiSyllabus, let name = row.topic.syllabus?.name {
+                                Text(name)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Spacer()
                         if let days = row.insight.daysSinceLastPractice {
                             Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))

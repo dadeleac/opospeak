@@ -123,11 +123,22 @@ enum TopicInsightsModel {
     }
 
     /// Evalúa todos los temas activos de la oposición activa.
+    /// Honestidad de referencia: los intentos posteriores a `reference`
+    /// no existen para la evaluación — evaluar en una fecha pasada
+    /// devuelve exactamente el estado que el usuario tenía entonces.
+    /// Esta es la costura que permite derivar la evolución
+    /// ("estado hace 90 días") sin persistir snapshots.
     static func evaluate(
         topics: [TopicFacts],
         reference: Date,
         calendar: Calendar = .current
     ) -> (insights: [TopicInsight], cycle: StudyCycle) {
+        let topics = topics.map { topic in
+            TopicFacts(
+                topicID: topic.topicID,
+                attemptDates: topic.attemptDates.filter { $0 <= reference }
+            )
+        }
         let cadenceDays = cadence(topics: topics)
         let threshold = forgottenThresholdDays(cadenceDays: cadenceDays)
 

@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    " · %lld sin practicar" : {
+
+    },
+    "— %@" : {
+
+    },
     "¿Cuántos temas tiene tu temario?" : {
 
     },
@@ -21,6 +27,9 @@
 
     },
     "%lld al día" : {
+
+    },
+    "%lld al día · " : {
 
     },
     "%lld intentos" : {

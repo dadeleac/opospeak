@@ -128,6 +128,38 @@ struct TopicInsightsTests {
         #expect(cycle.totalTopics == 0)
     }
 
+    // MARK: - Honestidad de referencia
+
+    @Test func futureAttemptsDoNotExistForEvaluation() {
+        // Un intento posterior a la referencia no existe al evaluar:
+        // el pasado no ve el futuro (la costura de la Evolución).
+        let futureOnly = topic(daysAgo: [-5])          // intento 5 días DESPUÉS
+        let mixed = topic(daysAgo: [10, -3])           // uno antes, uno después
+
+        let (insights, _) = TopicInsightsModel.evaluate(
+            topics: [futureOnly, mixed], reference: reference
+        )
+
+        #expect(insights[0].state == .pending)
+        #expect(insights[0].attemptCount == 0)
+        #expect(insights[1].state == .current)         // solo cuenta el de hace 10 días
+        #expect(insights[1].attemptCount == 1)
+        #expect(insights[1].daysSinceLastPractice == 10)
+    }
+
+    @Test func pastEvaluationIsATruthfulTimeMachine() {
+        // Evaluar 90 días atrás devuelve el estado de entonces.
+        let topics = [topic(daysAgo: [100]), topic(daysAgo: [5])]
+        let past = reference.addingTimeInterval(-90 * day)
+
+        let (insights, _) = TopicInsightsModel.evaluate(topics: topics, reference: past)
+
+        // Hace 90 días: el primero llevaba 10 días practicado (al día);
+        // el segundo aún no existía como práctica (sin practicar).
+        #expect(insights[0].state == .current)
+        #expect(insights[1].state == .pending)
+    }
+
     // MARK: - Salud del temario
 
     @Test func healthCountsByVisibleGroup() {
