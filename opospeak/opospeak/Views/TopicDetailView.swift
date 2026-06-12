@@ -16,8 +16,12 @@ import Charts
 struct TopicDetailView: View {
     let topic: Topic
 
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) private var environment
+
     @State private var practicing = false
     @State private var editing = false
+    @State private var attemptToDelete: Attempt?
 
     private var sortedAttempts: [Attempt] {
         (topic.attempts ?? []).sorted { $0.startedAt > $1.startedAt }
@@ -96,9 +100,33 @@ struct TopicDetailView: View {
                         NavigationLink(value: attempt) {
                             AttemptRow(attempt: attempt)
                         }
+                        // Swipe con alerta, no onDelete directo: aquí se
+                        // destruye audio irreversible — el coste dicta la
+                        // fricción (las notas, en cambio, van sin alerta).
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                attemptToDelete = attempt
+                            } label: {
+                                Label("Eliminar", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }
+        }
+        .alert(
+            "¿Eliminar este intento?",
+            isPresented: Binding(
+                get: { attemptToDelete != nil },
+                set: { if !$0 { attemptToDelete = nil } }
+            )
+        ) {
+            Button("Eliminar intento", role: .destructive) {
+                deleteAttempt()
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Se eliminarán la grabación, las notas y las métricas. No se puede deshacer.")
         }
         .editorialBackground()
         .navigationTitle(topic.displayName)
@@ -121,6 +149,19 @@ struct TopicDetailView: View {
         .fullScreenCover(isPresented: $practicing) {
             PracticeView(topic: topic)
         }
+    }
+
+    /// Borrado vía el punto único (el archivo de audio muere con los
+    /// modelos); los insights recalculan sin ese intento — borrar el
+    /// hecho es el objetivo, no un efecto secundario.
+    private func deleteAttempt() {
+        guard let attempt = attemptToDelete else { return }
+        attemptToDelete = nil
+        let repository = PracticeRepository(
+            modelContext: modelContext,
+            recordingStore: environment.recordingStore
+        )
+        try? repository.delete(attempt: attempt)
     }
 
     // MARK: - Estado

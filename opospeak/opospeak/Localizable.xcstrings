@@ -16,6 +16,9 @@
     "¿Descartar esta práctica?" : {
 
     },
+    "¿Eliminar este intento?" : {
+
+    },
     "¿Qué oposición preparas?" : {
 
     },
@@ -302,6 +305,12 @@
 
     },
     "El rango no es válido." : {
+
+    },
+    "Eliminar" : {
+
+    },
+    "Eliminar intento" : {
 
     },
     "Empezar" : {
@@ -622,6 +631,9 @@
       }
     },
     "Se crearán como Tema 1, Tema 2… Podrás añadir títulos cuando quieras." : {
+
+    },
+    "Se eliminarán la grabación, las notas y las métricas. No se puede deshacer." : {
 
     },
     "Siguiente" : {

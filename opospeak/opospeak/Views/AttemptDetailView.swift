@@ -20,6 +20,8 @@ struct AttemptDetailView: View {
     @State private var exporting = false
     @State private var exportURL: URL?
     @State private var recordingState: RecordingStore.Availability = .missing
+    @State private var confirmingDeletion = false
+    @Environment(\.dismiss) private var dismiss
 
     private var sortedNotes: [Note] {
         (attempt.notes ?? []).sorted { $0.createdAt < $1.createdAt }
@@ -161,6 +163,23 @@ struct AttemptDetailView: View {
                 }
                 .disabled(exporting)
             }
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button("Eliminar intento", systemImage: "trash", role: .destructive) {
+                        confirmingDeletion = true
+                    }
+                } label: {
+                    Label("Más opciones", systemImage: "ellipsis.circle")
+                }
+            }
+        }
+        .alert("¿Eliminar este intento?", isPresented: $confirmingDeletion) {
+            Button("Eliminar intento", role: .destructive) {
+                deleteAttempt()
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Se eliminarán la grabación, las notas y las métricas. No se puede deshacer.")
         }
         .sheet(item: $exportURL) { url in
             ShareSheet(url: url) {
@@ -217,6 +236,18 @@ struct AttemptDetailView: View {
                 // Sin alerta dedicada: el botón vuelve a estar disponible.
             }
         }
+    }
+
+    /// Borrar y volver: la pantalla se queda sin sujeto. Siempre vía el
+    /// punto único — el archivo de audio muere con los modelos.
+    private func deleteAttempt() {
+        playback.stop()
+        let repository = PracticeRepository(
+            modelContext: modelContext,
+            recordingStore: environment.recordingStore
+        )
+        try? repository.delete(attempt: attempt)
+        dismiss()
     }
 
     private func saveEditedNote(_ note: Note) {
