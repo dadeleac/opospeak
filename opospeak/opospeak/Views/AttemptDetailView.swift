@@ -14,6 +14,8 @@ struct AttemptDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppEnvironment.self) private var environment
     @State private var newNoteText = ""
+    @State private var editingNoteID: UUID?
+    @State private var editingNoteText = ""
     @State private var playback = PlaybackController()
     @State private var exporting = false
     @State private var exportURL: URL?
@@ -82,14 +84,41 @@ struct AttemptDetailView: View {
 
             Section("Notas") {
                 ForEach(sortedNotes) { note in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(note.content)
-                        Text(note.createdAt.formatted(date: .abbreviated, time: .shortened))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    if editingNoteID == note.id {
+                        // Edición en línea: createdAt no cambia — la nota
+                        // registra cuándo se hizo la observación, no
+                        // cuándo se corrigió la errata.
+                        HStack {
+                            TextField("Nota", text: $editingNoteText, axis: .vertical)
+                                .accessibilityLabel("Editar nota")
+                            Button {
+                                saveEditedNote(note)
+                            } label: {
+                                Image(systemName: "checkmark.circle.fill")
+                            }
+                            .accessibilityLabel("Guardar cambios")
+                            .disabled(editingNoteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    } else {
+                        Button {
+                            editingNoteID = note.id
+                            editingNoteText = note.content
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(note.content)
+                                    .foregroundStyle(.primary)
+                                Text(note.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityHint("Toca para editar la nota")
                     }
-                    .accessibilityElement(children: .combine)
                 }
+                // Swipe sin alerta: la pérdida es una nota, proporcional
+                // al gesto (contraste deliberado con descartar grabación).
+                .onDelete(perform: deleteNotes)
                 HStack {
                     TextField("Añadir nota…", text: $newNoteText, axis: .vertical)
                         .accessibilityLabel("Nueva nota")
@@ -107,6 +136,19 @@ struct AttemptDetailView: View {
         .navigationTitle(attempt.topic?.displayName ?? String(localized: "Intento"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // Curación del usuario, no juicio: el destacado vive donde
+            // se escucha y se decide "esta es la buena".
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    attempt.isHighlighted.toggle()
+                } label: {
+                    Label(
+                        attempt.isHighlighted ? "Quitar destacado" : "Destacar intento",
+                        systemImage: attempt.isHighlighted ? "star.fill" : "star"
+                    )
+                }
+                .tint(attempt.isHighlighted ? Color.amber : nil)
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     export()
@@ -174,6 +216,20 @@ struct AttemptDetailView: View {
             } catch {
                 // Sin alerta dedicada: el botón vuelve a estar disponible.
             }
+        }
+    }
+
+    private func saveEditedNote(_ note: Note) {
+        let content = editingNoteText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty else { return }
+        note.content = content
+        editingNoteID = nil
+        editingNoteText = ""
+    }
+
+    private func deleteNotes(at offsets: IndexSet) {
+        for index in offsets {
+            modelContext.delete(sortedNotes[index])
         }
     }
 

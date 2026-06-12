@@ -18,6 +18,9 @@ final class Attempt {
     var endedAt: Date?
     var duration: TimeInterval = 0
     var isCompleted: Bool = false
+    /// Destacado por el usuario: curación, no juicio — ninguna lógica
+    /// deriva recomendaciones ni presión de este campo.
+    var isHighlighted: Bool = false
 
     var topic: Topic?
     var session: PracticeSession?

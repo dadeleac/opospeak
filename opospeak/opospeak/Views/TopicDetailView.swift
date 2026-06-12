@@ -187,20 +187,34 @@ struct TopicDetailView: View {
 
     // MARK: - Notas
 
+    /// El post-it del banco de trabajo: "¿qué me dije la última vez?".
+    /// Contenido para releer, no otra lista de navegación — el Historial
+    /// de abajo ya es el archivo cronológico. El toque sigue llevando al
+    /// intento, pero el texto manda y el timestamp (con hora: dos notas
+    /// del mismo día deben distinguirse) es caption.
     private var notesSection: some View {
         Section("Notas recientes") {
             ForEach(recentNotes) { note in
                 if let attempt = note.attempt {
-                    NavigationLink(value: attempt) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(note.content)
-                                .lineLimit(2)
-                            Text(note.createdAt.formatted(date: .abbreviated, time: .omitted))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
+                    // Link invisible de fondo: navega por el mismo destino
+                    // (value-based) que el Historial — un segundo
+                    // navigationDestination para Attempt en este stack
+                    // pisa al existente y rompe los links del historial.
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(note.content)
+                            .foregroundStyle(.primary)
+                            .lineLimit(3)
+                        Text(note.createdAt.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        NavigationLink(value: attempt) { EmptyView() }
+                            .opacity(0)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint("Abre el intento de esta nota")
                 }
             }
         }
@@ -290,6 +304,11 @@ struct AttemptRow: View {
             }
             Spacer()
             HStack(spacing: 8) {
+                if attempt.isHighlighted {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(Color.amber)
+                        .accessibilityLabel("Destacado")
+                }
                 if attempt.recording != nil {
                     Image(systemName: "waveform")
                         .accessibilityLabel("Con grabación")

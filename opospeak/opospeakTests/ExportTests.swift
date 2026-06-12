@@ -166,6 +166,8 @@ struct ExportTests {
         #expect(attemptsText.contains("\"temaId\""))
         #expect(attemptsText.contains("\"duracionReal\""))
         #expect(attemptsText.contains("\"completado\""))
+        // Clave aditiva (refine-attempt-curation): la curación viaja.
+        #expect(attemptsText.contains("\"destacado\""))
     }
 
     @Test func missingRecordingDoesNotBlockAndIsReflected() throws {

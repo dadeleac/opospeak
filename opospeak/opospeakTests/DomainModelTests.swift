@@ -94,6 +94,65 @@ struct DomainModelTests {
         #expect(session.attempts?.count == 1)
     }
 
+    @Test func attemptHighlightIsUserCurationAndPersists() throws {
+        let context = try makeContainer().mainContext
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 1, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        try context.save()
+
+        // Por defecto, nada está destacado: el destacado lo pone el usuario.
+        #expect(attempt.isHighlighted == false)
+
+        attempt.isHighlighted = true
+        try context.save()
+        #expect(attempt.isHighlighted)
+
+        // Reversible sin rastro.
+        attempt.isHighlighted = false
+        try context.save()
+        #expect(attempt.isHighlighted == false)
+    }
+
+    @Test func editingNotePreservesCreationDate() throws {
+        let context = try makeContainer().mainContext
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 1, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+        let attempt = Attempt(topic: topic, session: session)
+        context.insert(attempt)
+        let note = Note(attempt: attempt, content: "Demasiado rapido al inicio")
+        context.insert(note)
+        try context.save()
+
+        let originalDate = note.createdAt
+
+        // Editar corrige la errata; la fecha registra la observación.
+        note.content = "Demasiado rápido al inicio"
+        try context.save()
+        #expect(note.content == "Demasiado rápido al inicio")
+        #expect(note.createdAt == originalDate)
+
+        // Borrar elimina la nota y el intento queda intacto.
+        context.delete(note)
+        try context.save()
+        #expect(attempt.notes?.isEmpty == true)
+    }
+
     @Test func attemptWithoutRecordingIsValid() throws {
         let context = try makeContainer().mainContext
 

@@ -203,6 +203,8 @@ struct AttemptExport: Codable {
     let endedAt: Date?
     let duration: TimeInterval
     let isCompleted: Bool
+    /// Curación del usuario; clave aditiva al contrato v2.
+    let isHighlighted: Bool
     let recording: RecordingExport?
 
     enum CodingKeys: String, CodingKey {
@@ -213,6 +215,7 @@ struct AttemptExport: Codable {
         case endedAt = "fechaFin"
         case duration = "duracionReal"
         case isCompleted = "completado"
+        case isHighlighted = "destacado"
         case recording = "grabacion"
     }
 
@@ -224,6 +227,7 @@ struct AttemptExport: Codable {
         endedAt = attempt.endedAt
         duration = attempt.duration
         isCompleted = attempt.isCompleted
+        isHighlighted = attempt.isHighlighted
         recording = attempt.recording.map(RecordingExport.init)
     }
 }

@@ -105,8 +105,10 @@ struct StudyCycleView: View {
     /// Navegación programática del mapa: varias NavigationLink dentro de
     /// una misma fila de List rompen los gestos (un toque empuja varias
     /// pantallas) y duplican chevrons. Las celdas son botones y el push
-    /// es único, vía destino por item.
-    @State private var selectedTopic: Topic?
+    /// es único, por valor en el path del stack — nunca por destino
+    /// item:, que compite con los destinos del root y rompía la
+    /// navegación posterior (Ficha → intento re-empujaba la Ficha).
+    @Environment(\.pushTopic) private var pushTopic
 
     /// Celda con el peek abierto (popover anclado a la celda).
     @State private var peekTopicID: UUID?
@@ -202,9 +204,6 @@ struct StudyCycleView: View {
         .editorialBackground()
         .navigationTitle("Estado del temario")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $selectedTopic) { topic in
-            TopicDetailView(topic: topic)
-        }
         .navigationDestination(for: StateGroupDestination.self) { destination in
             StateGroupListView(state: destination.state)
         }
@@ -217,7 +216,7 @@ struct StudyCycleView: View {
     private func nextSection(insight: TopicInsight, topic: Topic) -> some View {
         Section("Siguiente") {
             Button {
-                selectedTopic = topic
+                pushTopic(topic)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -283,7 +282,7 @@ struct StudyCycleView: View {
                     // contextMenu dentro de una fila de List se registra
                     // una sola vez y siempre mostraba la primera celda).
                     .onTapGesture {
-                        selectedTopic = topic
+                        pushTopic(topic)
                     }
                     .onLongPressGesture {
                         peekTopicID = topic.id
@@ -299,7 +298,7 @@ struct StudyCycleView: View {
                             let target = topic
                             Task {
                                 try? await Task.sleep(for: .milliseconds(350))
-                                selectedTopic = target
+                                pushTopic(target)
                             }
                         }
                         .presentationCompactAdaptation(.popover)

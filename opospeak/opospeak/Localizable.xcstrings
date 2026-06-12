@@ -96,6 +96,9 @@
     "Abre el detalle del estado del temario" : {
 
     },
+    "Abre el intento de esta nota" : {
+
+    },
     "Abre la configuración del cronómetro" : {
 
     },
@@ -271,6 +274,12 @@
     "Desde" : {
 
     },
+    "Destacado" : {
+
+    },
+    "Destacar intento" : {
+
+    },
     "Días con práctica" : {
 
     },
@@ -278,6 +287,9 @@
 
     },
     "Duración objetivo" : {
+
+    },
+    "Editar nota" : {
 
     },
     "Editar tema" : {
@@ -350,6 +362,9 @@
 
     },
     "Guardar" : {
+
+    },
+    "Guardar cambios" : {
 
     },
     "Guardar nota" : {
@@ -475,6 +490,9 @@
     "Nombre del temario" : {
 
     },
+    "Nota" : {
+
+    },
     "Notas" : {
 
     },
@@ -569,6 +587,9 @@
 
     },
     "Quedan %lld minutos" : {
+
+    },
+    "Quitar destacado" : {
 
     },
     "Reanudar" : {
@@ -687,6 +708,9 @@
 
     },
     "Título del tema" : {
+
+    },
+    "Toca para editar la nota" : {
 
     },
     "Todavía no lo has cantado" : {

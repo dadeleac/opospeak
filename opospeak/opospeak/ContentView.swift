@@ -8,6 +8,15 @@
 import SwiftUI
 import SwiftData
 
+// Empuje programático de un tema en el stack de Temarios. Las vistas que
+// navegan desde botones (mapa del Estado, Siguiente, peek) usan esto en
+// vez de navigationDestination(item:): un destino item: dentro del stack
+// compite con los destinos por valor del root y rompe la navegación
+// posterior (p. ej. Ficha → intento volvía a empujar la propia Ficha).
+extension EnvironmentValues {
+    @Entry var pushTopic: (Topic) -> Void = { _ in }
+}
+
 // Shell de navegación: tres pestañas estables (define-information-architecture).
 // La práctica no es pestaña: nace siempre desde el tema.
 struct ContentView: View {
@@ -23,6 +32,7 @@ struct ContentView: View {
                 NavigationStack(path: $syllabusPath) {
                     SyllabusListView()
                 }
+                .environment(\.pushTopic) { syllabusPath.append($0) }
             }
             Tab("Progreso", systemImage: "chart.line.uptrend.xyaxis") {
                 NavigationStack {
