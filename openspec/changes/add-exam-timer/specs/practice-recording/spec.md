@@ -25,11 +25,15 @@ The user SHALL be able to choose between count-up and countdown timing. In count
 - **THEN** the screen counts down from 15:00, freezing during pauses (recorded time, not wall-clock)
 
 ### Requirement: Configurable silent warnings
-In countdown mode the user SHALL choose at which remaining-time marks to be warned. Each warning SHALL be haptic plus a visual change plus a VoiceOver announcement — never an audible sound, because the open microphone would capture it into the recording. Each mark SHALL fire exactly once per practice. Warnings SHALL be discreet facts, not pressure.
+In countdown mode the user SHALL choose at which remaining-time marks to be warned. Marks are curated presets plus one relative mark, "A mitad de tiempo", that scales with the target duration (a 12-minute topic warns at 6; a 75-minute simulacro at 37.5) — covering long exercises without exposing full mark configurability, which is deferred until real user demand. Each warning SHALL be haptic plus a visual change plus a VoiceOver announcement — never an audible sound, because the open microphone would capture it into the recording. Each mark SHALL fire exactly once per practice; when the half-time mark coincides with an absolute preset, the warning fires once. Warnings SHALL be discreet facts, not pressure.
 
 #### Scenario: Five minutes left
 - **WHEN** the remaining time crosses a configured 5-minute mark
 - **THEN** the device vibrates, the timer visually signals the mark (icon + color, never color alone), VoiceOver announces "Quedan 5 minutos", and no sound is played
+
+#### Scenario: Half time on a long exercise
+- **WHEN** the user enables "A mitad de tiempo" with a 75-minute target and the remaining time crosses 37.5 minutes
+- **THEN** the warning fires labelled as the landmark ("Mitad de tiempo", not a rounded figure), with the same haptic + visual + VoiceOver treatment
 
 #### Scenario: Marks fire once
 - **WHEN** the user pauses and resumes around a mark already fired

@@ -78,6 +78,7 @@ struct PracticeTimerConfigTests {
         config.mode = .countdown
         config.targetDuration = 20 * 60
         config.warningMarks = [600, 120]
+        config.halfTimeWarning = true
 
         config.save(to: defaults)
         let loaded = PracticeTimerConfig.load(from: defaults)
@@ -90,5 +91,61 @@ struct PracticeTimerConfigTests {
         let loaded = PracticeTimerConfig.load(from: defaults)
         #expect(loaded.mode == .countUp)
         #expect(loaded.targetDuration == 15 * 60)
+        #expect(loaded.halfTimeWarning == false)
+    }
+
+    @Test func legacyPayloadWithoutHalfTimeKeyStillDecodes() throws {
+        // Config guardada por una versión sin halfTimeWarning: la clave
+        // ausente cae a false en vez de invalidar toda la configuración.
+        let legacy = #"{"mode":"countdown","targetDuration":1200,"warningMarks":[600,120]}"#
+        let loaded = try JSONDecoder().decode(
+            PracticeTimerConfig.self, from: Data(legacy.utf8)
+        )
+        #expect(loaded.mode == .countdown)
+        #expect(loaded.targetDuration == 1200)
+        #expect(loaded.warningMarks == [600, 120])
+        #expect(loaded.halfTimeWarning == false)
+    }
+}
+
+struct EffectiveWarningMarksTests {
+
+    @Test func halfTimeMarkScalesWithTarget() {
+        var config = PracticeTimerConfig()
+        config.mode = .countdown
+        config.targetDuration = 75 * 60
+        config.warningMarks = [300]
+        config.halfTimeWarning = true
+
+        // Un simulacro de 75 min avisa al quedar 37,5 min.
+        #expect(config.effectiveWarningMarks() == [37.5 * 60, 300])
+    }
+
+    @Test func disabledHalfTimeAddsNothing() {
+        var config = PracticeTimerConfig()
+        config.warningMarks = [300, 60]
+        config.halfTimeWarning = false
+
+        #expect(config.effectiveWarningMarks() == [300, 60])
+    }
+
+    @Test func halfTimeCoincidingWithPresetIsDeduplicated() {
+        var config = PracticeTimerConfig()
+        config.targetDuration = 10 * 60
+        config.warningMarks = [300, 60]
+        config.halfTimeWarning = true
+
+        // Objetivo de 10 min: la mitad coincide con el preset de 5 min.
+        #expect(config.effectiveWarningMarks() == [300, 60])
+    }
+
+    @Test func marksAtOrBeyondTargetAreFiltered() {
+        var config = PracticeTimerConfig()
+        config.targetDuration = 4 * 60
+        config.warningMarks = [600, 300, 60]
+        config.halfTimeWarning = true
+
+        // Solo sobreviven las marcas por debajo del objetivo.
+        #expect(config.effectiveWarningMarks() == [120, 60])
     }
 }

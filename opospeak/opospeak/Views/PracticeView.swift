@@ -86,10 +86,13 @@ struct PracticeView: View {
             return String(localized: "Cronómetro")
         }
         let minutes = Int(config.targetDuration / 60)
-        let marks = config.warningMarks
+        var marks = config.warningMarks
             .filter { $0 < config.targetDuration }
             .sorted(by: >)
             .map { "\(Int($0 / 60))′" }
+        if config.halfTimeWarning {
+            marks.insert(String(localized: "mitad"), at: 0)
+        }
         if marks.isEmpty {
             return String(localized: "Cuenta atrás · \(minutes) min")
         }
@@ -241,7 +244,7 @@ struct PracticeView: View {
                     Image(systemName: "bell.fill")
                         .font(.caption)
                         .foregroundStyle(Color.amber)
-                    Text("Quedan \(Int(mark / 60)) min")
+                    Text(warningFlashLabel(mark))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
@@ -311,6 +314,19 @@ struct PracticeView: View {
 
     // MARK: - Avisos
 
+    /// La marca de mitad de tiempo es la única relativa: puede caer en
+    /// medio minuto (objetivo de 15 → quedan 7,5), así que su etiqueta
+    /// es el hito ("Mitad de tiempo"), no una cifra redondeada.
+    private func isHalfTimeMark(_ mark: TimeInterval) -> Bool {
+        config.halfTimeWarning && mark == config.targetDuration / 2
+    }
+
+    private func warningFlashLabel(_ mark: TimeInterval) -> String {
+        isHalfTimeMark(mark)
+            ? String(localized: "Mitad de tiempo")
+            : String(localized: "Quedan \(Int(mark / 60)) min")
+    }
+
     /// Háptica + señal visual + anuncio de VoiceOver al cruzar cada marca.
     /// Nunca sonido: el micrófono está abierto. Las marcas corren sobre
     /// tiempo grabado, así que la pausa las congela sola.
@@ -320,7 +336,7 @@ struct PracticeView: View {
 
         let crossed = WarningSchedule.crossedMarks(
             target: config.targetDuration,
-            marks: config.warningMarks,
+            marks: config.effectiveWarningMarks(),
             previousElapsed: lastSeenElapsed,
             elapsed: elapsed
         )
@@ -334,7 +350,9 @@ struct PracticeView: View {
             ).post()
         } else {
             AccessibilityNotification.Announcement(
-                String(localized: "Quedan \(Int(mark / 60)) minutos")
+                isHalfTimeMark(mark)
+                    ? String(localized: "Mitad de tiempo")
+                    : String(localized: "Quedan \(Int(mark / 60)) minutos")
             ).post()
             flashingMark = mark
             Task {
@@ -483,6 +501,16 @@ struct TimerConfigSheet: View {
                     }
 
                     Section {
+                        // Marca relativa: escala con el objetivo, así
+                        // cubre igual un tema de 12 min y un simulacro de 75.
+                        Toggle(isOn: $config.halfTimeWarning) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("A mitad de tiempo")
+                                Text("Con este objetivo, cuando queden \(halfTimeDetail)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         ForEach(visibleMarks, id: \.self) { mark in
                             Toggle(isOn: bindingForMark(mark)) {
                                 Text("Cuando queden \(Int(mark / 60)) min")
@@ -514,6 +542,17 @@ struct TimerConfigSheet: View {
 
     private var visibleMarks: [TimeInterval] {
         Self.availableMarks.filter { $0 < config.targetDuration }
+    }
+
+    /// "7 min" o "7 min 30 s": la mitad de un objetivo impar cae en
+    /// medio minuto y la cifra debe decirlo, no redondearlo.
+    private var halfTimeDetail: String {
+        let half = Int(config.targetDuration / 2)
+        let minutes = half / 60
+        let seconds = half % 60
+        return seconds == 0
+            ? String(localized: "\(minutes) min")
+            : String(localized: "\(minutes) min \(seconds) s")
     }
 
     private func bindingForMark(_ mark: TimeInterval) -> Binding<Bool> {

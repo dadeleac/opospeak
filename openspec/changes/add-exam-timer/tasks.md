@@ -31,3 +31,11 @@
 - [x] 5.4 Vocabulario auditado: Continuar / Grabar / Pausar / Reanudar / Finalizar / Hecho; "Empezar" queda solo en el onboarding
 - [x] 5.5 Cancelar libre también en "Listo"; spec y fundación enmendadas
 - [x] 5.6 Editor de configuración como hoja del sistema desde abajo (altura completa, HIG) al tocar el chip de resumen; la práctica permanece a pantalla completa (inmersiva)
+
+## 6. Aviso "A mitad de tiempo" (marca relativa)
+
+- [x] 6.1 `PracticeTimerConfig.halfTimeWarning` (Bool, por defecto desactivado) con decodificación tolerante: configs guardadas sin la clave caen a sus valores por defecto en vez de invalidarse
+- [x] 6.2 `effectiveWarningMarks()`: marcas absolutas + mitad del objetivo si está activada, deduplicadas (la mitad puede coincidir con un preset) y filtradas por debajo del objetivo
+- [x] 6.3 `handleWarnings` consume las marcas efectivas; la marca de mitad se etiqueta como hito ("Mitad de tiempo", no cifra redondeada) en flash y anuncio de VoiceOver
+- [x] 6.4 Toggle "A mitad de tiempo" en la sección Avisos con detalle dinámico ("Con este objetivo, cuando queden 7 min 30 s"); chip de resumen incluye "mitad"
+- [x] 6.5 Tests: round-trip con la nueva clave, payload legado sin la clave, escala con el objetivo, deduplicación y filtrado; configurabilidad total diferida a demanda real

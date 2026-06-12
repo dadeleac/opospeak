@@ -90,7 +90,7 @@ Dos modos:
 - Cronómetro ascendente.
 - Cuenta atrás con duración objetivo, como el reloj del examen oral.
 
-En cuenta atrás, el usuario elige en qué marcas restantes recibir aviso.
+En cuenta atrás, el usuario elige en qué marcas restantes recibir aviso: presets curados más una marca relativa, "A mitad de tiempo", que escala con el objetivo (un tema de 12 minutos avisa al 6; un simulacro de 75, al 37,5). La configurabilidad total de marcas se difiere hasta que exista demanda real.
 
 ---
 

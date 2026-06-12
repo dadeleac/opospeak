@@ -41,6 +41,16 @@
     "%lld min" : {
 
     },
+    "%lld min %lld s" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld min %2$lld s"
+          }
+        }
+      }
+    },
     "%lld minutos" : {
 
     },
@@ -72,6 +82,9 @@
 
     },
     "90 días" : {
+
+    },
+    "A mitad de tiempo" : {
 
     },
     "Abre el detalle del estado del temario" : {
@@ -159,6 +172,9 @@
 
     },
     "Comprobando…" : {
+
+    },
+    "Con este objetivo, cuando queden %@" : {
 
     },
     "Con grabación" : {
@@ -404,6 +420,12 @@
 
     },
     "Minutos" : {
+
+    },
+    "mitad" : {
+
+    },
+    "Mitad de tiempo" : {
 
     },
     "Modo" : {
