@@ -45,7 +45,11 @@ struct SyllabusDetailView: View {
         }
         .editorialBackground()
         .navigationTitle(syllabus.name)
-        .searchable(text: $searchText, prompt: "Buscar por número o título")
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "Buscar por número o título"
+        )
         .toolbar {
             ToolbarItem(placement: .secondaryAction) {
                 Picker("Ordenar", selection: $sortOrder) {
