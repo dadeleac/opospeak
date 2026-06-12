@@ -20,7 +20,7 @@
 ## 4. Jerarquía de controles (D)
 
 - [x] 4.1 Pausar (prominente) + Finalizar (bordered) en fila, mitades iguales
-- [x] 4.2 Descartar práctica a menú "···" en la toolbar (solo grabando/en pausa) con `confirmationDialog`; cancelar pre-grabación sigue libre
+- [x] 4.2 Descartar práctica a menú "···" en la toolbar (solo grabando/en pausa) con alerta centrada de confirmación (el action sheet desde menú de toolbar se ancla como popover flotante); cancelar pre-grabación sigue libre
 
 ## 5. Verificación y docs
 

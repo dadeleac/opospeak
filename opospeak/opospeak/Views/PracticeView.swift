@@ -76,10 +76,13 @@ struct PracticeView: View {
                     }
                 }
             }
-            .confirmationDialog(
+            // Alerta y no action sheet: lanzada desde un menú de toolbar,
+            // la hoja se ancla al botón "···" como popover flotante. La
+            // alerta centrada es el patrón HIG para confirmar una pérdida
+            // irreversible, con Cancelar explícito.
+            .alert(
                 "¿Descartar esta práctica?",
-                isPresented: $confirmingDiscard,
-                titleVisibility: .visible
+                isPresented: $confirmingDiscard
             ) {
                 Button("Descartar práctica", role: .destructive) { discard() }
                 Button("Cancelar", role: .cancel) {}
