@@ -451,7 +451,6 @@ struct TimerConfigSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private static let availableMarks: [TimeInterval] = [600, 300, 120, 60]
-    private static let durationQuickPicks = [10, 15, 20, 30]
 
     var body: some View {
         NavigationStack {
@@ -470,28 +469,17 @@ struct TimerConfigSheet: View {
 
                 if config.mode == .countdown {
                     Section("Duración") {
-                        Stepper(value: targetMinutes, in: 1...120) {
-                            HStack {
-                                Text("Objetivo")
-                                Spacer()
-                                Text("\(Int(config.targetDuration / 60)) min")
-                                    .foregroundStyle(.secondary)
+                        // Rueda como el Temporizador del sistema: el gesto
+                        // que todo usuario conoce para "poner el reloj".
+                        Picker("Duración objetivo", selection: targetMinutes) {
+                            ForEach(1...120, id: \.self) { minutes in
+                                Text("\(minutes) min").tag(minutes)
                             }
                         }
+                        .pickerStyle(.wheel)
+                        .frame(height: 120)
                         .accessibilityLabel("Duración objetivo")
                         .accessibilityValue("\(Int(config.targetDuration / 60)) minutos")
-
-                        HStack {
-                            ForEach(Self.durationQuickPicks, id: \.self) { minutes in
-                                Button("\(minutes)′") {
-                                    config.targetDuration = TimeInterval(minutes * 60)
-                                }
-                                .buttonStyle(.bordered)
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
                     }
 
                     Section {
