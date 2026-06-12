@@ -518,8 +518,17 @@ struct PracticeView: View {
                 LabeledContent("Fecha") {
                     Text(summary.date.formatted(date: .long, time: .shortened))
                 }
-                Label("Grabación guardada", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(Color.sage)
+                // Centrada: no es un par etiqueta-valor como las demás
+                // filas, es la confirmación — el sello de la tarjeta.
+                // HStack explícito: Label + frame(maxWidth:) descentra
+                // por el espacio fantasma del icono.
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                    Text("Grabación guardada")
+                }
+                .foregroundStyle(Color.sage)
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .combine)
             } header: {
                 Text("Práctica completada")
             } footer: {
