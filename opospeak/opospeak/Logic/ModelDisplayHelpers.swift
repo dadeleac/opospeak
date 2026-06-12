@@ -19,6 +19,14 @@ extension Topic: TopicSortable {
         if let title, !title.isEmpty { return title }
         return String(localized: "Tema \(number)")
     }
+
+    /// "42 · Título" cuando hay título; "Tema 42" si no. El número es la
+    /// clave que conecta cada superficie con la cuadrícula del mapa y
+    /// nunca debe desaparecer de las filas.
+    var numberedDisplayName: String {
+        if let title, !title.isEmpty { return "\(number) · \(title)" }
+        return displayName
+    }
 }
 
 extension Syllabus {
@@ -38,6 +46,15 @@ extension Syllabus {
 
     var existingNumbers: Set<Int> {
         Set(topics?.map(\.number) ?? [])
+    }
+}
+
+/// "Hoy", "Hace 1 día" o "Hace N días" — el singular importa.
+func daysAgoLabel(_ days: Int) -> String {
+    switch days {
+    case 0: String(localized: "Hoy")
+    case 1: String(localized: "Hace 1 día")
+    default: String(localized: "Hace \(days) días")
     }
 }
 

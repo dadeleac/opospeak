@@ -23,6 +23,14 @@ struct TopicDetailView: View {
         (topic.attempts ?? []).sorted { $0.startedAt > $1.startedAt }
     }
 
+    private var detailSubtitle: String {
+        let syllabusName = topic.syllabus?.name ?? ""
+        guard topic.title?.isEmpty == false else { return syllabusName }
+        return syllabusName.isEmpty
+            ? String(localized: "Tema \(topic.number)")
+            : String(localized: "Tema \(topic.number) — \(syllabusName)")
+    }
+
     // La cadencia es agrupada: el insight de este tema necesita los hechos
     // de todos los temas activos de la oposición (vía relaciones, sin queries).
     private var insight: TopicInsight? {
@@ -91,9 +99,9 @@ struct TopicDetailView: View {
         }
         .editorialBackground()
         .navigationTitle(topic.displayName)
-        // El temario como contexto: "Tema 1" deja de ser ambiguo cuando
-        // la oposición tiene varios temarios.
-        .navigationSubtitle(topic.syllabus?.name ?? "")
+        // Contexto completo bajo el título: el número (la clave que
+        // conecta con el mapa) cuando el tema tiene título, y el temario.
+        .navigationSubtitle(detailSubtitle)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -137,7 +145,7 @@ struct TopicDetailView: View {
                 LabeledContent("Tiempo total", value: formatDuration(totalTime))
                 if let days = insight.daysSinceLastPractice {
                     LabeledContent("Última práctica") {
-                        Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
+                        Text(daysAgoLabel(days))
                     }
                 }
             }

@@ -108,6 +108,9 @@ struct StudyCycleView: View {
     /// es único, vía destino por item.
     @State private var selectedTopic: Topic?
 
+    /// Celda con el peek abierto (popover anclado a la celda).
+    @State private var peekTopicID: UUID?
+
     private var activeOpposition: Opposition? {
         if let idString = UserDefaults.standard.string(forKey: ActiveOpposition.storageKey),
            let id = UUID(uuidString: idString),
@@ -218,7 +221,7 @@ struct StudyCycleView: View {
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(topic.displayName)
+                        Text(topic.numberedDisplayName)
                             .font(.headline)
                             .foregroundStyle(.primary)
                         if isMultiSyllabus, let name = topic.syllabus?.name {
@@ -242,7 +245,9 @@ struct StudyCycleView: View {
             return String(localized: "Todavía no lo has cantado")
         }
         if let days = insight.daysSinceLastPractice {
-            return String(localized: "Hace \(days) días sin práctica")
+            return days == 1
+                ? String(localized: "Hace 1 día sin práctica")
+                : String(localized: "Hace \(days) días sin práctica")
         }
         return ""
     }
@@ -264,20 +269,43 @@ struct StudyCycleView: View {
             ForEach(topics.sorted { $0.number < $1.number }) { topic in
                 let state = byID[topic.id]?.state ?? .pending
                 let style = TopicStateStyle(state)
-                Button {
-                    selectedTopic = topic
-                } label: {
-                    Text("\(topic.number)")
-                        .font(.caption)
-                        .monospacedDigit()
-                        .frame(minWidth: 40, minHeight: 36)
-                        .background(
-                            style.color.opacity(style.mapTintOpacity),
-                            in: RoundedRectangle(cornerRadius: 6)
+                Text("\(topic.number)")
+                    .font(.caption)
+                    .monospacedDigit()
+                    .frame(minWidth: 40, minHeight: 36)
+                    .background(
+                        style.color.opacity(style.mapTintOpacity),
+                        in: RoundedRectangle(cornerRadius: 6)
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
+                    // Toque: ficha. Mantener pulsado: peek anclado a la
+                    // celda, sin abandonar el mapa. Gestos por celda (un
+                    // contextMenu dentro de una fila de List se registra
+                    // una sola vez y siempre mostraba la primera celda).
+                    .onTapGesture {
+                        selectedTopic = topic
+                    }
+                    .onLongPressGesture {
+                        peekTopicID = topic.id
+                    }
+                    .popover(
+                        isPresented: Binding(
+                            get: { peekTopicID == topic.id },
+                            set: { if !$0 { peekTopicID = nil } }
                         )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Tema \(topic.number), \(style.label)")
+                    ) {
+                        MapCellPeekCard(topic: topic, insight: byID[topic.id]) {
+                            peekTopicID = nil
+                            let target = topic
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(350))
+                                selectedTopic = target
+                            }
+                        }
+                        .presentationCompactAdaptation(.popover)
+                    }
+                    .accessibilityLabel("Tema \(topic.number), \(style.label)")
+                    .accessibilityAddTraits(.isButton)
             }
         }
     }
@@ -342,7 +370,7 @@ struct StudyCycleView: View {
                     NavigationLink(value: topic) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(topic.displayName)
+                                Text(topic.numberedDisplayName)
                                 if isMultiSyllabus, let name = topic.syllabus?.name {
                                     Text(name)
                                         .font(.caption)
@@ -351,7 +379,7 @@ struct StudyCycleView: View {
                             }
                             Spacer()
                             if let days = insight.daysSinceLastPractice {
-                                Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
+                                Text(daysAgoLabel(days))
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
@@ -367,6 +395,72 @@ struct StudyCycleView: View {
                 }
             }
         }
+    }
+}
+
+/// El peek de una celda del mapa (mantener pulsado): la identidad del
+/// tema sin abandonar el mapa, con el lenguaje visual de los estados —
+/// banda de estado, título numerado, hechos y acceso a la ficha.
+private struct MapCellPeekCard: View {
+    let topic: Topic
+    let insight: TopicInsight?
+    let openTopic: () -> Void
+
+    var body: some View {
+        let style = TopicStateStyle(insight?.state ?? .pending)
+
+        VStack(alignment: .leading, spacing: 0) {
+            // Banda de estado: el mismo tinte que la celda que pulsaste.
+            HStack(spacing: 8) {
+                Image(systemName: style.icon)
+                    .foregroundStyle(style.color)
+                Text(style.label)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .background(style.color.opacity(0.18))
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(topic.numberedDisplayName)
+                    .font(.headline)
+
+                HStack(spacing: 6) {
+                    if let insight, insight.attemptCount > 0 {
+                        Text(insight.attemptCount == 1
+                            ? String(localized: "1 intento")
+                            : String(localized: "\(insight.attemptCount) intentos"))
+                        if let days = insight.daysSinceLastPractice {
+                            Text("·")
+                            Text(daysAgoLabel(days))
+                        }
+                    } else {
+                        Text("Todavía no lo has cantado")
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+                Divider()
+                    .padding(.vertical, 2)
+
+                Button(action: openTopic) {
+                    HStack {
+                        Text("Abrir ficha")
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.ink)
+            }
+            .padding()
+        }
+        .frame(width: 250)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -437,7 +531,7 @@ struct StateGroupListView: View {
                 NavigationLink(value: row.topic) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(row.topic.displayName)
+                            Text(row.topic.numberedDisplayName)
                             if isMultiSyllabus, let name = row.topic.syllabus?.name {
                                 Text(name)
                                     .font(.caption)
@@ -446,7 +540,7 @@ struct StateGroupListView: View {
                         }
                         Spacer()
                         if let days = row.insight.daysSinceLastPractice {
-                            Text(days == 0 ? String(localized: "Hoy") : String(localized: "Hace \(days) días"))
+                            Text(daysAgoLabel(days))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }

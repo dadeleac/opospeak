@@ -13,6 +13,9 @@
     "¿Qué oposición preparas?" : {
 
     },
+    "·" : {
+
+    },
     "%@ tenías %lld temas al día; hoy tienes %lld." : {
       "localizations" : {
         "es" : {
@@ -59,6 +62,9 @@
     "%lld′" : {
 
     },
+    "1 intento" : {
+
+    },
     "1 necesita repaso" : {
 
     },
@@ -81,6 +87,9 @@
 
     },
     "Abrir Ajustes" : {
+
+    },
+    "Abrir ficha" : {
 
     },
     "Aceptar" : {
@@ -329,6 +338,12 @@
 
     },
     "Hace %lld días sin práctica" : {
+
+    },
+    "Hace 1 día" : {
+
+    },
+    "Hace 1 día sin práctica" : {
 
     },
     "Hace 30 días" : {
@@ -587,6 +602,16 @@
     },
     "Tema %lld" : {
 
+    },
+    "Tema %lld — %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tema %1$lld — %2$@"
+          }
+        }
+      }
     },
     "Tema %lld, %@" : {
       "localizations" : {
