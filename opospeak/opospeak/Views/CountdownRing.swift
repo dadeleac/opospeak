@@ -18,7 +18,7 @@ struct CountdownRing: View {
     let markFractions: [Double]
     let isOvertime: Bool
 
-    private let lineWidth: CGFloat = 5
+    private let lineWidth: CGFloat = 6
     private let tickDiameter: CGFloat = 9
 
     var body: some View {
@@ -47,14 +47,20 @@ struct CountdownRing: View {
     }
 
     /// Un tick por marca, colocado por ángulo sobre el propio trazo.
-    /// Se atenúa cuando el arco lo deja atrás: su aviso ya sonó.
+    /// Monocromo: Paper con borde Ink, como una muesca en la correa del
+    /// reloj — el Amber queda reservado para el momento del aviso (la
+    /// cápsula). Se atenúa cuando el arco lo deja atrás: su aviso ya sonó.
     private func tick(at mark: Double) -> some View {
         let crossed = mark > fraction
         return GeometryReader { proxy in
             let radius = min(proxy.size.width, proxy.size.height) / 2
             let angle = Angle.degrees(-90 + 360 * mark)
             Circle()
-                .fill(crossed ? Color(.quaternaryLabel) : Color.amber)
+                .fill(crossed ? Color(.quaternaryLabel) : Color.paper)
+                .stroke(
+                    crossed ? Color.clear : Color.ink,
+                    lineWidth: 2
+                )
                 .frame(width: tickDiameter, height: tickDiameter)
                 .position(
                     x: proxy.size.width / 2 + radius * cos(angle.radians),

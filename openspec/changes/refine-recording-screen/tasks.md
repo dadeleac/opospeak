@@ -10,6 +10,7 @@
 - [x] 2.1 `Views/CountdownRing.swift`: pista, arco restante desde arriba en sentido horario, ticks por ángulo, atenuación de ticks cruzados, estado de exceso en MutedRed, animación suave de la fracción
 - [x] 2.2 Integrar en `recordingView` (countdown): anillo alrededor del reloj + caption "objetivo N min"; count-up intacto
 - [x] 2.3 Anillo lleno y estático con ticks en la pantalla "Listo" (countdown)
+- [x] 2.4 Afinado tras revisión: trazo a 6 pt (proporción del Temporizador del sistema) y ticks monocromos (Paper con borde Ink, muesca en la correa) — el Amber queda reservado para el momento del aviso
 
 ## 3. Momento del aviso (C)
 
