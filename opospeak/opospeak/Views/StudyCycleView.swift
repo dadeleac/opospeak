@@ -371,11 +371,16 @@ struct StudyCycleView: View {
 }
 
 /// Lista completa de un grupo de estado ("Ver todos"). Derivada como
-/// todo lo demás: recalcula los insights al entrar.
+/// todo lo demás: recalcula los insights al entrar. Con cientos de temas,
+/// la lista necesita búsqueda (número, título, temario) y filtro por
+/// temario — el filtro solo aparece cuando hay varios.
 struct StateGroupListView: View {
     let state: TopicState
 
     @Query(sort: \Opposition.createdAt) private var oppositions: [Opposition]
+
+    @State private var searchText = ""
+    @State private var filteredSyllabusID: UUID?
 
     private var activeOpposition: Opposition? {
         if let idString = UserDefaults.standard.string(forKey: ActiveOpposition.storageKey),
@@ -386,14 +391,18 @@ struct StateGroupListView: View {
         return oppositions.first
     }
 
-    private var activeTopics: [Topic] {
+    private var activeSyllabi: [Syllabus] {
         (activeOpposition?.syllabi ?? [])
-            .flatMap { $0.topics ?? [] }
             .filter(\.isActive)
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
+    private var activeTopics: [Topic] {
+        activeSyllabi.flatMap { $0.topics ?? [] }.filter(\.isActive)
     }
 
     private var isMultiSyllabus: Bool {
-        (activeOpposition?.syllabi ?? []).filter(\.isActive).count > 1
+        activeSyllabi.count > 1
     }
 
     private var rows: [(topic: Topic, insight: TopicInsight)] {
@@ -403,8 +412,17 @@ struct StateGroupListView: View {
         )
         let byID = Dictionary(uniqueKeysWithValues: insights.map { ($0.topicID, $0) })
         return activeTopics
-            .compactMap { topic in
+            .compactMap { topic -> (topic: Topic, insight: TopicInsight)? in
                 guard let insight = byID[topic.id], insight.state == state else { return nil }
+                if let filteredSyllabusID, topic.syllabus?.id != filteredSyllabusID {
+                    return nil
+                }
+                if !searchText.isEmpty {
+                    let matches = String(topic.number).contains(searchText)
+                        || (topic.title ?? "").localizedCaseInsensitiveContains(searchText)
+                        || (topic.syllabus?.name ?? "").localizedCaseInsensitiveContains(searchText)
+                    guard matches else { return nil }
+                }
                 return (topic, insight)
             }
             .sorted { a, b in
@@ -440,6 +458,39 @@ struct StateGroupListView: View {
         .editorialBackground()
         .navigationTitle(TopicStateStyle(state).label)
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: isMultiSyllabus
+                ? Text("Buscar por número, título o temario")
+                : Text("Buscar por número o título")
+        )
+        .toolbar {
+            if isMultiSyllabus {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Picker("Temario", selection: $filteredSyllabusID) {
+                            Text("Todos los temarios").tag(UUID?.none)
+                            ForEach(activeSyllabi) { syllabus in
+                                Text(syllabus.name).tag(UUID?.some(syllabus.id))
+                            }
+                        }
+                    } label: {
+                        Label(
+                            "Filtrar por temario",
+                            systemImage: filteredSyllabusID == nil
+                                ? "line.3.horizontal.decrease.circle"
+                                : "line.3.horizontal.decrease.circle.fill"
+                        )
+                    }
+                }
+            }
+        }
+        .overlay {
+            if rows.isEmpty && (!searchText.isEmpty || filteredSyllabusID != nil) {
+                ContentUnavailableView.search(text: searchText)
+            }
+        }
     }
 }
 

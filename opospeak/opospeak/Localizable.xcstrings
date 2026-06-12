@@ -128,6 +128,9 @@
     "Buscar por número o título" : {
 
     },
+    "Buscar por número, título o temario" : {
+
+    },
     "Cambia el nombre de tu oposición" : {
 
     },
@@ -290,6 +293,9 @@
 
     },
     "Fecha" : {
+
+    },
+    "Filtrar por temario" : {
 
     },
     "Finalizar" : {
@@ -592,6 +598,9 @@
         }
       }
     },
+    "Temario" : {
+
+    },
     "Temarios" : {
 
     },
@@ -635,6 +644,9 @@
 
     },
     "Todo se guarda en tu dispositivo. Sin cuenta, sin servidores propios. Podrás exportarlo todo, siempre." : {
+
+    },
+    "Todos los temarios" : {
 
     },
     "Tu historial completo de práctica oral: organiza tus temas, graba tus intentos y observa tu evolución a lo largo de los años." : {

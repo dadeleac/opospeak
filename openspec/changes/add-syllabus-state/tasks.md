@@ -21,3 +21,8 @@
 
 - [x] 5.1 Suite completa en verde
 - [x] 5.2 Actualizar `Current Context.md`
+
+## 6. Refinado tras revisión en dispositivo
+
+- [x] 6.1 Listas "Ver todos" por estado: búsqueda siempre visible (número, título y temario) y filtro por temario en la toolbar (Menu+Picker, solo con >1 temario); estado vacío de búsqueda
+- [x] 6.2 Buscador de la lista de temas del temario siempre visible (navigationBarDrawer .always)
