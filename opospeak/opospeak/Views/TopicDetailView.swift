@@ -64,9 +64,12 @@ struct TopicDetailView: View {
                 Button {
                     practicing = true
                 } label: {
-                    Label("Practicar", systemImage: "mic.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 8) {
+                        Image(systemName: "mic.fill")
+                        Text("Practicar")
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)

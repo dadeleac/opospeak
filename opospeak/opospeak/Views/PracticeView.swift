@@ -164,9 +164,12 @@ struct PracticeView: View {
             Button {
                 beginRecording()
             } label: {
-                Label("Grabar", systemImage: "record.circle")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 8) {
+                    Image(systemName: "record.circle")
+                    Text("Grabar")
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -272,10 +275,10 @@ struct PracticeView: View {
             Button {
                 isPaused ? recorder.resume() : recorder.pause()
             } label: {
-                Label(
-                    isPaused ? "Reanudar" : "Pausar",
-                    systemImage: isPaused ? "play.fill" : "pause.fill"
-                )
+                HStack(spacing: 8) {
+                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                    Text(isPaused ? "Reanudar" : "Pausar")
+                }
                 .font(.headline)
                 .frame(maxWidth: .infinity)
             }
@@ -286,9 +289,12 @@ struct PracticeView: View {
             Button {
                 finish()
             } label: {
-                Label("Finalizar", systemImage: "stop.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 8) {
+                    Image(systemName: "stop.fill")
+                    Text("Finalizar")
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
