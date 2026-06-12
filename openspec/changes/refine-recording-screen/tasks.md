@@ -27,3 +27,8 @@
 - [x] 5.1 Suite completa en verde
 - [x] 5.2 Enmendar `define-practice-session-flow` (Avisos, Información visible) y `Current Context.md`
 - [ ] 5.3 Verificación manual en dispositivo: hápticas diferenciadas, fluidez del anillo, pulso
+
+## 6. Transición Listo → Grabando sin saltos
+
+- [x] 6.1 Esqueleto único `sessionView` para reposo y grabación: el reloj (anillo + cifra + caption) ocupa el mismo sitio en ambos momentos; ranuras de altura fija para estado (48 pt) y cápsula de aviso (44 pt)
+- [x] 6.2 Solo cambia el contenido de las ranuras (instrucción ↔ estado de grabación, Grabar ↔ Pausar/Finalizar) con fundido `.snappy` sobre el estado del recorder

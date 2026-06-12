@@ -37,10 +37,8 @@ struct PracticeView: View {
             Group {
                 if let recorder {
                     switch recorder.state {
-                    case .idle:
-                        readyView
-                    case .recording, .paused:
-                        recordingView(recorder)
+                    case .idle, .recording, .paused:
+                        sessionView(recorder)
                     case .finished:
                         if let summary {
                             summaryView(summary)
@@ -194,58 +192,6 @@ struct PracticeView: View {
         }
     }
 
-    // MARK: - Listo (colocar)
-
-    /// El móvil puede colocarse en un soporte con calma: aquí no se graba
-    /// nada todavía. Grabar es el único botón que enciende el micrófono.
-    private var readyView: some View {
-        VStack(spacing: 32) {
-            Spacer()
-
-            Text("Coloca el móvil donde quieras.\nPulsa cuando estés preparado.")
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 32)
-
-            // En cuenta atrás, el anillo lleno con sus ticks anticipa la
-            // práctica: los avisos se entienden antes de empezar.
-            ZStack {
-                if config.mode == .countdown {
-                    CountdownRing(fraction: 1, markFractions: ringMarkFractions, isOvertime: false)
-                        .frame(width: 240, height: 240)
-                }
-                Text(config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0))
-                    .font(.system(.largeTitle, design: .rounded, weight: .light))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(config.mode == .countdown ? "Tiempo objetivo" : "Cronómetro")
-            .accessibilityValue(
-                config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0)
-            )
-
-            Spacer()
-
-            Button {
-                beginRecording()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "record.circle")
-                    Text("Grabar")
-                }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding(.horizontal)
-            .padding(.bottom)
-            .accessibilityHint("Enciende el micrófono y empieza a grabar")
-        }
-    }
-
     /// Continuar: guarda la configuración, crea el recorder y pide el
     /// permiso de micrófono — para que el diálogo del sistema no
     /// interrumpa después de colocar el móvil. Todavía no se graba nada.
@@ -282,42 +228,23 @@ struct PracticeView: View {
             : "+" + formatDuration(-remaining)
     }
 
-    private func recordingView(_ recorder: PracticeRecorder) -> some View {
+    /// Listo y Grabando comparten un único esqueleto: el reloj ocupa
+    /// exactamente el mismo sitio en ambos momentos y cada ranura (estado,
+    /// cápsula, controles) tiene altura fija. Al pulsar Grabar solo
+    /// cambia el contenido de las ranuras — nada salta.
+    private func sessionView(_ recorder: PracticeRecorder) -> some View {
+        let isIdle = recorder.state == .idle
         let isPaused = recorder.state == .paused
 
         return VStack(spacing: 24) {
             Spacer()
 
-            // Estados inequívocos: color + icono + texto, nunca solo color.
-            // Los avisos ya no pasan por aquí: tienen su propia cápsula.
-            HStack(spacing: 8) {
-                if isPaused {
-                    Image(systemName: "pause.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.amber)
-                    Text("En pausa")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else if isOvertime {
-                    Image(systemName: "clock.badge.exclamationmark")
-                        .font(.caption)
-                        .foregroundStyle(Color.mutedRed)
-                    Text("Tiempo agotado")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Circle()
-                        .fill(Color.mutedRed)
-                        .frame(width: 12, height: 12)
-                    Text("Grabando")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .accessibilityElement(children: .combine)
+            statusArea(recorder)
+                .frame(height: 48)
 
             // Reloj dentro del anillo (solo cuenta atrás); el conjunto
-            // late una vez al cruzar cualquier marca.
+            // late una vez al cruzar cualquier marca. En reposo, el
+            // anillo lleno con sus ticks anticipa la práctica.
             ZStack {
                 if config.mode == .countdown {
                     CountdownRing(
@@ -334,7 +261,7 @@ struct PracticeView: View {
                         .font(.system(.largeTitle, design: .rounded, weight: .light))
                         .monospacedDigit()
                         .foregroundStyle(
-                            isPaused ? AnyShapeStyle(.secondary)
+                            isIdle || isPaused ? AnyShapeStyle(.secondary)
                                 : isOvertime ? AnyShapeStyle(Color.mutedRed)
                                 : AnyShapeStyle(.primary)
                         )
@@ -348,9 +275,11 @@ struct PracticeView: View {
             .scaleEffect(clockPulse ? 1.04 : 1)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
-                config.mode == .countdown
-                    ? (isOvertime ? "Tiempo excedido" : "Tiempo restante")
-                    : "Tiempo transcurrido"
+                isIdle
+                    ? (config.mode == .countdown ? "Tiempo objetivo" : "Cronómetro")
+                    : config.mode == .countdown
+                        ? (isOvertime ? "Tiempo excedido" : "Tiempo restante")
+                        : "Tiempo transcurrido"
             )
             .accessibilityValue(timerText(recorder.elapsed))
 
@@ -374,6 +303,74 @@ struct PracticeView: View {
             .animation(.spring(duration: 0.4), value: flashingMark)
 
             Spacer()
+
+            controlsArea(recorder)
+                .padding(.horizontal)
+                .padding(.bottom)
+        }
+        .animation(.snappy(duration: 0.3), value: recorder.state)
+    }
+
+    /// Ranura de estado: la invitación a colocarse en reposo, el estado
+    /// de grabación después. Estados inequívocos: color + icono + texto,
+    /// nunca solo color. Los avisos no pasan por aquí: tienen su cápsula.
+    @ViewBuilder
+    private func statusArea(_ recorder: PracticeRecorder) -> some View {
+        if recorder.state == .idle {
+            Text("Coloca el móvil donde quieras.\nPulsa cuando estés preparado.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+        } else {
+            HStack(spacing: 8) {
+                if recorder.state == .paused {
+                    Image(systemName: "pause.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.amber)
+                    Text("En pausa")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if isOvertime {
+                    Image(systemName: "clock.badge.exclamationmark")
+                        .font(.caption)
+                        .foregroundStyle(Color.mutedRed)
+                    Text("Tiempo agotado")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Circle()
+                        .fill(Color.mutedRed)
+                        .frame(width: 12, height: 12)
+                    Text("Grabando")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    /// Ranura de controles: Grabar en reposo; Pausar (prominente) y
+    /// Finalizar después. Misma altura y posición — solo cambian botones.
+    @ViewBuilder
+    private func controlsArea(_ recorder: PracticeRecorder) -> some View {
+        if recorder.state == .idle {
+            Button {
+                beginRecording()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "record.circle")
+                    Text("Grabar")
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .accessibilityHint("Enciende el micrófono y empieza a grabar")
+        } else {
+            let isPaused = recorder.state == .paused
 
             // Un solo gesto prominente: el que no destruye nada.
             HStack(spacing: 12) {
@@ -403,8 +400,6 @@ struct PracticeView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
             }
-            .padding(.horizontal)
-            .padding(.bottom)
         }
     }
 
