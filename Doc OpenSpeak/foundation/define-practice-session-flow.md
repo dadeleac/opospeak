@@ -173,6 +173,8 @@ Versión inicial:
 
 En cuenta atrás, un anillo fino rodea el reloj y se vacía con el tiempo grabado (el patrón del Temporizador del sistema). Las marcas de aviso son ticks visibles sobre el anillo: el opositor ve venir el aviso, igual que ve el reloj del tribunal. Bajo el reloj, una línea fina recuerda el objetivo. En cronómetro ascendente no hay anillo: el reloj limpio, sin más.
 
+Mientras se graba, un halo suave detrás del reloj respira con la voz: presencia, no vúmetro. Sutil a volumen conversacional, en calma en el silencio, quieto en pausa. Con Reducir movimiento, fijo en un estado suave.
+
 ---
 
 ## **Avisos en cuenta atrás**

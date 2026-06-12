@@ -17,6 +17,7 @@ struct PracticeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var recorder: PracticeRecorder?
     @State private var summary: PracticeSummary?
@@ -255,6 +256,12 @@ struct PracticeView: View {
             // late una vez al cruzar cualquier marca. En reposo, el
             // anillo lleno con sus ticks anticipa la práctica.
             ZStack {
+                // La presencia de la voz: solo grabando — una pantalla
+                // en pausa o en reposo está visiblemente quieta.
+                if recorder.state == .recording {
+                    AudioPresenceHalo(level: recorder.level)
+                        .frame(width: 220, height: 220)
+                }
                 if config.mode == .countdown {
                     CountdownRing(
                         fraction: CountdownRingGeometry.remainingFraction(
@@ -348,9 +355,14 @@ struct PracticeView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
+                    // El punto de grabación late suavemente con la voz:
+                    // la confirmación de "me está recogiendo" justo donde
+                    // el ojo va a comprobar que graba.
                     Circle()
                         .fill(Color.mutedRed)
                         .frame(width: 12, height: 12)
+                        .scaleEffect(reduceMotion ? 1 : 1 + 0.35 * recorder.level)
+                        .animation(reduceMotion ? nil : .easeOut(duration: 0.1), value: recorder.level)
                     Text("Grabando")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)

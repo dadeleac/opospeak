@@ -30,6 +30,10 @@ final class PracticeRecorder {
     private(set) var startedAt: Date?
     private(set) var endedAt: Date?
 
+    /// Nivel de voz suavizado [0, 1] para la presencia visual. Efímero:
+    /// solo vive mientras se graba; la pausa lo asienta a cero.
+    private(set) var level: Double = 0
+
     /// Identidad de la grabación, asignada al crear el recorder.
     /// El archivo y el futuro modelo Recording comparten este id.
     let recordingID = UUID()
@@ -37,6 +41,8 @@ final class PracticeRecorder {
     private let recordingStore: RecordingStore
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
+    private var meterTimer: Timer?
+    private var levelMeter = AudioLevelMeter()
     private var interruptionObserver: NSObjectProtocol?
 
     /// Voz, un solo hablante: AAC mono a 64 kbps (~30 MB/hora).
@@ -83,6 +89,8 @@ final class PracticeRecorder {
 
             try recordingStore.ensureDirectoryExists()
             let audioRecorder = try AVAudioRecorder(url: fileURL, settings: Self.recordingSettings)
+            // Solo activa la medición de nivel; no altera el archivo.
+            audioRecorder.isMeteringEnabled = true
             guard audioRecorder.record() else {
                 state = .failed(String(localized: "No se pudo iniciar la grabación."))
                 return
@@ -92,6 +100,7 @@ final class PracticeRecorder {
             startedAt = .now
             state = .recording
             startTimer()
+            startMeterTimer()
             observeInterruptions()
         } catch {
             state = .failed(error.localizedDescription)
@@ -106,6 +115,7 @@ final class PracticeRecorder {
         elapsed = recorder.currentTime
         timer?.invalidate()
         timer = nil
+        stopMetering()
         state = .paused
     }
 
@@ -125,6 +135,7 @@ final class PracticeRecorder {
         }
         state = .recording
         startTimer()
+        startMeterTimer()
     }
 
     /// Detiene la grabación y deja el archivo en su ubicación final.
@@ -155,6 +166,27 @@ final class PracticeRecorder {
         }
     }
 
+    /// Timer de medición propio (~15 Hz): el reloj no necesita esta
+    /// frecuencia y el halo no puede vivir con la de elapsed. Solo corre
+    /// grabando; la calibración (suelo, suavizado) vive en AudioLevelMeter.
+    private func startMeterTimer() {
+        meterTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 15.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, let recorder = self.recorder else { return }
+                recorder.updateMeters()
+                let normalized = AudioLevelMeter.normalize(power: recorder.averagePower(forChannel: 0))
+                self.level = self.levelMeter.smooth(normalized)
+            }
+        }
+    }
+
+    private func stopMetering() {
+        meterTimer?.invalidate()
+        meterTimer = nil
+        levelMeter.reset()
+        level = 0
+    }
+
     /// Una interrupción del sistema (llamada, Siri) pausa en lugar de
     /// perder la práctica. Nunca se reanuda sola: el usuario decide
     /// cuándo está listo.
@@ -180,6 +212,7 @@ final class PracticeRecorder {
     private func stopRecorder() {
         timer?.invalidate()
         timer = nil
+        stopMetering()
         if let interruptionObserver {
             NotificationCenter.default.removeObserver(interruptionObserver)
             self.interruptionObserver = nil

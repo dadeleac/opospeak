@@ -108,6 +108,48 @@ struct PracticeTimerConfigTests {
     }
 }
 
+struct AudioLevelMeterTests {
+
+    @Test func normalizationClampsToUnitRange() {
+        #expect(AudioLevelMeter.normalize(power: 0) == 1)
+        #expect(AudioLevelMeter.normalize(power: -25) == 0.5)
+        #expect(AudioLevelMeter.normalize(power: -160) == 0)
+    }
+
+    @Test func belowSpeechFloorIsSilence() {
+        // El suelo de habla está en −50 dB: por debajo, silencio.
+        #expect(AudioLevelMeter.normalize(power: -50) == 0)
+        #expect(AudioLevelMeter.normalize(power: -80) == 0)
+    }
+
+    @Test func attackIsFasterThanRelease() {
+        // El halo responde a la voz más rápido de lo que la suelta:
+        // así contesta al habla sin parpadear en sus valles.
+        var meter = AudioLevelMeter()
+        let afterAttack = meter.smooth(1)
+        var falling = meter
+        let afterRelease = falling.smooth(0)
+        #expect(afterAttack > 0.4)
+        #expect(afterAttack - afterRelease < afterAttack - 0)
+        #expect(afterRelease > afterAttack * 0.8)
+    }
+
+    @Test func silenceSettlesToZero() {
+        var meter = AudioLevelMeter()
+        meter.smooth(1)
+        for _ in 0..<60 { meter.smooth(0) }
+        #expect(meter.level < 0.001)
+    }
+
+    @Test func resetIsImmediate() {
+        // Pausa, fin o descarte: la pantalla queda quieta al instante.
+        var meter = AudioLevelMeter()
+        meter.smooth(1)
+        meter.reset()
+        #expect(meter.level == 0)
+    }
+}
+
 struct CountdownRingGeometryTests {
 
     @Test func fullAtStartEmptyAtTarget() {
