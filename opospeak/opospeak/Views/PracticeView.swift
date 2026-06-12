@@ -24,6 +24,8 @@ struct PracticeView: View {
     @State private var showingConfigSheet = false
     @State private var lastSeenElapsed: TimeInterval = 0
     @State private var flashingMark: TimeInterval?
+    @State private var clockPulse = false
+    @State private var confirmingDiscard = false
 
     private struct PracticeSummary {
         let duration: TimeInterval
@@ -61,6 +63,30 @@ struct PracticeView: View {
                         Button("Cancelar") { dismiss() }
                     }
                 }
+                // Lo destructivo no merece sitio permanente en pantalla:
+                // descartar vive en el menú y pide confirmación (borra
+                // el audio de forma irreversible).
+                if recorder?.state == .recording || recorder?.state == .paused {
+                    ToolbarItem(placement: .primaryAction) {
+                        Menu {
+                            Button("Descartar práctica", systemImage: "trash", role: .destructive) {
+                                confirmingDiscard = true
+                            }
+                        } label: {
+                            Label("Más opciones", systemImage: "ellipsis.circle")
+                        }
+                    }
+                }
+            }
+            .confirmationDialog(
+                "¿Descartar esta práctica?",
+                isPresented: $confirmingDiscard,
+                titleVisibility: .visible
+            ) {
+                Button("Descartar práctica", role: .destructive) { discard() }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("La grabación se eliminará y no se puede recuperar.")
             }
         }
         .interactiveDismissDisabled(recorder?.state == .recording || recorder?.state == .paused)
@@ -182,14 +208,23 @@ struct PracticeView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 32)
 
-            Text(config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0))
-                .font(.system(.largeTitle, design: .rounded, weight: .light))
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .accessibilityLabel(config.mode == .countdown ? "Tiempo objetivo" : "Cronómetro")
-                .accessibilityValue(
-                    config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0)
-                )
+            // En cuenta atrás, el anillo lleno con sus ticks anticipa la
+            // práctica: los avisos se entienden antes de empezar.
+            ZStack {
+                if config.mode == .countdown {
+                    CountdownRing(fraction: 1, markFractions: ringMarkFractions, isOvertime: false)
+                        .frame(width: 240, height: 240)
+                }
+                Text(config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0))
+                    .font(.system(.largeTitle, design: .rounded, weight: .light))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(config.mode == .countdown ? "Tiempo objetivo" : "Cronómetro")
+            .accessibilityValue(
+                config.mode == .countdown ? formatDuration(config.targetDuration) : formatDuration(0)
+            )
 
             Spacer()
 
@@ -250,10 +285,11 @@ struct PracticeView: View {
     private func recordingView(_ recorder: PracticeRecorder) -> some View {
         let isPaused = recorder.state == .paused
 
-        return VStack(spacing: 32) {
+        return VStack(spacing: 24) {
             Spacer()
 
             // Estados inequívocos: color + icono + texto, nunca solo color.
+            // Los avisos ya no pasan por aquí: tienen su propia cápsula.
             HStack(spacing: 8) {
                 if isPaused {
                     Image(systemName: "pause.fill")
@@ -269,13 +305,6 @@ struct PracticeView: View {
                     Text("Tiempo agotado")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                } else if let mark = flashingMark {
-                    Image(systemName: "bell.fill")
-                        .font(.caption)
-                        .foregroundStyle(Color.amber)
-                    Text(warningFlashLabel(mark))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
                 } else {
                     Circle()
                         .fill(Color.mutedRed)
@@ -287,56 +316,94 @@ struct PracticeView: View {
             }
             .accessibilityElement(children: .combine)
 
-            Text(timerText(recorder.elapsed))
-                .font(.system(.largeTitle, design: .rounded, weight: .light))
-                .monospacedDigit()
-                .foregroundStyle(
-                    isPaused ? AnyShapeStyle(.secondary)
-                        : isOvertime ? AnyShapeStyle(Color.mutedRed)
-                        : AnyShapeStyle(.primary)
-                )
-                .accessibilityLabel(
-                    config.mode == .countdown
-                        ? (isOvertime ? "Tiempo excedido" : "Tiempo restante")
-                        : "Tiempo transcurrido"
-                )
-                .accessibilityValue(timerText(recorder.elapsed))
+            // Reloj dentro del anillo (solo cuenta atrás); el conjunto
+            // late una vez al cruzar cualquier marca.
+            ZStack {
+                if config.mode == .countdown {
+                    CountdownRing(
+                        fraction: CountdownRingGeometry.remainingFraction(
+                            target: config.targetDuration, elapsed: recorder.elapsed
+                        ),
+                        markFractions: ringMarkFractions,
+                        isOvertime: isOvertime
+                    )
+                    .frame(width: 240, height: 240)
+                }
+                VStack(spacing: 4) {
+                    Text(timerText(recorder.elapsed))
+                        .font(.system(.largeTitle, design: .rounded, weight: .light))
+                        .monospacedDigit()
+                        .foregroundStyle(
+                            isPaused ? AnyShapeStyle(.secondary)
+                                : isOvertime ? AnyShapeStyle(Color.mutedRed)
+                                : AnyShapeStyle(.primary)
+                        )
+                    if config.mode == .countdown {
+                        Text("objetivo \(Int(config.targetDuration / 60)) min")
+                            .font(.footnote)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .scaleEffect(clockPulse ? 1.04 : 1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                config.mode == .countdown
+                    ? (isOvertime ? "Tiempo excedido" : "Tiempo restante")
+                    : "Tiempo transcurrido"
+            )
+            .accessibilityValue(timerText(recorder.elapsed))
+
+            // Hueco reservado: la cápsula del aviso entra y sale sin
+            // mover el reloj ni los controles.
+            ZStack {
+                if let mark = flashingMark {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bell.fill")
+                            .foregroundStyle(Color.amber)
+                        Text(warningFlashLabel(mark))
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                }
+            }
+            .frame(height: 44)
+            .animation(.spring(duration: 0.4), value: flashingMark)
 
             Spacer()
 
-            Button {
-                isPaused ? recorder.resume() : recorder.pause()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                    Text(isPaused ? "Reanudar" : "Pausar")
+            // Un solo gesto prominente: el que no destruye nada.
+            HStack(spacing: 12) {
+                Button {
+                    isPaused ? recorder.resume() : recorder.pause()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                        Text(isPaused ? "Reanudar" : "Pausar")
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
                 }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .padding(.horizontal)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
 
-            Button {
-                finish()
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "stop.fill")
-                    Text("Finalizar")
+                Button {
+                    finish()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "stop.fill")
+                        Text("Finalizar")
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
                 }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
             .padding(.horizontal)
-
-            Button("Descartar práctica", role: .destructive) {
-                discard()
-            }
-            .tint(.mutedRed)
-            .font(.subheadline)
             .padding(.bottom)
         }
     }
@@ -356,6 +423,22 @@ struct PracticeView: View {
             : String(localized: "Quedan \(Int(mark / 60)) min")
     }
 
+    private var ringMarkFractions: [Double] {
+        CountdownRingGeometry.markFractions(
+            target: config.targetDuration,
+            marks: config.effectiveWarningMarks()
+        )
+    }
+
+    /// Un latido del reloj: escala 1.0 → 1.04 → 1.0 con muelle corto.
+    private func pulseClock() {
+        withAnimation(.spring(duration: 0.25)) { clockPulse = true }
+        Task {
+            try? await Task.sleep(for: .milliseconds(250))
+            withAnimation(.spring(duration: 0.35)) { clockPulse = false }
+        }
+    }
+
     /// Háptica + señal visual + anuncio de VoiceOver al cruzar cada marca.
     /// Nunca sonido: el micrófono está abierto. Las marcas corren sobre
     /// tiempo grabado, así que la pausa las congela sola.
@@ -371,13 +454,16 @@ struct PracticeView: View {
         )
         guard let mark = crossed.last else { return }
 
-        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        pulseClock()
 
         if mark == 0 {
+            // El agotamiento pesa más que una marca intermedia.
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
             AccessibilityNotification.Announcement(
                 String(localized: "Tiempo agotado")
             ).post()
         } else {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
             AccessibilityNotification.Announcement(
                 isHalfTimeMark(mark)
                     ? String(localized: "Mitad de tiempo")

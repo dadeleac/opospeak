@@ -108,6 +108,42 @@ struct PracticeTimerConfigTests {
     }
 }
 
+struct CountdownRingGeometryTests {
+
+    @Test func fullAtStartEmptyAtTarget() {
+        #expect(CountdownRingGeometry.remainingFraction(target: 720, elapsed: 0) == 1)
+        #expect(CountdownRingGeometry.remainingFraction(target: 720, elapsed: 360) == 0.5)
+        #expect(CountdownRingGeometry.remainingFraction(target: 720, elapsed: 720) == 0)
+    }
+
+    @Test func overtimeDoesNotUnfillTheRing() {
+        // El exceso no "des-vacía" el anillo: fijado a cero.
+        #expect(CountdownRingGeometry.remainingFraction(target: 720, elapsed: 900) == 0)
+    }
+
+    @Test func nonPositiveTargetIsEmpty() {
+        #expect(CountdownRingGeometry.remainingFraction(target: 0, elapsed: 10) == 0)
+        #expect(CountdownRingGeometry.markFractions(target: 0, marks: [60]).isEmpty)
+    }
+
+    @Test func markFractionsArePositionsOnTheRing() {
+        // Marcas a 5 y 1 min de un objetivo de 12: fracciones restantes.
+        let fractions = CountdownRingGeometry.markFractions(
+            target: 12 * 60, marks: [300, 60]
+        )
+        #expect(fractions == [300.0 / 720.0, 60.0 / 720.0])
+    }
+
+    @Test func outOfRangeMarksDrawNoTicks() {
+        // Cero (el agotamiento no es tick: es el final del anillo) y
+        // marcas iguales o mayores que el objetivo.
+        let fractions = CountdownRingGeometry.markFractions(
+            target: 600, marks: [0, 600, 900, 300]
+        )
+        #expect(fractions == [0.5])
+    }
+}
+
 struct EffectiveWarningMarksTests {
 
     @Test func halfTimeMarkScalesWithTarget() {

@@ -13,6 +13,9 @@
     "¿Cuántos temas tiene tu temario?" : {
 
     },
+    "¿Descartar esta práctica?" : {
+
+    },
     "¿Qué oposición preparas?" : {
 
     },
@@ -397,6 +400,9 @@
     "La evolución aparecerá cuando acumules más días de práctica." : {
 
     },
+    "La grabación se eliminará y no se puede recuperar." : {
+
+    },
     "La oposición agrupa tus temarios. Por ejemplo: Judicatura, con los temarios Civil, Penal y Procesal." : {
 
     },
@@ -407,6 +413,9 @@
 
     },
     "Mapa del temario" : {
+
+    },
+    "Más opciones" : {
 
     },
     "Más practicados" : {
@@ -494,6 +503,9 @@
 
     },
     "Objetivo" : {
+
+    },
+    "objetivo %lld min" : {
 
     },
     "Opcional" : {

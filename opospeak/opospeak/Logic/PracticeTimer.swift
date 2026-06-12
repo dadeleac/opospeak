@@ -71,6 +71,30 @@ struct PracticeTimerConfig: Equatable, Codable {
     }
 }
 
+/// Aritmética del anillo de cuenta atrás. Pura: la vista solo dibuja.
+/// Corre sobre tiempo grabado, igual que las marcas — la pausa congela
+/// el anillo gratis.
+enum CountdownRingGeometry {
+
+    /// Fracción restante del anillo: 1 al empezar, 0 al agotarse.
+    /// Fijada a [0, 1]: el exceso no "des-vacía" el anillo.
+    static func remainingFraction(target: TimeInterval, elapsed: TimeInterval) -> Double {
+        guard target > 0 else { return 0 }
+        return min(1, max(0, (target - elapsed) / target))
+    }
+
+    /// Posición de cada marca como fracción restante (mark / target),
+    /// descendente. Una marca queda cruzada cuando su fracción supera
+    /// la fracción restante actual. Marcas fuera de (0, target) se ignoran.
+    static func markFractions(target: TimeInterval, marks: [TimeInterval]) -> [Double] {
+        guard target > 0 else { return [] }
+        return marks
+            .filter { $0 > 0 && $0 < target }
+            .map { $0 / target }
+            .sorted(by: >)
+    }
+}
+
 /// Cruce de marcas de aviso. Lógica pura sobre tiempo GRABADO (elapsed),
 /// no de pared: la pausa congela elapsed, así que los avisos se congelan
 /// solos y ninguna marca puede dispararse dos veces (elapsed es monótono).

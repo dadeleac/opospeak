@@ -171,11 +171,13 @@ Versión inicial:
 - cronómetro (ascendente o restante, según el modo elegido)
 - estado de grabación
 
+En cuenta atrás, un anillo fino rodea el reloj y se vacía con el tiempo grabado (el patrón del Temporizador del sistema). Las marcas de aviso son ticks visibles sobre el anillo: el opositor ve venir el aviso, igual que ve el reloj del tribunal. Bajo el reloj, una línea fina recuerda el objetivo. En cronómetro ascendente no hay anillo: el reloj limpio, sin más.
+
 ---
 
 ## **Avisos en cuenta atrás**
 
-Al cruzar cada marca elegida: vibración, señal visual y anuncio de VoiceOver.
+Al cruzar cada marca elegida: vibración, señal visual y anuncio de VoiceOver. La señal visual es un momento, no un cambio de texto: una cápsula breve bajo el reloj y un latido sutil del propio reloj. La vibración distingue las marcas intermedias del agotamiento, que pesa más.
 
 Nunca sonido: el micrófono está abierto y un pitido quedaría en la grabación.
 
