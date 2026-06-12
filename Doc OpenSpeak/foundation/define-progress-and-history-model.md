@@ -22,6 +22,31 @@ El verdadero producto es el historial acumulado de entrenamiento oral.
 
 ---
 
+# **La frontera Estado / Evolución**
+
+Dos preguntas distintas, dos lugares distintos:
+
+```txt
+Temarios  → Fotografía → "¿Qué hago ahora?"
+Progreso  → Película   → "¿Qué ha cambiado?"
+```
+
+Todo lo que responde al presente (estados, cobertura, mapa, Siguiente) vive en el Estado del temario, dentro de Temarios.
+
+Progreso muestra exclusivamente cambio a lo largo del tiempo: actividad del periodo y deltas de estado ("Al día: 18 → 43").
+
+Si esta frontera se difumina, Progreso degenera en un panel de contadores que nadie abre. Cualquier contenido nuevo debe responder primero: ¿es fotografía o es película?
+
+---
+
+## **La evolución es derivada, no grabada**
+
+Gracias a la honestidad de referencia de `define-topic-insights-model`, el estado de cualquier fecha pasada se calcula con exactitud evaluando en esa fecha.
+
+La película sale del mismo cálculo que la fotografía: sin snapshots persistidos, retroactiva desde el primer día de datos.
+
+---
+
 # **Problema**
 
 Después de meses o años de preparación, los opositores suelen tener:
@@ -180,6 +205,8 @@ Responde a:
 Responde a:
 
 “¿Dónde estoy concentrando mi esfuerzo?”
+
+La distribución actual (más/menos practicado) es fotografía: vive en el mapa del Estado del temario, no en Progreso. Aquí solo cabe su evolución, si algún día aporta.
 
 ---
 

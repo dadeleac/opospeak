@@ -203,11 +203,13 @@ Permite:
 
 ## **Propósito**
 
-Responder a la pregunta central del producto:
+Responder a:
 
 ```txt
-¿Estoy mejorando?
+¿Qué ha cambiado?
 ```
+
+Progreso es la película; Temarios es la fotografía. La frontera vive en `define-progress-and-history-model`.
 
 ---
 
@@ -215,12 +217,11 @@ Responder a la pregunta central del producto:
 
 Es una vista editorial, no un panel de control.
 
-Muestra los indicadores definidos en `define-progress-and-history-model`:
+- Selector de periodo (30 días / 90 días / todo)
+- Actividad del periodo (prácticas, tiempo, días con práctica)
+- Evolución del temario: deltas de estado "entonces → ahora" y una única gráfica sobria
 
-- volumen
-- consistencia
-- cobertura
-- distribución
+La distribución y todo lo que responda al presente vive en el Estado del temario.
 
 ---
 
@@ -278,7 +279,7 @@ Historial    → Detalle de tema + Progreso
 
 El estado del temario vive en la pestaña Temarios, no en Progreso.
 
-El criterio: Temarios responde "¿qué voy a practicar?"; Progreso responde "¿cómo voy?". El estado del temario responde a la primera pregunta.
+El criterio: Temarios responde "¿qué voy a practicar?" (fotografía); Progreso responde "¿qué ha cambiado?" (película). El estado del temario responde a la primera pregunta.
 
 ---
 
@@ -302,7 +303,7 @@ La pantalla de inicio deja de ser espacio vacío: comunica el estado real de la 
 
 - La tarjeta muestra el desglose por estados, nunca rotación ni prescripción. "Vuelta" es vocabulario interno, visible solo en el detalle.
 - "Siguiente" es la cabeza de la ordenación canónica con su razón factual — un tema, un hecho, un toque. Nada más se recomienda.
-- Progreso permanece reflexivo e intacto.
+- Progreso es la película (evolución), nunca duplica la fotografía.
 - Toda la semántica (estados visibles, estado del temario, vuelta, cobertura) proviene de `define-topic-insights-model`.
 
 ---

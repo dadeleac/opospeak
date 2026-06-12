@@ -304,6 +304,14 @@ The syllabus is a unit of state (OpenSpec change `add-syllabus-state`, completed
 - **Estado screen with per-syllabus blocks** when the opposition has >1 active syllabus: each block shows name + compact breakdown + its own grid (duplicate "Tema 1" solved structurally); qualified rows ("Tema 1 — Civil") in Siguiente, groups and Ver-todos lists; the Ficha shows its temario as navigation subtitle. **Single-syllabus oppositions see zero change.** Rejected: invented codes (C1/O1), syllabus colors, per-syllabus-only state.
 - Suite green (105 tests). Next: Progreso as Evolución.
 
+Progreso is now Evolución (OpenSpec change `add-progress-evolution`, completed):
+
+- **The Estado/Evolución boundary codified** in `define-progress-and-history-model`: Temarios = photo ("¿qué hago ahora?"), Progreso = film ("¿qué ha cambiado?"); any new content must answer which side it belongs to, or Progreso degenerates into the counters panel nobody opens. IA doc updated coherently.
+- **`statusSeries` in the insights model**: syllabus status sampled across a window, each point a full evaluation at that past reference (riding the honesty seam) — evolution derived retroactively from the first day of data, zero snapshots.
+- **Progreso redesigned**: window selector (30/90 días/Todo desde el primer intento) → "En este periodo" (prácticas, tiempo, días con práctica via ProgressSummary) → "Evolución del temario" (state deltas "entonces → ahora" with state styling, one restrained chart of temas al día). Distribution moved out (the Estado map owns the photo); consistency counters replaced by the window concept. No judgment: deltas are numbers, never grades.
+- Suite green (107 tests). The conceptual architecture the advisor hypothesized "within a year" is now real: Temarios = estado actual, Progreso = evolución histórica, Ajustes = configuración.
+- **Evolution section redesigned after device review** (the delta rows + line chart didn't read): now **two stacked composition bars** — the whole syllabus colored by state, "antes" vs "Hoy" — speaking the map's visual language; real temporal anchors instead of arrow notation; a narrative sentence as caption and accessibility summary; and a **sufficiency gate** (under 14 days of history, a calm explanation replaces the film — never noise from a single frame). The line chart was removed; it may return as a stacked area once months of real data justify it. Suite green (108 tests).
+
 Next steps toward release (not feature changes): manual device pass (real recording, device-to-device iCloud sync), the foundation's mandatory accessibility audits (VoiceOver + Dynamic Type full pass before TestFlight), CloudKit schema deploy to production, app icon, and the one-time purchase setup. Import/restore of export packages is a natural post-MVP change.
 
 ---

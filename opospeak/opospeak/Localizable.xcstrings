@@ -13,12 +13,12 @@
     "¿Qué oposición preparas?" : {
 
     },
-    "%@ · %lld intentos" : {
+    "%@ tenías %lld temas al día; hoy tienes %lld." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$@ · %2$lld intentos"
+            "value" : "%1$@ tenías %2$lld temas al día; hoy tienes %3$lld."
           }
         }
       }
@@ -44,6 +44,12 @@
     "%lld necesitan repaso" : {
 
     },
+    "%lld necesitan repaso." : {
+
+    },
+    "%lld siguen sin practicar." : {
+
+    },
     "%lld sin practicar" : {
 
     },
@@ -54,6 +60,15 @@
 
     },
     "1 necesita repaso" : {
+
+    },
+    "1 necesita repaso." : {
+
+    },
+    "30 días" : {
+
+    },
+    "90 días" : {
 
     },
     "Abre el detalle del estado del temario" : {
@@ -80,6 +95,9 @@
     "Al día" : {
 
     },
+    "Al empezar" : {
+
+    },
     "Alta rápida" : {
 
     },
@@ -98,6 +116,9 @@
     "Aplicación" : {
 
     },
+    "Aquí verás cómo cambia tu preparación a medida que practiques. Empieza desde la pestaña Temarios." : {
+
+    },
     "Archivar" : {
 
     },
@@ -114,9 +135,6 @@
 
     },
     "Cerrar" : {
-
-    },
-    "Cobertura" : {
 
     },
     "Coloca el móvil donde quieras.\nPulsa cuando estés preparado." : {
@@ -138,9 +156,6 @@
 
     },
     "Con notas" : {
-
-    },
-    "Consistencia" : {
 
     },
     "Continuar" : {
@@ -226,9 +241,6 @@
     "Días con práctica" : {
 
     },
-    "Distribución" : {
-
-    },
     "Duración" : {
 
     },
@@ -250,6 +262,9 @@
     "Empezar" : {
 
     },
+    "En este periodo" : {
+
+    },
     "En pausa" : {
 
     },
@@ -266,6 +281,9 @@
 
     },
     "Evolución de duraciones" : {
+
+    },
+    "Evolución del temario" : {
 
     },
     "Exportar mis datos" : {
@@ -307,6 +325,12 @@
     "Hace %lld días sin práctica" : {
 
     },
+    "Hace 30 días" : {
+
+    },
+    "Hace 90 días" : {
+
+    },
     "Hasta" : {
 
     },
@@ -331,6 +355,9 @@
     "Intentos" : {
 
     },
+    "La evolución aparecerá cuando acumules más días de práctica." : {
+
+    },
     "La oposición agrupa tus temarios. Por ejemplo: Judicatura, con los temarios Civil, Penal y Procesal." : {
 
     },
@@ -343,13 +370,7 @@
     "Mapa del temario" : {
 
     },
-    "Más practicado" : {
-
-    },
     "Más practicados" : {
-
-    },
-    "Menos practicado" : {
 
     },
     "Menos practicados" : {
@@ -460,6 +481,9 @@
     "Pendientes de práctica" : {
 
     },
+    "Periodo" : {
+
+    },
     "Por ejemplo: Civil, Penal, Procesal, Bloque I." : {
 
     },
@@ -467,6 +491,9 @@
 
     },
     "Practicar" : {
+
+    },
+    "Prácticas" : {
 
     },
     "Prefiero añadirlos después" : {
@@ -534,9 +561,6 @@
     "Sin practicar" : {
 
     },
-    "Sin practicar todavía" : {
-
-    },
     "Sin temarios" : {
 
     },
@@ -574,15 +598,6 @@
     "Temas" : {
 
     },
-    "Temas practicados" : {
-
-    },
-    "Temas trabajados" : {
-
-    },
-    "Tiempo acumulado" : {
-
-    },
     "Tiempo agotado" : {
 
     },
@@ -613,7 +628,10 @@
     "Todavía no lo has cantado." : {
 
     },
-    "Todavía sin progreso" : {
+    "Todavía sin evolución" : {
+
+    },
+    "Todo" : {
 
     },
     "Todo se guarda en tu dispositivo. Sin cuenta, sin servidores propios. Podrás exportarlo todo, siempre." : {
@@ -626,9 +644,6 @@
 
     },
     "Tu primer temario de %@" : {
-
-    },
-    "Tu progreso aparecerá aquí a medida que practiques tus temas. Empieza desde la pestaña Temarios." : {
 
     },
     "Tus datos son privados y viven en tu dispositivo." : {
@@ -649,12 +664,6 @@
     "Último: %@" : {
 
     },
-    "Últimos 7 días" : {
-
-    },
-    "Últimos 30 días" : {
-
-    },
     "Últimos practicados" : {
 
     },
@@ -665,9 +674,6 @@
 
     },
     "Vibración y señal visual, sin sonido: el micrófono está abierto y un pitido quedaría en la grabación." : {
-
-    },
-    "Volumen" : {
 
     },
     "Vuelta %lld · %lld de %lld practicados en esta vuelta" : {

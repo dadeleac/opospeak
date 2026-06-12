@@ -206,6 +206,29 @@ enum TopicInsightsModel {
         )
     }
 
+    /// La película derivada: el estado del temario muestreado a lo largo
+    /// de una ventana. Cada punto es una evaluación completa en esa
+    /// referencia pasada (honestidad de referencia) — la evolución sale
+    /// del mismo cálculo que la fotografía, sin snapshots persistidos.
+    static func statusSeries(
+        topics: [TopicFacts],
+        from start: Date,
+        to end: Date,
+        samples: Int,
+        calendar: Calendar = .current
+    ) -> [(date: Date, status: SyllabusStatus)] {
+        guard samples >= 2, end > start else {
+            let (insights, _) = evaluate(topics: topics, reference: end, calendar: calendar)
+            return [(end, status(insights))]
+        }
+        let step = end.timeIntervalSince(start) / Double(samples - 1)
+        return (0..<samples).map { index in
+            let date = start.addingTimeInterval(Double(index) * step)
+            let (insights, _) = evaluate(topics: topics, reference: date, calendar: calendar)
+            return (date, status(insights))
+        }
+    }
+
     /// Ordenación canónica de "qué practicar ahora": pendientes →
     /// olvidados (más antiguo primero) → al día → recientes.
     /// Es una ordenación sobre hechos, jamás un planificador.

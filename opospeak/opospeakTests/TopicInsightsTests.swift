@@ -200,6 +200,46 @@ struct TopicInsightsTests {
         #expect(health.total == 0)
     }
 
+    // MARK: - Serie de estado (la película)
+
+    @Test func statusSeriesEndpointsAndCount() {
+        // Tema practicado hace 10 días: al inicio de una ventana de 90
+        // días aún no existía (sin practicar); hoy está al día.
+        let topics = [topic(daysAgo: [10])]
+        let start = reference.addingTimeInterval(-90 * day)
+
+        let series = TopicInsightsModel.statusSeries(
+            topics: topics, from: start, to: reference, samples: 12
+        )
+
+        #expect(series.count == 12)
+        #expect(series.first?.date == start)
+        #expect(series.last?.date == reference)
+        #expect(series.first?.status.unpracticed == 1)
+        #expect(series.last?.status.upToDate == 1)
+    }
+
+    @Test func statusSeriesWithEmptyHistory() {
+        let topics = [topic(daysAgo: []), topic(daysAgo: [])]
+        let start = reference.addingTimeInterval(-30 * day)
+
+        let series = TopicInsightsModel.statusSeries(
+            topics: topics, from: start, to: reference, samples: 5
+        )
+
+        #expect(series.count == 5)
+        #expect(series.allSatisfy { $0.status.unpracticed == 2 })
+    }
+
+    @Test func statusSeriesDegenerateWindowYieldsSinglePoint() {
+        let topics = [topic(daysAgo: [3])]
+        let series = TopicInsightsModel.statusSeries(
+            topics: topics, from: reference, to: reference, samples: 12
+        )
+        #expect(series.count == 1)
+        #expect(series[0].status.upToDate == 1)
+    }
+
     // MARK: - Ordenación de sugerencia
 
     @Test func suggestionOrderGroupsAndAges() {
