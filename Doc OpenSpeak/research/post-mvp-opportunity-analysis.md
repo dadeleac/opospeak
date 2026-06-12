@@ -119,16 +119,21 @@ Temarios · Temas · Grabación · Historial · Notas · Indicadores básicos ·
 ## MVP+ — hecho (refinamiento pre-release)
 Pausa con auto-pausa en interrupciones · Cronómetro de examen con avisos silenciosos · `targetDelta` · Flujo decidir→colocar→cantar · Edición de tema.
 
-## V1 — el Ciclo de estudio (la release que demuestra la tesis)
-1. `define-topic-insights-model` (fundación, primero)
-2. **Ficha de tema** (consume el modelo; el detalle de tema se convierte en el centro de gravedad real)
-3. **La vuelta al temario** (el agregado; la pantalla que responde "¿qué canto hoy y cómo voy?")
-4. **Extracción aleatoria** ponderada por insights
+## V1 — el Ciclo de estudio (la release que demuestra la tesis) — hecho 1–3
+1. `define-topic-insights-model` (fundación, primero) ✓
+2. **Ficha de tema** ✓ (consume el modelo; el detalle de tema se convierte en el centro de gravedad real)
+3. **La vuelta al temario** ✓ (Estado del temario + Progreso como Evolución, sobre el mismo motor)
 
 *Nota de secuencia*: por valor, la vuelta es nº 1; por construcción, la ficha va antes — la vuelta es un mapa cuyas celdas son fichas, y un mapa que lleva a un detalle pobre defrauda. El modelo de insights desbloquea ambas; la inversión orden-valor/orden-construcción es deliberada y barata porque comparten la misma base.
 
+## Release / TestFlight — el foco actual
+El cuello de botella ya no es técnico ni de producto: faltan opositores reales usando la app para descubrir qué genera hábito. Camino: QA manual en dispositivo · icono · CloudKit a producción (hubo renombres de entidades) · TestFlight. La validación clave: **¿se usa "Siguiente" de forma recurrente?** — ¿abren la app pensando "qué me toca hoy" o "quiero grabar lo que estoy estudiando"?
+
+## V1.5 — la Extracción ponderada ("la bola") — **especificada, no programada**
+4. **Extracción ponderada por insights** — spec completa en `openspec/changes/add-weighted-extraction` (2026-06-12), decisiones tomadas: bombo por temario · reextracción sin historial ni culpa · resultado visible antes de practicar · pesos derivados de los estados del modelo · transparencia en una línea. **Criterio de activación: evidencia de TestFlight de que "Siguiente" se usa de forma recurrente** — bola y Siguiente responden a "¿qué canto hoy?" con el mismo motor; si nadie usa la recomendación, hay que repensar la decisión antes de ritualizarla. Estratégicamente: una de las funcionalidades con más personalidad del producto — "un bombo inteligente que te saca lo que te conviene cantar sin que parezca una recomendación". Cierra la narrativa Ficha (un tema) → Vuelta (el conjunto) → Bola (la decisión). Idea anotada para entonces: la evolución "Hoy" de la home (¿Qué quieres cantar? — Tema recomendado · Sacar bola), las dos respuestas del mismo motor lado a lado.
+
 ## V2 — el Modo examen + profundidad
-5. **Simulacro multi-tema** (con la entidad intermedia; el cronómetro global)
+5. **Simulacro multi-tema** (con la entidad intermedia; el cronómetro global — en esencia, N bolas con reloj global: consume la extracción)
 6. **Objetivos por oposición/tema**
 7. **Marcadores en la escucha**
 8. **Import/restore**
