@@ -21,6 +21,7 @@
 
 - [x] 4.1 Pausar (prominente) + Finalizar (bordered) en fila, mitades iguales
 - [x] 4.2 Descartar práctica a menú "···" en la toolbar (solo grabando/en pausa) con alerta centrada de confirmación (el action sheet desde menú de toolbar se ancla como popover flotante); cancelar pre-grabación sigue libre
+- [x] 4.3 Plantearse descartar pausa la grabación antes de la alerta; cancelar la deja en pausa hasta Reanudar explícito (coherente con las interrupciones: reanudación solo manual)
 
 ## 5. Verificación y docs
 

@@ -29,11 +29,15 @@ In countdown mode the clock SHALL be surrounded by a thin ring that drains as re
 - **THEN** no ring and no target caption appear — the clean clock alone
 
 ### Requirement: Recording controls with hierarchy
-While recording, Pausar SHALL be the single prominent control and Finalizar a secondary (bordered) control, presented side by side in one row. Descartar práctica SHALL NOT occupy permanent screen space: it lives in a toolbar menu and SHALL require confirmation via a centered alert before deleting, because it destroys the recording irreversibly (an anchored action sheet launched from a toolbar menu floats over the title — the alert is the HIG pattern for confirming irreversible loss, with an explicit Cancel). Cancel remains free (no confirmation) in both pre-recording moments, where nothing has been recorded.
+While recording, Pausar SHALL be the single prominent control and Finalizar a secondary (bordered) control, presented side by side in one row. Descartar práctica SHALL NOT occupy permanent screen space: it lives in a toolbar menu and SHALL require confirmation via a centered alert before deleting, because it destroys the recording irreversibly (an anchored action sheet launched from a toolbar menu floats over the title — the alert is the HIG pattern for confirming irreversible loss, with an explicit Cancel). Tapping Descartar práctica SHALL pause the recording before the alert appears — the minutes do not run while the user decides — and cancelling the alert SHALL leave the practice paused: recording resumes only with an explicit Reanudar, consistent with interruption handling (manual resume only). Cancel remains free (no confirmation) in both pre-recording moments, where nothing has been recorded.
 
 #### Scenario: Discarding asks first
 - **WHEN** the user opens the toolbar menu during a recording and taps Descartar práctica
 - **THEN** a centered alert warns that the recording will be deleted, with explicit Descartar (destructive) and Cancelar actions, and only confirming discards it
+
+#### Scenario: Deciding does not cost minutes
+- **WHEN** the user taps Descartar práctica while recording and then cancels the alert
+- **THEN** the recording paused when the alert appeared and stays paused after cancelling, until the user taps Reanudar
 
 #### Scenario: Pre-recording cancel stays free
 - **WHEN** the user cancels from preparation or the listo screen

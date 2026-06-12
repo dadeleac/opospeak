@@ -67,7 +67,13 @@ struct PracticeView: View {
                 if recorder?.state == .recording || recorder?.state == .paused {
                     ToolbarItem(placement: .primaryAction) {
                         Menu {
+                            // Plantearse descartar pausa la grabación: los
+                            // minutos no corren mientras el usuario decide.
+                            // Si cancela, sigue en pausa hasta Reanudar.
                             Button("Descartar práctica", systemImage: "trash", role: .destructive) {
+                                if recorder?.state == .recording {
+                                    recorder?.pause()
+                                }
                                 confirmingDiscard = true
                             }
                         } label: {
