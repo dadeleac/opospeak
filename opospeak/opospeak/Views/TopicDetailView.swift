@@ -18,6 +18,7 @@ struct TopicDetailView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.dismiss) private var dismiss
 
     @State private var practicing = false
     @State private var editing = false
@@ -144,7 +145,10 @@ struct TopicDetailView: View {
             }
         }
         .sheet(isPresented: $editing) {
-            EditTopicSheet(topic: topic)
+            EditTopicSheet(topic: topic) {
+                editing = false
+                dismiss()
+            }
         }
         .fullScreenCover(isPresented: $practicing) {
             PracticeView(topic: topic)
@@ -267,11 +271,15 @@ struct TopicDetailView: View {
 /// son obligatorios para practicar.
 struct EditTopicSheet: View {
     let topic: Topic
+    var onDelete: () -> Void = {}
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) private var environment
 
     @State private var number: Int = 1
     @State private var title = ""
+    @State private var confirmingDeletion = false
 
     private var isNumberAvailable: Bool {
         guard number != topic.number else { return true }
@@ -303,6 +311,15 @@ struct EditTopicSheet: View {
                 } footer: {
                     Text("Puedes dejarlo vacío: el tema se mostrará como \"Tema \(number)\".")
                 }
+                // La acción destructiva sobre el objeto editado, al final
+                // (patrón HIG). Pasa por el punto único: los audios
+                // mueren con el tema.
+                Section {
+                    Button("Eliminar tema", role: .destructive) {
+                        confirmingDeletion = true
+                    }
+                    .frame(maxWidth: .infinity)
+                }
             }
             .navigationTitle("Editar tema")
             .navigationBarTitleDisplayMode(.inline)
@@ -315,11 +332,40 @@ struct EditTopicSheet: View {
                         .disabled(!isNumberAvailable)
                 }
             }
+            .alert("¿Eliminar este tema?", isPresented: $confirmingDeletion) {
+                Button("Eliminar tema", role: .destructive) {
+                    deleteTopic()
+                }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text(deletionMessage)
+            }
             .onAppear {
                 number = topic.number
                 title = topic.title ?? ""
             }
         }
+    }
+
+    private var deletionMessage: String {
+        let count = topic.attempts?.count ?? 0
+        switch count {
+        case 0:
+            return String(localized: "No se puede deshacer.")
+        case 1:
+            return String(localized: "Se eliminará 1 intento con su grabación y notas. No se puede deshacer.")
+        default:
+            return String(localized: "Se eliminarán \(count) intentos con sus grabaciones y notas. No se puede deshacer.")
+        }
+    }
+
+    private func deleteTopic() {
+        let repository = PracticeRepository(
+            modelContext: modelContext,
+            recordingStore: environment.recordingStore
+        )
+        try? repository.delete(topic: topic)
+        onDelete()
     }
 
     private func save() {

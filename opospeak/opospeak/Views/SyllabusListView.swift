@@ -19,6 +19,8 @@ struct SyllabusListView: View {
     private var syllabi: [Syllabus]
 
     @State private var showingCreation = false
+    @State private var syllabusToDelete: Syllabus?
+    @Environment(AppEnvironment.self) private var environment
 
     private var activeOpposition: Opposition? {
         if let idString = UserDefaults.standard.string(forKey: ActiveOpposition.storageKey),
@@ -52,6 +54,13 @@ struct SyllabusListView: View {
                     SyllabusRow(syllabus: syllabus)
                 }
                 .swipeActions(edge: .trailing) {
+                    // Eliminar con alerta (destruye todo lo de debajo);
+                    // archivar directo (conserva el historial).
+                    Button(role: .destructive) {
+                        syllabusToDelete = syllabus
+                    } label: {
+                        Label("Eliminar", systemImage: "trash")
+                    }
                     Button {
                         archive(syllabus)
                     } label: {
@@ -87,6 +96,20 @@ struct SyllabusListView: View {
         .sheet(isPresented: $showingCreation) {
             NewSyllabusSheet(opposition: activeOpposition)
         }
+        .alert(
+            "¿Eliminar este temario?",
+            isPresented: Binding(
+                get: { syllabusToDelete != nil },
+                set: { if !$0 { syllabusToDelete = nil } }
+            )
+        ) {
+            Button("Eliminar temario", role: .destructive) {
+                deleteSyllabus()
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text(syllabusDeletionMessage)
+        }
         .overlay {
             if visibleSyllabi.isEmpty {
                 ContentUnavailableView {
@@ -106,6 +129,26 @@ struct SyllabusListView: View {
     private func archive(_ syllabus: Syllabus) {
         syllabus.isActive = false
         syllabus.updatedAt = .now
+    }
+
+    private var syllabusDeletionMessage: String {
+        let topics = (syllabusToDelete?.topics ?? []).count
+        let attempts = (syllabusToDelete?.topics ?? []).reduce(0) { $0 + ($1.attempts?.count ?? 0) }
+        if topics == 0 {
+            return String(localized: "No se puede deshacer.")
+        }
+        return String(localized: "Se eliminarán sus \(topics) temas y \(attempts) intentos con sus grabaciones. No se puede deshacer.")
+    }
+
+    /// Siempre vía el punto único: los audios de debajo mueren con el temario.
+    private func deleteSyllabus() {
+        guard let syllabus = syllabusToDelete else { return }
+        syllabusToDelete = nil
+        let repository = PracticeRepository(
+            modelContext: modelContext,
+            recordingStore: environment.recordingStore
+        )
+        try? repository.delete(syllabus: syllabus)
     }
 }
 

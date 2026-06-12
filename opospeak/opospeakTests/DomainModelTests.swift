@@ -214,6 +214,90 @@ struct DomainModelTests {
         #expect(try context.fetch(FetchDescriptor<Topic>()).count == 1)
     }
 
+    @Test func deletingTopicRemovesAudioFilesUnderneath() throws {
+        let context = try makeContainer().mainContext
+        let store = RecordingStore(
+            directoryURL: FileManager.default.temporaryDirectory
+                .appending(path: "RecordingStoreTests-\(UUID().uuidString)")
+        )
+        try store.ensureDirectoryExists()
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let topic = Topic(number: 7, syllabus: syllabus)
+        context.insert(topic)
+        let session = PracticeSession()
+        context.insert(session)
+
+        var audioURLs: [URL] = []
+        for _ in 0..<2 {
+            let attempt = Attempt(topic: topic, session: session)
+            context.insert(attempt)
+            let recording = Recording(attempt: attempt, duration: 600, fileSize: 1024)
+            context.insert(recording)
+            let url = store.url(forRecordingID: recording.id, format: recording.format)
+            try Data("audio".utf8).write(to: url)
+            audioURLs.append(url)
+        }
+        try context.save()
+
+        let repository = PracticeRepository(modelContext: context, recordingStore: store)
+        try repository.delete(topic: topic)
+
+        #expect(try context.fetch(FetchDescriptor<Topic>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Attempt>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Recording>()).isEmpty)
+        for url in audioURLs {
+            #expect(!FileManager.default.fileExists(atPath: url.path()))
+        }
+        // El temario sobrevive: borrar un tema nunca toca el temario.
+        #expect(try context.fetch(FetchDescriptor<Syllabus>()).count == 1)
+    }
+
+    @Test func deletingSyllabusRemovesAudioFilesUnderneath() throws {
+        let context = try makeContainer().mainContext
+        let store = RecordingStore(
+            directoryURL: FileManager.default.temporaryDirectory
+                .appending(path: "RecordingStoreTests-\(UUID().uuidString)")
+        )
+        try store.ensureDirectoryExists()
+
+        let opposition = Opposition(name: "Judicatura")
+        context.insert(opposition)
+        let syllabus = Syllabus(name: "Civil", opposition: opposition)
+        context.insert(syllabus)
+        let session = PracticeSession()
+        context.insert(session)
+
+        var audioURLs: [URL] = []
+        for number in 1...2 {
+            let topic = Topic(number: number, syllabus: syllabus)
+            context.insert(topic)
+            let attempt = Attempt(topic: topic, session: session)
+            context.insert(attempt)
+            let recording = Recording(attempt: attempt, duration: 600, fileSize: 1024)
+            context.insert(recording)
+            let url = store.url(forRecordingID: recording.id, format: recording.format)
+            try Data("audio".utf8).write(to: url)
+            audioURLs.append(url)
+        }
+        try context.save()
+
+        let repository = PracticeRepository(modelContext: context, recordingStore: store)
+        try repository.delete(syllabus: syllabus)
+
+        #expect(try context.fetch(FetchDescriptor<Syllabus>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Topic>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<Attempt>()).isEmpty)
+        for url in audioURLs {
+            #expect(!FileManager.default.fileExists(atPath: url.path()))
+        }
+        // La oposición sobrevive: borrar un temario nunca toca la oposición.
+        #expect(try context.fetch(FetchDescriptor<Opposition>()).count == 1)
+    }
+
     @Test func deletingSessionPreservesAttempts() throws {
         let context = try makeContainer().mainContext
 

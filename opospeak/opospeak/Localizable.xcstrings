@@ -19,6 +19,12 @@
     "¿Eliminar este intento?" : {
 
     },
+    "¿Eliminar este tema?" : {
+
+    },
+    "¿Eliminar este temario?" : {
+
+    },
     "¿Qué oposición preparas?" : {
 
     },
@@ -298,6 +304,9 @@
     "Editar tema" : {
 
     },
+    "Editar temario" : {
+
+    },
     "El intento ya forma parte del historial de este tema." : {
 
     },
@@ -311,6 +320,12 @@
 
     },
     "Eliminar intento" : {
+
+    },
+    "Eliminar tema" : {
+
+    },
+    "Eliminar temario" : {
 
     },
     "Empezar" : {
@@ -487,6 +502,9 @@
     "No se pudo reanudar la grabación." : {
 
     },
+    "No se puede deshacer." : {
+
+    },
     "Nombre" : {
 
     },
@@ -633,8 +651,24 @@
     "Se crearán como Tema 1, Tema 2… Podrás añadir títulos cuando quieras." : {
 
     },
+    "Se eliminará 1 intento con su grabación y notas. No se puede deshacer." : {
+
+    },
+    "Se eliminarán %lld intentos con sus grabaciones y notas. No se puede deshacer." : {
+
+    },
     "Se eliminarán la grabación, las notas y las métricas. No se puede deshacer." : {
 
+    },
+    "Se eliminarán sus %lld temas y %lld intentos con sus grabaciones. No se puede deshacer." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Se eliminarán sus %1$lld temas y %2$lld intentos con sus grabaciones. No se puede deshacer."
+          }
+        }
+      }
     },
     "Siguiente" : {
 
