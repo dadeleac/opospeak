@@ -4,6 +4,9 @@
     " · %lld sin practicar" : {
 
     },
+    " y " : {
+
+    },
     "— %@" : {
 
     },
@@ -141,7 +144,19 @@
     "Archivar" : {
 
     },
+    "Aviso a mitad de tiempo" : {
+
+    },
+    "Aviso al quedar %@ min" : {
+
+    },
     "Avisos" : {
+
+    },
+    "Avisos a mitad y al quedar %@ min" : {
+
+    },
+    "Avisos al quedar %@ min" : {
 
     },
     "Buscar por número o título" : {
@@ -218,16 +233,6 @@
     },
     "Cuenta atrás · %lld min" : {
 
-    },
-    "Cuenta atrás · %lld min · avisos %@" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Cuenta atrás · %1$lld min · avisos %2$@"
-          }
-        }
-      }
     },
     "Datos" : {
 
@@ -420,9 +425,6 @@
 
     },
     "Minutos" : {
-
-    },
-    "mitad" : {
 
     },
     "Mitad de tiempo" : {

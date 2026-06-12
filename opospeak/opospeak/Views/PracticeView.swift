@@ -79,24 +79,44 @@ struct PracticeView: View {
 
     // MARK: - Preparación (decidir)
 
-    /// El resumen de la configuración en una línea, p. ej.
-    /// "Cuenta atrás · 15 min · avisos 5′ y 1′".
-    private var configSummary: String {
-        guard config.mode == .countdown else {
-            return String(localized: "Cronómetro")
-        }
-        let minutes = Int(config.targetDuration / 60)
-        var marks = config.warningMarks
+    /// El chip resume la decisión en dos líneas deliberadas, como una fila
+    /// de Ajustes: la principal en titular, los avisos en caption. Nunca
+    /// un salto de línea accidental.
+    private var configTitle: String {
+        config.mode == .countdown
+            ? String(localized: "Cuenta atrás · \(Int(config.targetDuration / 60)) min")
+            : String(localized: "Cronómetro")
+    }
+
+    /// "Avisos a mitad y al quedar 5, 2 y 1 min" — lista española real,
+    /// singular cuidado, y "al quedar" porque "a los 1 min" no es español.
+    private var configDetail: String? {
+        guard config.mode == .countdown else { return nil }
+        let markMinutes = config.warningMarks
             .filter { $0 < config.targetDuration }
             .sorted(by: >)
-            .map { "\(Int($0 / 60))′" }
-        if config.halfTimeWarning {
-            marks.insert(String(localized: "mitad"), at: 0)
+            .map { "\(Int($0 / 60))" }
+        let list = spanishList(markMinutes)
+        switch (config.halfTimeWarning, markMinutes.isEmpty) {
+        case (false, true):
+            return nil
+        case (true, true):
+            return String(localized: "Aviso a mitad de tiempo")
+        case (false, false):
+            return markMinutes.count == 1
+                ? String(localized: "Aviso al quedar \(list) min")
+                : String(localized: "Avisos al quedar \(list) min")
+        case (true, false):
+            return String(localized: "Avisos a mitad y al quedar \(list) min")
         }
-        if marks.isEmpty {
-            return String(localized: "Cuenta atrás · \(minutes) min")
-        }
-        return String(localized: "Cuenta atrás · \(minutes) min · avisos \(marks.joined(separator: " y "))")
+    }
+
+    /// "5", "5 y 1", "5, 2 y 1": comas y la conjunción solo al final.
+    private func spanishList(_ items: [String]) -> String {
+        guard items.count > 1 else { return items.first ?? "" }
+        return items.dropLast().joined(separator: ", ")
+            + String(localized: " y ")
+            + items[items.count - 1]
     }
 
     /// Decisión habitual sin coste: chip de resumen + Continuar.
@@ -108,14 +128,23 @@ struct PracticeView: View {
                 Button {
                     showingConfigSheet = true
                 } label: {
-                    HStack {
-                        Label(configSummary, systemImage: "timer")
+                    HStack(spacing: 12) {
+                        Image(systemName: "timer")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(configTitle)
+                            if let detail = configDetail {
+                                Text(detail)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
+                .accessibilityElement(children: .combine)
                 .accessibilityHint("Abre la configuración del cronómetro")
             }
 

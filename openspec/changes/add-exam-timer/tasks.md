@@ -39,3 +39,4 @@
 - [x] 6.3 `handleWarnings` consume las marcas efectivas; la marca de mitad se etiqueta como hito ("Mitad de tiempo", no cifra redondeada) en flash y anuncio de VoiceOver
 - [x] 6.4 Toggle "A mitad de tiempo" en la sección Avisos con detalle dinámico ("Con este objetivo, cuando queden 7 min 30 s"); chip de resumen incluye "mitad"
 - [x] 6.5 Tests: round-trip con la nueva clave, payload legado sin la clave, escala con el objetivo, deduplicación y filtrado; configurabilidad total diferida a demanda real
+- [x] 6.6 Chip de resumen rediseñado en dos líneas deliberadas (titular "Cuenta atrás · 10 min" + caption "Avisos a mitad y al quedar 5, 2 y 1 min"): sin primas (′), lista española real y sin saltos de línea accidentales
