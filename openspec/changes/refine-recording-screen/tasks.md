@@ -34,3 +34,8 @@
 
 - [x] 6.1 Esqueleto único `sessionView` para reposo y grabación: el reloj (anillo + cifra + caption) ocupa el mismo sitio en ambos momentos; ranuras de altura fija para estado (48 pt) y cápsula de aviso (44 pt)
 - [x] 6.2 Solo cambia el contenido de las ranuras (instrucción ↔ estado de grabación, Grabar ↔ Pausar/Finalizar) con fundido `.snappy` sobre el estado del recorder
+
+## 7. Coherencia del cronómetro ascendente
+
+- [x] 7.1 Escenario de tamaño fijo (240×240) en ambos modos y todos los estados: el halo entra y sale sin redistribuir la pantalla
+- [x] 7.2 En cronómetro, solo la pista del anillo como escenario común (fracción 0, sin marcas): coherencia visual sin inventar semántica — la cuenta atrás añade la información real

@@ -271,6 +271,13 @@ struct PracticeView: View {
                         isOvertime: isOvertime
                     )
                     .frame(width: 240, height: 240)
+                } else {
+                    // El escenario circular es común a ambos modos: en
+                    // cronómetro, solo la pista (fracción 0, sin marcas)
+                    // — un círculo vacío no afirma nada sobre el tiempo;
+                    // la cuenta atrás le añade la información real.
+                    CountdownRing(fraction: 0, markFractions: [], isOvertime: false)
+                        .frame(width: 240, height: 240)
                 }
                 VStack(spacing: 4) {
                     Text(timerText(recorder.elapsed))
@@ -288,6 +295,9 @@ struct PracticeView: View {
                     }
                 }
             }
+            // Marco fijo: el escenario mide lo mismo en ambos modos y en
+            // todos los estados — el halo entra y sale sin mover nada.
+            .frame(width: 240, height: 240)
             .scaleEffect(clockPulse ? 1.04 : 1)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(

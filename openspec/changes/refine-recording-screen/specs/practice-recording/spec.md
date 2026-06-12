@@ -18,15 +18,15 @@ In countdown mode the user SHALL choose at which remaining-time marks to be warn
 ## ADDED Requirements
 
 ### Requirement: Countdown ring with visible marks
-In countdown mode the clock SHALL be surrounded by a thin ring that drains as recorded time passes (full at start, empty at zero — the system Timer pattern). The user's effective warning marks SHALL be drawn as ticks on the ring at their remaining-time positions, so upcoming warnings are visible before they fire — as the candidate sees the tribunal's clock. Ticks already crossed SHALL dim. In overtime the ring SHALL read as exhausted using MutedRed (never color alone — the "+excess" clock and "Tiempo agotado" status carry the meaning too). A thin caption under the clock SHALL state the target ("objetivo N min"). Count-up mode SHALL keep the bare clock: no ring, no caption. The ready (listo) screen SHALL show the full ring with its ticks around the idle clock in countdown mode, previewing the practice ahead. Pause SHALL freeze the ring (it runs on recorded time).
+In countdown mode the clock SHALL be surrounded by a thin ring that drains as recorded time passes (full at start, empty at zero — the system Timer pattern). The user's effective warning marks SHALL be drawn as ticks on the ring at their remaining-time positions, so upcoming warnings are visible before they fire — as the candidate sees the tribunal's clock. Ticks already crossed SHALL dim. In overtime the ring SHALL read as exhausted using MutedRed (never color alone — the "+excess" clock and "Tiempo agotado" status carry the meaning too). A thin caption under the clock SHALL state the target ("objetivo N min"). Count-up mode SHALL share the same circular stage at the same fixed size, showing only the empty track — no arc, no ticks, no caption: an empty track asserts nothing about time; countdown adds the real information. The stage size SHALL be constant across modes and states so the live-presence halo appears and disappears without relayout. The ready (listo) screen SHALL show the full ring with its ticks around the idle clock in countdown mode, previewing the practice ahead. Pause SHALL freeze the ring (it runs on recorded time).
 
 #### Scenario: Seeing the warning come
 - **WHEN** the user records a 12-minute countdown with marks at 5 and 1 minutes remaining
 - **THEN** the ring shows two ticks ahead of the draining edge, and each tick dims once its warning has fired
 
-#### Scenario: Count-up stays bare
+#### Scenario: Count-up shares the stage
 - **WHEN** the user records in count-up mode
-- **THEN** no ring and no target caption appear — the clean clock alone
+- **THEN** the clock sits on the same circular stage showing only the empty track — no draining arc, no ticks, no target caption — and nothing jumps when recording starts or pauses
 
 ### Requirement: Recording controls with hierarchy
 While recording, Pausar SHALL be the single prominent control and Finalizar a secondary (bordered) control, presented side by side in one row. Descartar práctica SHALL NOT occupy permanent screen space: it lives in a toolbar menu and SHALL require confirmation via a centered alert before deleting, because it destroys the recording irreversibly (an anchored action sheet launched from a toolbar menu floats over the title — the alert is the HIG pattern for confirming irreversible loss, with an explicit Cancel). Tapping Descartar práctica SHALL pause the recording before the alert appears — the minutes do not run while the user decides — and cancelling the alert SHALL leave the practice paused: recording resumes only with an explicit Reanudar, consistent with interruption handling (manual resume only). Cancel remains free (no confirmation) in both pre-recording moments, where nothing has been recorded.
